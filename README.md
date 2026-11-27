@@ -12,6 +12,8 @@ Rust audio components for building high-performance audio applications and DAWs.
 exist and are tested, but they live in another repository today. This repository holds the README until the first
 public release. The public API is still being reviewed, so names and signatures may change.
 
+**Documentation:** [signalsandsorcery.com/components/summoner-plugin-host](https://signalsandsorcery.com/components/summoner-plugin-host/) · [all twelve components](https://signalsandsorcery.com/components/) · [for agents](https://signalsandsorcery.com/#for-agents) · [llms.txt](https://signalsandsorcery.com/llms.txt)
+
 ## What it does
 
 Third-party plugins are the least trusted code in any audio application. A plugin can crash, deadlock, leak, take
@@ -190,25 +192,25 @@ SDK will be fetched at build time, never copied into this repository.
 
 ## The Signals & Sorcery components
 
-Signals & Sorcery is an ecosystem of twelve Rust audio components. Each one is useful on its own, and together they
+Signals & Sorcery is an ecosystem of twelve Rust audio components ([signalsandsorcery.com](https://signalsandsorcery.com)). Each one is useful on its own, and together they
 make a complete engine for audio applications and DAWs. Components meet at small published interfaces (traits, plain
 data types, a wire protocol and documented file formats), never at each other's internals, so any one of them can be
 replaced by another crate or by your own code.
 
 | Component | Repository | Role | Status |
 |---|---|---|---|
-| Runecraft | [runecraft-audio-core](https://github.com/shiehn/runecraft-audio-core) | Shared contracts, realtime safety, process isolation and realtime-safe logging: the floor every other component stands on | In preparation |
-| Orrery | [orrery-musical-time](https://github.com/shiehn/orrery-musical-time) | Tempo and meter, transports, bar, beat and sample maths, timed MIDI | In preparation |
-| Summoner | [summoner-plugin-host](https://github.com/shiehn/summoner-plugin-host) | Out-of-process VST3 and Audio Unit plugin hosting with crash isolation | In preparation |
-| Aethergate | [aethergate-audio-platform](https://github.com/shiehn/aethergate-audio-platform) | Audio devices (cpal, CoreAudio, a fake device for tests) and shared-memory meters | Planned |
-| Leyline | [leyline-audio-graph](https://github.com/shiehn/leyline-audio-graph) | A realtime audio graph with delay compensation, and a compiler from an edit model to a graph | Planned |
-| Cantrips | [cantrips-audio-dsp](https://github.com/shiehn/cantrips-audio-dsp) | Built-in mixer DSP: sampler, fader, pan, meters, compressor | Planned |
-| Scriptorium | [scriptorium-audio-media](https://github.com/shiehn/scriptorium-audio-media) | Decode and encode, a sample store, streaming voices, crash-safe recording | Planned |
-| Tapestry | [tapestry-session-model](https://github.com/shiehn/tapestry-session-model) | Tracks, clips, lanes and scenes; edits with undo; a crash-safe project store | Planned |
-| Procession | [procession-timeline-engine](https://github.com/shiehn/procession-timeline-engine) | What plays in each block: regions, notes, automation, launches | Planned |
-| Grimoire | [grimoire-daw-engine](https://github.com/shiehn/grimoire-daw-engine) | The assembled engine and its headless JSON-RPC protocol | Planned |
-| Familiar | [familiar-plugin-sdk](https://github.com/shiehn/familiar-plugin-sdk) | An SDK for plugins and panels that extend a Signals & Sorcery engine | Planned |
-| Glyphwork | [glyphwork-audio-ui](https://github.com/shiehn/glyphwork-audio-ui) | Audio UI widgets: meters, knobs, faders, waveforms | Planned |
+| [Runecraft](https://signalsandsorcery.com/components/runecraft-audio-core/) | [runecraft-audio-core](https://github.com/shiehn/runecraft-audio-core) | Shared contracts, realtime safety, process isolation and realtime-safe logging: the floor every other component stands on | In preparation |
+| [Orrery](https://signalsandsorcery.com/components/orrery-musical-time/) | [orrery-musical-time](https://github.com/shiehn/orrery-musical-time) | Tempo and meter, transports, bar, beat and sample maths, timed MIDI | In preparation |
+| [Summoner](https://signalsandsorcery.com/components/summoner-plugin-host/) | [summoner-plugin-host](https://github.com/shiehn/summoner-plugin-host) | Out-of-process VST3 and Audio Unit plugin hosting with crash isolation | In preparation |
+| [Aethergate](https://signalsandsorcery.com/components/aethergate-audio-platform/) | [aethergate-audio-platform](https://github.com/shiehn/aethergate-audio-platform) | Audio devices (cpal, CoreAudio, a fake device for tests) and shared-memory meters | Planned |
+| [Leyline](https://signalsandsorcery.com/components/leyline-audio-graph/) | [leyline-audio-graph](https://github.com/shiehn/leyline-audio-graph) | A realtime audio graph with delay compensation, and a compiler from an edit model to a graph | Planned |
+| [Cantrips](https://signalsandsorcery.com/components/cantrips-audio-dsp/) | [cantrips-audio-dsp](https://github.com/shiehn/cantrips-audio-dsp) | Built-in mixer DSP: sampler, fader, pan, meters, compressor | Planned |
+| [Scriptorium](https://signalsandsorcery.com/components/scriptorium-audio-media/) | [scriptorium-audio-media](https://github.com/shiehn/scriptorium-audio-media) | Decode and encode, a sample store, streaming voices, crash-safe recording | Planned |
+| [Tapestry](https://signalsandsorcery.com/components/tapestry-session-model/) | [tapestry-session-model](https://github.com/shiehn/tapestry-session-model) | Tracks, clips, lanes and scenes; edits with undo; a crash-safe project store | Planned |
+| [Procession](https://signalsandsorcery.com/components/procession-timeline-engine/) | [procession-timeline-engine](https://github.com/shiehn/procession-timeline-engine) | What plays in each block: regions, notes, automation, launches | Planned |
+| [Grimoire](https://signalsandsorcery.com/components/grimoire-daw-engine/) | [grimoire-daw-engine](https://github.com/shiehn/grimoire-daw-engine) | The assembled engine and its headless JSON-RPC protocol | Planned |
+| [Familiar](https://signalsandsorcery.com/components/familiar-plugin-sdk/) | [familiar-plugin-sdk](https://github.com/shiehn/familiar-plugin-sdk) | An SDK for plugins and panels that extend a Signals & Sorcery engine | Planned |
+| [Glyphwork](https://signalsandsorcery.com/components/glyphwork-audio-ui/) | [glyphwork-audio-ui](https://github.com/shiehn/glyphwork-audio-ui) | Audio UI widgets: meters, knobs, faders, waveforms | Planned |
 
 Dependencies point down, never up. A component may depend on components in the rows below it, never on one above
 it, and most need far less than everything below them.
