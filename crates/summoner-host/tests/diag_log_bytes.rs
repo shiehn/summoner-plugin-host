@@ -1,13 +1,14 @@
-//! The child's own log lines, frozen. `diag_log.rs` checks what the child writes; this pins how it writes
-//! it, byte for byte, so moving the child's logging (onto runecraft-log, its areas adopted from the parent's
+//! The child's own log lines, frozen. The host application's log tests check what the child writes; this pins how it
+//! writes it, byte for byte, so moving the child's logging (onto runecraft-log, its areas adopted from the parent's
 //! `SUMMONER_LOG`) changes none of it:
 //! `session.start` (with its `levels`, the host application's `describe` of all 16 areas), `log.salt`, the `host`
 //! records (a slot's name hashed under the salt), the first `chain.block` of the chain thread's realtime ring,
 //! `session.end`.
 //!
-//! The child is launched with the PRODUCTION spec: `SUMMONER_LOG` is what the host application's `with_child_env`
-//! passes, the host application's `describe` of its launch levels (here `host=trace,plugin=info` over the default),
-//! never a partial spec. It is a literal ([`PRODUCTION_SPEC`]), so the input outlives the child's logging library.
+//! The child is launched with the PRODUCTION spec: `SUMMONER_LOG` is what the host application's child
+//! environment passes, the host application's `describe` of its launch levels (here `host=trace,plugin=info` over the
+//! default), never a partial spec. It is a literal ([`PRODUCTION_SPEC`]), so the input outlives the child's logging
+//! library.
 //!
 //! Stderr: [`the_childs_stderr_is_the_golden_one`] pins the child's own `SUMMONER_LOG` warning line (the child launched with
 //! a refused spec and no descriptor 3). Not pinned here, a named gap: the drainer's echo of a warning record,
@@ -16,9 +17,9 @@
 //! `summoner-<comp>: ` echo, pinned by runecraft-log's own tests; the child's comp word `host` is pinned in
 //! every line of [`every_child_record_is_the_golden_one`].
 //!
-//! Normalised: `ts`, `mono`, `pid`, `seq` (dense `seq` is `diag_log.rs`'s check), `session.end`'s `records`, and the
-//! realtime fields `ticks`, `seq`, `rtSeq`. Only the first `chain.block` is kept, on a line of its own: the ring's
-//! lines interleave with the message thread's by the 50 ms pull.
+//! Normalised: `ts`, `mono`, `pid`, `seq` (dense `seq` is the host application's log tests' check), `session.end`'s
+//! `records`, and the realtime fields `ticks`, `seq`, `rtSeq`. Only the first `chain.block` is kept, on a line of its
+//! own: the ring's lines interleave with the message thread's by the 50 ms pull.
 //!
 //! **Re-recorded once, at the neutral-names decision:** the thread of the log's own
 //! records (the golden's 3 control lines, now `summoner-log`), and in the stderr golden the levels variable (now
@@ -46,7 +47,7 @@ fn lines(dir: &Path) -> Vec<String> {
 }
 
 /// The host application's child log spec, as a literal: `describe` of the launch levels `host=trace,plugin=info` over
-/// the default (every area named, in nibble order), exactly what the host application's `with_child_env` passes today.
+/// the default (every area named, in nibble order), exactly what the host application's child environment passes today.
 /// A literal, not a call: the child's logging library may change, and the golden's input must not move with it.
 const PRODUCTION_SPEC: &str = "wire=warn,control=warn,compile=warn,graph=warn,audio=warn,store=warn,bridge=warn,\
 package=warn,writer=warn,capture=warn,arr=warn,host=trace,plugin=info,app=warn,rpc=warn,intent=warn";

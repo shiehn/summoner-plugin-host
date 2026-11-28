@@ -1,6 +1,6 @@
 [package]
 name = "summoner-proto"
-description = "The plugin-host child protocol: the region layout and its C header's generator, the control-channel codec (frames, the streaming decoder, the typed meta), the plugin ref and scan class, the state blob framing; safe code only"
+description = "The plugin-host child protocol: the region layout and its field tables (data a C header can be generated from), the control-channel codec (frames, the streaming decoder, the typed meta), the plugin ref and scan class, the state blob framing; safe code only"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,7 +9,7 @@ publish.workspace = true
 [dependencies]
 # The log contract the codec checks a log.set word and a correlation id against (levels, the corr grammar).
 runecraft-contracts.workspace = true
-# The transport bits of `blockFlags` (layout.rs re-exports them from the transport that sets them).
+# The transport bits of `block_flags` (layout.rs re-exports them from the transport that sets them).
 orrery-time.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -24,14 +24,14 @@ test-double = []
 # --cfg <mutant>`, or RUSTFLAGS in a separate target dir; never in a normal build: all are cfgs nothing sets):
 # src/codec.rs: mutant_scanned_flags_ignored / mutant_scan_flags_ignored (the flag rule skipped for
 # `scanned` or `scan`) fail the codec's negative flag cases; mutant_class_id_unchecked (the classId grammar check
-# removed) fails codec's `a_malformed_class_id_is_refused` (and the compat crate's description test);
-# mutant_oversized_blob_struck (a header refused for its blob size left unclassified) fails form B's L1 test;
+# removed) fails the host application's malformed-class-id description test;
+# mutant_oversized_blob_struck (a header refused for its blob size left unclassified) fails form B's oversized-header test;
 # mutant_log_set_no_s7 and mutant_corr_no_cap fail the codec's log.set and corr cap tests.
 # src/codec/form_b.rs: the scanned wire's codec half; the test that fails on each is named at the head of form_b.rs's
 # tests (mutant_scan_descriptions_uncapped, _scan_line_uncapped, _scan_blob_count_unchecked,
 # _scan_line_seq_accepted, _scan_line_size_after_parse, _discovered_dropped, _scan_encode_count_unchecked,
 # _scan_encode_line_unchecked, _scan_encode_blob_unchecked, _scan_line_canon_unchecked; mutant_scan_form_label_on_wire
-# writes the blob format's label as a meta key and fails the label tests T1 and T2).
+# writes the blob format's label as a meta key and fails the two label tests).
 # src/plugin.rs (protocol 4.0's PluginRef): mutant_plugin_ref_uncapped (no 4 KiB bound),
 # mutant_plugin_ref_au_values_unchecked (an AU ref's code values unchecked) and
 # mutant_plugin_ref_unknown_accepted (no deny_unknown_fields) fail plugin's `bad_refs_are_refused`;

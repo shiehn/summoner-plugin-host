@@ -275,7 +275,8 @@ pub trait Plugin: Send + Sync {
     /// How many parameters the slot reports.
     fn param_count(&self) -> u32;
     /// *(bridge protocol 3.9)* The slot's notices now, codes the host application names it by (`SlotInfo.notices` at
-    /// load, `chain.prepared`'s `slotNotices` after a prepare: the whole current set). Message thread. None by default.
+    /// load, `chain.prepared`'s per-slot notices after a prepare: the whole current set). Message thread. None by
+    /// default.
     fn notices(&self) -> Vec<String> {
         Vec::new()
     }

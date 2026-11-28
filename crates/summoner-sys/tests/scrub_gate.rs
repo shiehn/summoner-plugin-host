@@ -157,11 +157,17 @@ fn every_label_shape_is_found() {
             j(&["/// amendment (c), Q", "-L1: a slot"]),
             j(&["Q", "-L1"]),
         ),
-        (j(&["/// ADR 0005 OQ", "-6(1): after"]), j(&["Q", "-6("])),
-        (j(&["/// Rev 1 S6", "31-2 / O3: a page"]), j(&["S6", "31"])),
+        (
+            j(&["/// ADR 00", "99 OQ", "-6(1): after"]),
+            j(&["Q", "-6("]),
+        ),
+        (
+            j(&["/// Rev 1 S", "631-2 / O", "3: a page"]),
+            j(&["S", "631"]),
+        ),
         (j(&["// the s8", "55 contract"]), j(&["s8", "55"])),
         (j(&["    fn s8", "44_notices() {"]), j(&["s8", "44_"])),
-        (j(&["// S", "-706 S3: the split"]), j(&["S", "-7"])),
+        (j(&["// S", "-706 S", "3: the split"]), j(&["S", "-7"])),
         (j(&["// (D", "-16)"]), j(&["D", "-1"])),
         (
             j(&["    if cfg!(mutant", "_s671_chase_raw_pos) {"]),
@@ -172,7 +178,7 @@ fn every_label_shape_is_found() {
             j(&["rul", "ing"]),
         ),
         (
-            j(&["// the re", "view's P1: a take"]),
+            j(&["// the re", "view's P", "1: a take"]),
             j(&["the re", "view"]),
         ),
         (j(&["// as mg", "mt asked"]), j(&["mg", "mt"])),
@@ -181,7 +187,11 @@ fn every_label_shape_is_found() {
     }
     for clean in [
         "const CODES: &str = \"61756678-534c6761-5361534c\"; // aufx S1gx",
-        "let d = \"a5e3f1s0b2\"; let s16 = 48_000; // s16le, S1234, xS123, S12, D16, ABS-1",
+        &j(&[
+            "let d = \"a5e3f1s0b2\"; let s16 = 48_000; // s16le, S1234, xS123, S",
+            "12, D",
+            "16, ABS-1",
+        ]),
         "QQ-1 and FAQ-2 and Q-x and HQ-12",
         "fn s16_le() {} fn s1234_x() {} fn xs123_y() {} // s12_",
         &j(&[

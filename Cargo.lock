@@ -165,8 +165,8 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
 name = "orrery-time"
-version = "0.1.0"
-source = "git+https://github.com/shiehn/orrery-musical-time.git?rev=efd3fa8901001ac4bb174aea46bce33d7806f2a2#efd3fa8901001ac4bb174aea46bce33d7806f2a2"
+version = "0.2.0"
+source = "git+https://github.com/shiehn/orrery-musical-time.git?rev=d6dbdf861689cea1560a0bdc4429fb07d80093c3#d6dbdf861689cea1560a0bdc4429fb07d80093c3"
 
 [[package]]
 name = "pin-project-lite"
@@ -211,13 +211,13 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
 name = "runecraft-contracts"
-version = "0.1.0"
-source = "git+https://github.com/shiehn/runecraft-audio-core.git?rev=8f396e411b8a18c3e46f0d38ed3bba266dbd7397#8f396e411b8a18c3e46f0d38ed3bba266dbd7397"
+version = "0.2.0"
+source = "git+https://github.com/shiehn/runecraft-audio-core.git?rev=01a12ed8ce5256d571b3578da6fd217fd85e73a1#01a12ed8ce5256d571b3578da6fd217fd85e73a1"
 
 [[package]]
 name = "runecraft-ipc"
-version = "0.1.0"
-source = "git+https://github.com/shiehn/runecraft-audio-core.git?rev=8f396e411b8a18c3e46f0d38ed3bba266dbd7397#8f396e411b8a18c3e46f0d38ed3bba266dbd7397"
+version = "0.2.0"
+source = "git+https://github.com/shiehn/runecraft-audio-core.git?rev=01a12ed8ce5256d571b3578da6fd217fd85e73a1#01a12ed8ce5256d571b3578da6fd217fd85e73a1"
 dependencies = [
  "libc",
  "runecraft-rt",
@@ -225,8 +225,8 @@ dependencies = [
 
 [[package]]
 name = "runecraft-log"
-version = "0.1.0"
-source = "git+https://github.com/shiehn/runecraft-audio-core.git?rev=8f396e411b8a18c3e46f0d38ed3bba266dbd7397#8f396e411b8a18c3e46f0d38ed3bba266dbd7397"
+version = "0.2.0"
+source = "git+https://github.com/shiehn/runecraft-audio-core.git?rev=01a12ed8ce5256d571b3578da6fd217fd85e73a1#01a12ed8ce5256d571b3578da6fd217fd85e73a1"
 dependencies = [
  "runecraft-contracts",
  "runecraft-ipc",
@@ -236,8 +236,8 @@ dependencies = [
 
 [[package]]
 name = "runecraft-rt"
-version = "0.1.0"
-source = "git+https://github.com/shiehn/runecraft-audio-core.git?rev=8f396e411b8a18c3e46f0d38ed3bba266dbd7397#8f396e411b8a18c3e46f0d38ed3bba266dbd7397"
+version = "0.2.0"
+source = "git+https://github.com/shiehn/runecraft-audio-core.git?rev=01a12ed8ce5256d571b3578da6fd217fd85e73a1#01a12ed8ce5256d571b3578da6fd217fd85e73a1"
 dependencies = [
  "libc",
  "loom",
@@ -333,7 +333,7 @@ checksum = "d0d5d4b1981b8bbbb7aed204cae5726d683d5d6ac7e74ec54122ea28f315e7c8"
 
 [[package]]
 name = "summoner"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "runecraft-contracts",
  "runecraft-ipc",
@@ -347,7 +347,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-format-au"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "runecraft-log",
  "runecraft-rt",
@@ -360,7 +360,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-format-vst3"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "runecraft-rt",
  "serde_json",
@@ -372,7 +372,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-host"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "runecraft-contracts",
  "runecraft-ipc",
@@ -396,7 +396,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-plugin"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "loom",
  "runecraft-rt",
@@ -405,7 +405,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-probe"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -418,7 +418,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-probe-bin"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -430,7 +430,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-proc"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "runecraft-ipc",
  "runecraft-rt",
@@ -438,7 +438,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-proto"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "orrery-time",
  "runecraft-contracts",
@@ -448,7 +448,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-rt"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "loom",
  "orrery-time",
@@ -459,7 +459,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-scan"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "runecraft-contracts",
  "runecraft-ipc",
@@ -472,7 +472,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-sys"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cc",
  "libc",
@@ -482,11 +482,11 @@ dependencies = [
 
 [[package]]
 name = "summoner-sys-ui"
-version = "0.1.0"
+version = "0.2.0"
 
 [[package]]
 name = "summoner-testkit"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "runecraft-ipc",
  "runecraft-rt",
@@ -500,7 +500,7 @@ dependencies = [
 
 [[package]]
 name = "summoner-testproc"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "runecraft-rt",
  "serde_json",

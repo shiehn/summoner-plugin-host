@@ -22,7 +22,12 @@ pub const MAX_META: usize = 64 * 1024;
 /// The largest blob of one frame: 64 MiB of raw bytes.
 pub const MAX_BLOB: usize = 64 * 1024 * 1024;
 /// The most descriptors one frame may carry (`chain.load`: the region; `hello`: the child page).
+#[cfg(not(windows))]
 pub const MAX_FRAME_FDS: u32 = 2;
+/// The most objects one frame may carry on Windows: the unix two, plus the child page's hub set section and a
+/// waiter's event.
+#[cfg(windows)]
+pub const MAX_FRAME_FDS: u32 = 4;
 
 /// Frame flag bit 0: a reply (it echoes its request's id).
 pub const FF_REPLY: u16 = 1 << 0;
@@ -34,7 +39,7 @@ pub const FF_ERROR: u16 = 1 << 2;
 pub const FF_FDS: u16 = 1 << 3;
 const FF_KNOWN: u16 = FF_REPLY | FF_EVENT | FF_ERROR | FF_FDS;
 
-/// The catalogue (D6). Requests and their replies share a kind (the reply sets `FF_REPLY`); completion events have
+/// The catalogue. Requests and their replies share a kind (the reply sets `FF_REPLY`); completion events have
 /// their own.
 pub mod kind {
     // Inline.
@@ -112,9 +117,9 @@ pub mod kind {
     /// (protocol 3.8): `chain.prepareFresh`'s completion ([`super::ChainPreparedFresh`]).
     pub const CHAIN_PREPARED_FRESH: u16 = 61;
     // Scan child only.
-    /// `scan` (core to scan child): probe one bundle.
+    /// `scan` (host to scan child): probe one bundle.
     pub const SCAN: u16 = 64;
-    /// `scanned` (scan child to core, event): the probe's one answer.
+    /// `scanned` (scan child to host, event): the probe's one answer.
     pub const SCANNED: u16 = 65;
 }
 
@@ -170,7 +175,7 @@ fn is_event_kind(k: u16) -> bool {
     matches!(k, 48..=61 | 65)
 }
 
-/// Why a frame was refused. Every one closes the socket (D6: no resync).
+/// Why a frame was refused. Every one closes the socket (there is no resync).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ProtoError {
@@ -234,7 +239,7 @@ impl std::error::Error for ProtoError {}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Direction {
     /// The host application decodes: replies and events.
-    ToCore,
+    ToHost,
     /// The child decodes: requests.
     ToChild,
 }
@@ -325,7 +330,7 @@ fn decode_header_capped(
     let event = flags & FF_EVENT != 0;
     let ok = match dir {
         // The child sends replies (to request kinds) and events (event kinds); never descriptors.
-        Direction::ToCore => {
+        Direction::ToHost => {
             flags & FF_FDS == 0
                 && ((reply && !event && is_request_kind(kind))
                     || (event && !reply && flags & FF_ERROR == 0 && is_event_kind(kind)))
@@ -377,7 +382,7 @@ pub fn encode(kind: u16, flags: u16, id: u64, meta: &[u8], blob: &[u8]) -> Vec<u
     v
 }
 
-/// The 24 header bytes of a frame with these lengths (D6): `frameLen` = 20 + `meta_len` + `blob_len`, which the
+/// The 24 header bytes of a frame with these lengths: `frameLen` = 20 + `meta_len` + `blob_len`, which the
 /// caller keeps within `u32`.
 pub(crate) fn header_bytes(
     kind: u16,
@@ -502,7 +507,7 @@ impl Decoder {
                 decode_header_capped(buf, self.dir, usize::MAX, usize::MAX).ok()
             }
             // Its mutant (never in a normal build): a header refused for its blob size is left unclassified, so a
-            // `scanned` past MAX_BLOB is struck instead of being the engine's limit (W5, test 3's codec half).
+            // `scanned` past MAX_BLOB is struck instead of being the engine's limit (the oversized test's codec half).
             #[cfg(not(mutant_oversized_blob_struck))]
             (Some(ProtoError::BlobTooLong(_)), DState::Header { buf, have })
                 if *have == FRAME_HEADER =>
@@ -650,7 +655,7 @@ pub struct HelloReply {
     pub host: String,
     /// The plugin formats it can host (`vst3`, `au`, ...).
     pub formats: Vec<String>,
-    /// D8 route B: slot 0 of the registered ports held the supervisor's send right.
+    /// Route B of the workgroup hand-over: slot 0 of the registered ports held the supervisor's send right.
     pub mach_slot0: bool,
     /// *(protocol 3.6; additive)* The child-wide memory it wired at `hello` (the child page today), in
     /// bytes; never written when 0, so an older line keeps its bytes. Absent (3.5 and older) reads 0.
@@ -691,14 +696,14 @@ impl LogSet {
     }
 }
 
-/// The longest `log.set` expiry: the host application's `system.setLog` bound (86,400 s).
+/// The longest `log.set` expiry: the host application's log command's bound (86,400 s).
 pub const MAX_LOG_SET_EXPIRES_MS: u64 = 86_400_000;
 
 impl LogSet {
     /// The child's checks 2-4 (check 1 is the decode; check 5, a drainer installed, is the child's own): every nibble a
-    /// known level, the expiry in `1..=`[`MAX_LOG_SET_EXPIRES_MS`], and S7 (`debug` / `trace` anywhere only with an
+    /// known level, the expiry in `1..=`[`MAX_LOG_SET_EXPIRES_MS`], and the expiry rule (`debug` / `trace` anywhere only with an
     /// expiry). The word and the expiry to apply, or the refusal's reason (the child answers `-32602` with it and
-    /// applies nothing). `--cfg mutant_log_set_no_s7` (never in a normal build) skips S7; the codec test fails.
+    /// applies nothing). `--cfg mutant_log_set_no_s7` (never in a normal build) skips the expiry rule; the codec test fails.
     pub fn check(&self) -> Result<(u64, Option<std::time::Duration>), &'static str> {
         let nibble = |i: u32| (self.levels >> (i * 4)) & 0xF;
         let known = (0..16).all(|i| nibble(i) <= Level::Trace as u64);
@@ -712,7 +717,7 @@ impl LogSet {
         }
         let above_info = (0..16).any(|i| nibble(i) > Level::Info as u64);
         if above_info && self.expires_in_ms.is_none() && !cfg!(mutant_log_set_no_s7) {
-            return Err("log.set: debug or trace levels need expiresInMs (S7)");
+            return Err("log.set: debug or trace levels need expiresInMs (they expire)");
         }
         Ok((
             self.levels,
@@ -744,7 +749,7 @@ impl LogSetReply {
 /// One slot of a `chain.load`: the plugin to load, and whether it is enabled.
 #[non_exhaustive]
 pub struct SlotDesc {
-    /// The plugin class to load (protocol 4.0). `None` (absent): a quarantined slot (D7), not loaded, which keeps its
+    /// The plugin class to load (protocol 4.0). `None` (absent): a quarantined slot, not loaded, which keeps its
     /// slot number and passes audio through.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub plugin: Option<PluginRef>,
@@ -900,9 +905,9 @@ pub struct SlotInfo {
     pub name: String,
     /// The plugin's channel count.
     pub channels: u32,
-    /// The slot's own latency in frames (a quarantined slot reports 0, D7).
+    /// The slot's own latency in frames (a quarantined slot reports 0).
     pub latency: u32,
-    /// The slot's parameter count (a quarantined slot reports 0, D7).
+    /// The slot's parameter count (a quarantined slot reports 0).
     pub param_count: u32,
     /// Protocol 3.4 (`editor-windows.md` gap 4; additive): whether the slot has an editor, as the child knows it
     /// at load without creating a view (VST3: true unless the plugin declares none, the C++ proxy's "probably"; AU:
@@ -997,7 +1002,7 @@ pub struct ChainLoaded {
     pub latency: u32,
     /// The chain's parameter count.
     pub param_count: u32,
-    /// *(R3; additive)* The chain's memory the child wired (its region, its arena blocks, the chain thread's
+    /// *(Additive)* The chain's memory the child wired (its region, its arena blocks, the chain thread's
     /// stack top), in bytes. Absent (an older child) reads 0.
     pub wired_bytes: u64,
     /// The chain's memory the child could not wire (refused, or past its arena's soft cap). Absent reads 0.
@@ -1147,7 +1152,7 @@ impl ChainPreparedFresh {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum CorrRefused {
-    /// Not D7's grammar ([`corr_ok`]).
+    /// Not the correlation id grammar ([`corr_ok`]).
     Invalid,
     /// A zero-length meta (a meta-less frame): never given a key.
     MetaLess,
@@ -1163,7 +1168,7 @@ pub const CORR_KEY_BYTES: usize = 10 + MAX_CORR_BYTES;
 /// `meta` with a top-level `"corr"` key added, the one splice every sender uses. Total over every meta
 /// form: `{}` (and `{ }`) becomes `{"corr":"…"}`, any other object gets `,"corr":"…"` before its closing brace, and
 /// a zero-length meta, a non-object or a meta that would pass [`MAX_META`] is left as it was (the reason returned).
-/// `corr` is D7's grammar, so nothing needs escaping. No codec struct names `corr` (a unit test per kind), so the key
+/// `corr` is in the correlation id grammar, so nothing needs escaping. No codec struct names `corr` (a unit test per kind), so the key
 /// is never duplicated. `--cfg mutant_corr_no_cap` (never in a normal build) skips the cap check; the near-cap
 /// test then panics in [`encode`].
 pub fn with_corr(meta: &mut Vec<u8>, corr: &str) -> Result<(), CorrRefused> {
@@ -1232,9 +1237,9 @@ pub fn answers_a_request(h: &Header) -> bool {
 pub enum CorrRead {
     /// No `corr` key.
     Absent,
-    /// A `corr` in D7's grammar.
+    /// A `corr` in the correlation id grammar.
     Valid(String),
-    /// Present but not D7's grammar (not a string, empty, too long, a byte outside it, null): ignored and counted by
+    /// Present but not in the grammar (not a string, empty, too long, a byte outside it, null): ignored and counted by
     /// the reader, never an error (the key is advisory).
     Invalid,
 }
@@ -1282,7 +1287,7 @@ impl ChainUnpark {
 #[non_exhaustive]
 pub enum StateMode {
     /// The one production mode: the blob is state blob format v1 ([`crate::state_blob`], magic `53 41 53 50`). Every
-    /// package blob is one, and the re-apply path (D7) sends it. Its wire word is `sasp`.
+    /// package blob is one, and the re-apply path sends it. Its wire word is `sasp`.
     #[default]
     #[serde(rename = "sasp")]
     V1,
@@ -1569,7 +1574,7 @@ impl Generations {
     }
 }
 
-/// `editor.open` / `editor.close` / `editor.availability` (D17).
+/// `editor.open` / `editor.close` / `editor.availability`.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 #[non_exhaustive]
@@ -1748,7 +1753,7 @@ impl ParamList {
 #[serde(rename_all = "camelCase", default)]
 #[non_exhaustive]
 pub struct ParamEntry {
-    /// D10's region id, `slot << 24 | index` (the child's raw index).
+    /// The region id, `slot << 24 | index` (the child's raw index).
     pub id: u32,
     /// The parameter's name (cut at `crate::params::NAME_CHARS` characters).
     pub name: String,
@@ -1876,7 +1881,7 @@ impl ParamSetReply {
     }
 }
 
-/// `workgroup.attach {token}`: the workgroup port follows as a mach message with the same token (D8). With
+/// `workgroup.attach {token}`: the workgroup port follows as a mach message with the same token. With
 /// `bootstrapName` set (route A), the child first looks that name up and sends its channel hello there.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
@@ -1910,7 +1915,7 @@ pub struct WorkgroupAttached {
     /// Whether the port arrived and was accepted.
     pub ok: bool,
     /// Whether `os_workgroup_create_with_port` succeeded and the chain threads joined (false: time-constraint only,
-    /// counted in `workgroupFallbacks`).
+    /// counted by the child as a workgroup fallback).
     pub joined: bool,
 }
 
@@ -1967,7 +1972,7 @@ impl ErrorReply {
 //
 // `scan {format, path}` -> `scanned {format, path, outcome, descriptions}`, one plugin per process. The CHILD can
 // only ever report `ok` or `failed {reason}`: a probe that crashes or passes its budget sends nothing, so `crashed`
-// and `timeout` are the scan supervisor's verdicts, recorded in [`ScanResult`] (the `plugin-scan.json` entry). The
+// and `timeout` are the scan supervisor's verdicts, recorded in [`ScanResult`] (an application's scan record entry). The
 // outcome is a tagged enum (`"outcome"`) at every step, so `timeout` stays distinct from `crashed` and `failed` from
 // the wire into the cache.
 
@@ -1982,7 +1987,7 @@ pub enum ScanFormat {
     Au,
 }
 
-/// `scan` (core -> scan child): probe ONE plugin bundle. `path` is ALWAYS an absolute bundle path, for both formats
+/// `scan` (host -> scan child): probe ONE plugin bundle. `path` is ALWAYS an absolute bundle path, for both formats
 /// (`.vst3`; `.component`): an AU identifier could only be resolved through the system
 /// registry (`AudioComponentFindNext`), which the child never does. A `.component` scan registers that bundle
 /// in-process and reports every `AudioComponents` entry. The identifier form is a LOAD input only. Built only through
@@ -2076,7 +2081,7 @@ impl Scan {
         })
     }
 
-    /// The same scan with the form B offer (W1: `descriptionsBlob: 1`). The scan supervisor's branch sends it on every
+    /// The same scan with the form B offer (`descriptionsBlob: 1`). The scan supervisor's branch sends it on every
     /// `scan`; nothing here does yet. (The final name; before host pins it.)
     pub fn offer_descriptions_blob(self) -> Scan {
         Scan {
@@ -2085,7 +2090,7 @@ impl Scan {
         }
     }
 
-    /// The child's side of W1: true when the offer names the form B version this codec writes
+    /// The child's side of the offer: true when the offer names the form B version this codec writes
     /// ([`SCAN_DESCRIPTIONS_BLOB`]); then the child answers in form B, always, whatever the size. Any other value, or no
     /// offer, is form A (a child never answers with a version it was not offered).
     pub fn offers_descriptions_blob(&self) -> bool {
@@ -2093,10 +2098,10 @@ impl Scan {
     }
 }
 
-/// The length of an AU's codes in D15's grammar (`^[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}$`).
+/// The length of an AU's codes in the class grammar (`^[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}$`).
 pub const AU_CODES_LEN: usize = 26;
 
-/// The three codes in D15's AU form.
+/// The three codes in the grammar's AU form.
 pub fn au_codes_string(kind: u32, sub: u32, manu: u32) -> String {
     format!("{kind:08x}-{sub:08x}-{manu:08x}")
 }
@@ -2107,12 +2112,12 @@ pub fn au_version_string(v: u32) -> String {
     format!("{}.{}.{}", v >> 16, (v >> 8) & 0xff, v & 0xff)
 }
 
-/// D15's grammar for an AU's codes, the SHAPE the child formats and nothing else: exactly
+/// The grammar for an AU's codes, the SHAPE the child formats and nothing else: exactly
 /// [`AU_CODES_LEN`] ASCII bytes, three groups of 8 lowercase hex digits joined by `-`. Returns the three codes. The error
 /// names the byte's offset, never echoes the value.
 ///
-/// What a code may be (non-zero; printable ASCII, none of `,` `:` `/`: F4) is plugin-data
-/// policy, not the wire's: it is the AU index's check (the engine's `scan_record::index::au_code_bytes`), so a
+/// What a code may be (non-zero; printable ASCII, none of `,` `:` `/`) is plugin-data
+/// policy, not the wire's: it is the AU index's check (the host application's index of scanned plugins), so a
 /// healthy AU whose plist code holds, say, `©` is left out of the index and counted, never refused here as a protocol
 /// fault (which would strike it and lose the rest of its bundle).
 pub fn check_au_codes(codes: &str) -> Result<[u32; 3], ProtoError> {
@@ -2144,10 +2149,10 @@ pub fn check_au_codes(codes: &str) -> Result<[u32; 3], ProtoError> {
     Ok(out)
 }
 
-/// The digits of a VST3 class id in D15's grammar (`^[0-9a-f]{32}$`).
+/// The digits of a VST3 class id in the class grammar (`^[0-9a-f]{32}$`).
 pub const CLASS_ID_DIGITS: usize = 32;
 
-/// D15's grammar for a VST3 class id: exactly [`CLASS_ID_DIGITS`] ASCII bytes, each `0-9` or `a-f`. An uppercase
+/// The grammar for a VST3 class id: exactly [`CLASS_ID_DIGITS`] ASCII bytes, each `0-9` or `a-f`. An uppercase
 /// digit, a short or long value, a `-` (the COM/GUID spelling), any other byte, and the empty string are refused. The
 /// error names the length or the first bad byte's offset, never echoes the value.
 pub fn check_class_id(id: &str) -> Result<(), ProtoError> {
@@ -2171,7 +2176,7 @@ pub fn check_class_id(id: &str) -> Result<(), ProtoError> {
     }
 }
 
-/// Why a probe failed validation (D18 *Validation*). Known reasons have names; any other word a child sends is
+/// Why a probe failed validation. Known reasons have names; any other word a child sends is
 /// [`ScanFailure::Other`], keeping the word, so a newer child never makes an older host application reject the line.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(
@@ -2183,17 +2188,17 @@ pub fn check_class_id(id: &str) -> Result<(), ProtoError> {
 pub enum ScanFailure {
     /// The bundle or description could not be opened, or no class was found.
     NotFound,
-    /// The bundle has no slice for this machine's architecture: refused before any load (host's W4).
+    /// The bundle has no slice for this machine's architecture: refused before any load.
     Arch,
-    /// A class did not instantiate or initialise (D18 step 1).
+    /// A class did not instantiate or initialise (validation step 1).
     Instantiate,
     /// prepare (48 kHz / 512) or activate failed (step 2).
     Prepare,
     /// The 8 silent blocks (plus one note for an instrument) failed (step 3).
     Process,
-    /// The `getState` -> `setState` round trip failed, or its bytes are not a framed state blob (step 4, D21).
+    /// The `getState` -> `setState` round trip failed, or its bytes are not a framed state blob (step 4).
     State,
-    /// The probe saw a window owned by its pid (D18 *No UI*).
+    /// The probe saw a window owned by its pid (a probe shows no UI).
     Ui,
     /// The SUPERVISOR's reason, never the child's: the conversation broke after
     /// the scan's receipt, when plugin code could have been running (a `scanned` that echoes another path, a frame the
@@ -2303,7 +2308,7 @@ impl TryFrom<ScannedUnchecked> for Scanned {
 }
 
 /// The scan supervisor's verdict on one path, over the classes `D`: the wire's [`ScanClass`] here ([`ScanResult`]);
-/// the host application records it as one `plugin-scan.json` entry's outcome, over its own description type. `crashed` and `timeout` exist
+/// the host application records it as one scan record entry's outcome, over its own description type. `crashed` and `timeout` exist
 /// only here (the child cannot send them), and each is its own tag, never folded into another.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(
@@ -2350,9 +2355,9 @@ pub enum ScanVerdict<D> {
         /// The probe's exit code, if it exited.
         exit_code: Option<i32>,
     },
-    /// The probe ran out of time (O1 + O5): `kind` only. `step`: the child's
+    /// The probe ran out of time: `kind` only. `step`: the child's
     /// own step deadline ended it (exit 75, no `scanned`); the step's name is in the stderr attached to the record.
-    /// `budget`: the supervisor's budget (D18's 30 s) ran out and it SIGKILLed the group.
+    /// `budget`: the supervisor's budget (30 s by default) ran out and it SIGKILLed the group.
     Timeout {
         /// Which deadline ended it.
         kind: TimeoutKind,
@@ -2422,7 +2427,7 @@ fn signal_name(s: i32) -> Option<&'static str> {
 /// The scan supervisor's verdict as the bridge reports it: over the raw classes.
 pub type ScanResult = ScanVerdict<ScanClass>;
 
-/// Which deadline a [`ScanResult::Timeout`] was (S1): two kinds of one outcome, each kept distinct from `crashed` and
+/// Which deadline a [`ScanResult::Timeout`] was: two kinds of one outcome, each kept distinct from `crashed` and
 /// `failed` into the cache.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "lowercase")]
@@ -2510,7 +2515,7 @@ impl<D> ScanVerdict<D> {
 
 /// Validate a child -> supervisor frame's meta for its kind (the supervisor's dispatch does the same with the typed value).
 /// What the fuzz target drives: every frame the decoder yields goes through here.
-pub fn check_to_core(f: &Frame) -> Result<(), ProtoError> {
+pub fn check_to_host(f: &Frame) -> Result<(), ProtoError> {
     use kind::*;
     let h = &f.header;
     if h.is_error() {
@@ -2731,7 +2736,7 @@ mod tests {
         );
         s.extend(encode(kind::STATE_GET, FF_REPLY, 3, b"{}", &[1, 2, 3]));
         for chunk in [1, 5, 24, 1000] {
-            let fs = decode_all(&s, Direction::ToCore, chunk).unwrap();
+            let fs = decode_all(&s, Direction::ToHost, chunk).unwrap();
             assert_eq!(fs.len(), 2);
             let a: StateApplied = fs[0].meta_as().unwrap();
             assert_eq!((a.chain_key, a.slot, a.generation, a.ok), (7, 1, 9, true));
@@ -2745,20 +2750,20 @@ mod tests {
         let mut h = encode(kind::LOG, FF_EVENT, 0, b"{}", &[]);
         h[F_BLOB_LEN..F_BLOB_LEN + 4].copy_from_slice(&(u32::MAX).to_le_bytes());
         assert!(matches!(
-            decode_all(&h, Direction::ToCore, 64),
+            decode_all(&h, Direction::ToHost, 64),
             Err(ProtoError::BlobTooLong(_))
         ));
         let mut h = encode(kind::LOG, FF_EVENT, 0, b"{}", &[]);
         h[0] ^= 1;
         assert!(matches!(
-            decode_all(&h, Direction::ToCore, 64),
+            decode_all(&h, Direction::ToHost, 64),
             Err(ProtoError::FrameLen { .. })
         ));
         // An event with an id, a reply without one, a request towards the host application, fds towards the host application.
         assert!(
             decode_all(
                 &encode(kind::LOG, FF_EVENT, 5, b"{}", &[]),
-                Direction::ToCore,
+                Direction::ToHost,
                 64
             )
             .is_err()
@@ -2766,42 +2771,42 @@ mod tests {
         assert!(
             decode_all(
                 &encode(kind::PING, FF_REPLY, 0, b"{}", &[]),
-                Direction::ToCore,
+                Direction::ToHost,
                 64
             )
             .is_err()
         );
-        assert!(decode_all(&encode(kind::PING, 0, 1, b"{}", &[]), Direction::ToCore, 64).is_err());
+        assert!(decode_all(&encode(kind::PING, 0, 1, b"{}", &[]), Direction::ToHost, 64).is_err());
         assert!(
             decode_all(
                 &encode(kind::PING, FF_REPLY | FF_FDS, 1, b"{}", &[]),
-                Direction::ToCore,
+                Direction::ToHost,
                 64
             )
             .is_err()
         );
-        assert!(decode_all(&encode(999, FF_EVENT, 0, b"{}", &[]), Direction::ToCore, 64).is_err());
+        assert!(decode_all(&encode(999, FF_EVENT, 0, b"{}", &[]), Direction::ToHost, 64).is_err());
         // Non-UTF-8 meta, a meta that is not an object.
         assert!(
             decode_all(
                 &encode(kind::LOG, FF_EVENT, 0, &[0xff], &[]),
-                Direction::ToCore,
+                Direction::ToHost,
                 64
             )
             .is_err()
         );
         let f = &decode_all(
             &encode(kind::LOG, FF_EVENT, 0, b"[1]", &[]),
-            Direction::ToCore,
+            Direction::ToHost,
             64,
         )
         .unwrap()[0];
-        assert!(check_to_core(f).is_err());
+        assert!(check_to_host(f).is_err());
     }
 
     #[test]
     fn the_state_mode_is_sasp_by_default_and_raw_is_struck() {
-        // D21: `sasp` the one production mode (and the default); any other word (3.x's test token and 3.0's `raw`
+        // `sasp` is the one production mode (and the default); any other word (3.x's test token and 3.0's `raw`
         // included) parses as Unknown so a child answers it with `state.applied {ok: false}`.
         let m: StateSet = parse_meta(br#"{"chainKey":1,"slot":2,"gen":3}"#).unwrap();
         assert_eq!(m.mode, StateMode::V1);
@@ -2843,8 +2848,8 @@ mod tests {
             },
             &[],
         );
-        let fs = decode_all(&f, Direction::ToCore, 7).unwrap();
-        assert!(check_to_core(&fs[0]).is_ok());
+        let fs = decode_all(&f, Direction::ToHost, 7).unwrap();
+        assert!(check_to_host(&fs[0]).is_ok());
         let m: SlotReactivated = fs[0].meta_as().unwrap();
         // `applied` on state.applied is additive: absent from a whole set's meta, parsed when a child
         // reports a partial vst3 set.
@@ -2927,7 +2932,7 @@ mod tests {
 
     #[test]
     fn a_failed_decoder_stays_failed() {
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         let bad = [0xffu8; 24];
         assert!(d.feed(&bad, &mut |_| {}).is_err());
         let good = encode(kind::LOG, FF_EVENT, 0, b"{}", &[]);
@@ -3004,7 +3009,7 @@ mod tests {
         assert_eq!(back["outcome"], "failed");
     }
 
-    /// `timeout` stays distinct from `crashed` and `failed` from the wire into the cache entry (for host's M6).
+    /// `timeout` stays distinct from `crashed` and `failed` from the wire into the cache entry.
     #[test]
     fn every_scan_result_keeps_its_own_tag_through_the_cache() {
         let results = [
@@ -3049,7 +3054,7 @@ mod tests {
             let back: ScanResult = serde_json::from_value(v.clone()).unwrap();
             assert_eq!(&back, r, "{v}");
         }
-        // The goldens (S1, O5: `kind` only).
+        // The goldens (`kind` only).
         let t = serde_json::to_value(&results[3]).unwrap();
         assert_eq!(
             t,
@@ -3072,7 +3077,7 @@ mod tests {
         );
     }
 
-    /// The codec change of S1: the old `{outcome: timeout, budgetMs}` shape (no `kind`) is refused, as is a `kind`
+    /// The scan codec's change: the old `{outcome: timeout, budgetMs}` shape (no `kind`) is refused, as is a `kind`
     /// word that is neither `step` nor `budget`; nothing is ever read as a timeout without saying which.
     #[test]
     fn a_timeout_must_say_its_kind() {
@@ -3098,8 +3103,8 @@ mod tests {
     }
 
     /// `scanned` (65) is an EVENT (id 0), as host's scan mode sends it: through the host application's real `Decoder`, then
-    /// `check_to_core` for its meta. (The test before this one built the frame by hand with `FF_REPLY` and checked only
-    /// `check_to_core`, which ignores flags, so it never saw the decoder refuse a `scanned` reply.)
+    /// `check_to_host` for its meta. (The test before this one built the frame by hand with `FF_REPLY` and checked only
+    /// `check_to_host`, which ignores flags, so it never saw the decoder refuse a `scanned` reply.)
     #[test]
     fn a_scanned_event_decodes_and_is_validated_by_its_kind() {
         let good = Scanned {
@@ -3110,14 +3115,14 @@ mod tests {
         };
         let bytes = encode_msg(kind::SCANNED, FF_EVENT, 0, &good, &[]);
         for chunk in [1, 7, 24, 4096] {
-            let fs = decode_all(&bytes, Direction::ToCore, chunk).unwrap();
+            let fs = decode_all(&bytes, Direction::ToHost, chunk).unwrap();
             assert_eq!(fs.len(), 1);
             let f = &fs[0];
             assert_eq!(
                 (f.header.kind, f.header.flags, f.header.id),
                 (65, FF_EVENT, 0)
             );
-            assert!(check_to_core(f).is_ok());
+            assert!(check_to_host(f).is_ok());
             assert_eq!(f.meta_as::<Scanned>().unwrap(), good);
         }
         // A well-framed event whose meta is a child's `timeout`: the frame decodes, its meta is refused.
@@ -3128,9 +3133,9 @@ mod tests {
             br#"{"format":"vst3","path":"/x","outcome":"timeout"}"#,
             &[],
         );
-        let fs = decode_all(&timeout, Direction::ToCore, 64).unwrap();
+        let fs = decode_all(&timeout, Direction::ToHost, 64).unwrap();
         assert!(
-            check_to_core(&fs[0]).is_err(),
+            check_to_host(&fs[0]).is_err(),
             "a child's timeout is refused"
         );
     }
@@ -3148,7 +3153,7 @@ mod tests {
         })
         .unwrap();
         let reply = encode(kind::SCANNED, FF_REPLY, 1, &meta, &[]);
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         assert_eq!(
             d.feed(&reply, &mut |_| panic!("a scanned reply yields no frame")),
             Err(ProtoError::BadFlags { kind: 65, flags: 1 })
@@ -3156,7 +3161,7 @@ mod tests {
         assert_eq!(
             decode_all(
                 &encode(kind::SCANNED, FF_EVENT | FF_ERROR, 0, &meta, &[]),
-                Direction::ToCore,
+                Direction::ToHost,
                 64
             )
             .unwrap_err(),
@@ -3168,7 +3173,7 @@ mod tests {
         assert_eq!(
             decode_all(
                 &encode(kind::SCANNED, FF_EVENT, 1, &meta, &[]),
-                Direction::ToCore,
+                Direction::ToHost,
                 64
             )
             .unwrap_err(),
@@ -3212,12 +3217,12 @@ mod tests {
         assert!(fs[0].meta_as::<Scan>().is_err());
         // The receipt (host: `{}` with the scan's id, before the probe runs).
         let receipt = encode(kind::SCAN, FF_REPLY, 2, b"{}", &[]);
-        let fs = decode_all(&receipt, Direction::ToCore, 64).unwrap();
+        let fs = decode_all(&receipt, Direction::ToHost, 64).unwrap();
         assert_eq!(
             (fs[0].header.kind, fs[0].header.flags, fs[0].header.id),
             (64, FF_REPLY, 2)
         );
-        assert!(check_to_core(&fs[0]).is_ok());
+        assert!(check_to_host(&fs[0]).is_ok());
     }
 
     /// The negative cases: towards the child, `scan` framed as an event or as a reply is `BadFlags` (the mutant
@@ -3243,11 +3248,11 @@ mod tests {
             ProtoError::BadId { kind: 64, id: 0 }
         );
         assert_eq!(
-            refused(0, 2, Direction::ToCore),
+            refused(0, 2, Direction::ToHost),
             ProtoError::BadFlags { kind: 64, flags: 0 }
         );
         assert_eq!(
-            refused(FF_EVENT, 0, Direction::ToCore),
+            refused(FF_EVENT, 0, Direction::ToHost),
             ProtoError::BadFlags { kind: 64, flags: 2 }
         );
     }
@@ -3284,7 +3289,7 @@ mod tests {
         assert!(Scan::new(ScanFormat::Vst3, nul).is_err());
     }
     /// `protocolAfterScan` is a reason of the supervisor's record, round-trips
-    /// there, and is refused in a child's `scanned` (decoded and through `check_to_core`).
+    /// there, and is refused in a child's `scanned` (decoded and through `check_to_host`).
     #[test]
     fn protocol_after_scan_is_the_supervisors_reason_only() {
         let r = ScanResult::Failed {
@@ -3303,11 +3308,11 @@ mod tests {
         assert!(serde_json::from_value::<Scanned>(line.clone()).is_err());
         let f = &decode_all(
             &encode(kind::SCANNED, FF_EVENT, 0, line.to_string().as_bytes(), &[]),
-            Direction::ToCore,
+            Direction::ToHost,
             64,
         )
         .unwrap()[0];
-        assert!(check_to_core(f).is_err(), "refused by kind");
+        assert!(check_to_host(f).is_err(), "refused by kind");
     }
 
     /// After a `MetaTooLong` refusal the decoder names the refused header
@@ -3326,7 +3331,7 @@ mod tests {
         };
         let big = MAX_META as u32 + 1;
         let read = |b: &[u8]| {
-            let mut d = Decoder::new(Direction::ToCore);
+            let mut d = Decoder::new(Direction::ToHost);
             let r = d.feed(b, &mut |_| panic!("no frame"));
             (r, d.oversized_meta_header())
         };
@@ -3366,7 +3371,7 @@ mod tests {
         let (r, h) = read(&head(kind::SCANNED, FF_REPLY, 2, 2, 0, 22));
         assert!(matches!(r, Err(ProtoError::BadFlags { .. })), "{r:?}");
         assert_eq!(h, None);
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         assert_eq!(d.oversized_meta_header(), None);
         d.feed(
             &head(kind::SCANNED, FF_EVENT, 0, big, 0, 20 + big)[..10],
@@ -3387,7 +3392,7 @@ mod tests {
         let both: Vec<u8> = a.iter().chain(&b).copied().collect();
         // Admitting: the same frames as `feed`, in any chunking; the gate saw each header once.
         for chunk in [1, 23, 24, 25, 4096, both.len()] {
-            let mut d = Decoder::new(Direction::ToCore);
+            let mut d = Decoder::new(Direction::ToHost);
             let (mut seen, mut got) = (Vec::new(), Vec::new());
             for c in both.chunks(chunk) {
                 d.feed_admitting(
@@ -3401,10 +3406,10 @@ mod tests {
                 .unwrap();
             }
             assert_eq!(seen, vec![4096, 0], "{chunk}");
-            assert_eq!(got, decode_all(&both, Direction::ToCore, chunk).unwrap());
+            assert_eq!(got, decode_all(&both, Direction::ToHost, chunk).unwrap());
         }
         // Refusing: the header alone is fed, so the refusal comes before any body byte; no body is allocated.
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         let r = d.feed_admitting(&a[..FRAME_HEADER], &mut |h| h.blob_len == 0, &mut |_| {
             panic!("no frame")
         });
@@ -3426,7 +3431,7 @@ mod tests {
         // A header that fails its own checks is refused by them, never shown to the gate.
         let mut bad = a.clone();
         bad[F_FLAGS..F_FLAGS + 2].copy_from_slice(&FF_REPLY.to_le_bytes());
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         let r = d.feed_admitting(&bad, &mut |_| panic!("not shown"), &mut |_| {});
         assert!(matches!(r, Err(ProtoError::BadFlags { .. })), "{r:?}");
     }
@@ -3506,13 +3511,13 @@ mod tests {
                 .unwrap();
         assert_eq!(g.child_generation, Some(12));
         let f = encode_msg(kind::STATE_APPLIED, FF_EVENT, 0, &g, &[]);
-        let fs = decode_all(&f, Direction::ToCore, 7).unwrap();
-        assert!(check_to_core(&fs[0]).is_ok());
+        let fs = decode_all(&f, Direction::ToHost, 7).unwrap();
+        assert!(check_to_host(&fs[0]).is_ok());
         assert_eq!(fs[0].meta_as::<StateApplied>().unwrap(), g);
         let tf = encode_msg(kind::STATE_GET, FF_REPLY, 3, &t, &[]);
-        let ts = decode_all(&tf, Direction::ToCore, 5).unwrap();
+        let ts = decode_all(&tf, Direction::ToHost, 5).unwrap();
         assert!(
-            check_to_core(&ts[0]).is_ok(),
+            check_to_host(&ts[0]).is_ok(),
             "a tooLarge reply with no blob is a valid frame"
         );
     }
@@ -3590,12 +3595,12 @@ mod tests {
             ..Default::default()
         };
         let f = encode_msg(kind::CHAIN_LOADED, FF_EVENT, 0, &l, &[]);
-        let fs = decode_all(&f, Direction::ToCore, 7).unwrap();
-        assert!(check_to_core(&fs[0]).is_ok());
+        let fs = decode_all(&f, Direction::ToHost, 7).unwrap();
+        assert!(check_to_host(&fs[0]).is_ok());
         assert!(!fs[0].meta_as::<ChainLoaded>().unwrap().slots[0].has_editor);
     }
 
-    /// *(protocol 3.9)* `SlotInfo.notices` and `chain.prepared`'s `slotNotices` are additive: empty writes a 3.8
+    /// *(protocol 3.9)* `SlotInfo.notices` and `chain.prepared`'s per-slot notices are additive: empty writes a 3.8
     /// line's exact bytes, a 3.8 line (no key) decodes as none, and a newer line round-trips.
     #[test]
     fn slot_notices_are_additive() {
@@ -3628,7 +3633,7 @@ mod tests {
         };
         let j = serde_json::to_vec(&p).unwrap();
         assert_eq!(parse_meta::<ChainPrepared>(&j).unwrap(), p);
-        // An older core's view of a newer line (the field unknown to it): every other field still decodes, as no
+        // An older host's view of a newer line (the field unknown to it): every other field still decodes, as no
         // codec meta denies unknown fields.
         #[derive(Deserialize)]
         #[serde(rename_all = "camelCase")]
@@ -3639,8 +3644,8 @@ mod tests {
         let o: OldSlot = parse_meta(serde_json::to_string(&n).unwrap().as_bytes()).unwrap();
         assert!(o.ok && o.param_count == 4);
         let f = encode_msg(kind::CHAIN_PREPARED, FF_EVENT, 0, &p, &[]);
-        let fs = decode_all(&f, Direction::ToCore, 7).unwrap();
-        assert!(check_to_core(&fs[0]).is_ok());
+        let fs = decode_all(&f, Direction::ToHost, 7).unwrap();
+        assert!(check_to_host(&fs[0]).is_ok());
     }
 
     /// The host application keeps at most 8 codes of 1-64 ASCII letters and digits, the first of each.
@@ -3680,9 +3685,9 @@ mod tests {
             &serde_json::from_slice::<serde_json::Value>(old).unwrap(),
             &[],
         );
-        let fs = decode_all(&f, Direction::ToCore, 7).unwrap();
+        let fs = decode_all(&f, Direction::ToHost, 7).unwrap();
         assert!(
-            check_to_core(&fs[0]).is_ok(),
+            check_to_host(&fs[0]).is_ok(),
             "an older child's chain.loaded is still valid"
         );
         let new = ChainLoaded {
@@ -3715,8 +3720,8 @@ mod tests {
         let f = decode_all(&req, Direction::ToChild, 7).unwrap();
         assert_eq!(f[0].meta_as::<LogSet>().unwrap(), m);
         assert!(
-            decode_all(&req, Direction::ToCore, 64).is_err(),
-            "never a request to the core"
+            decode_all(&req, Direction::ToHost, 64).is_err(),
+            "never a request to the host"
         );
         let rep = encode_msg(
             kind::LOG_SET,
@@ -3725,24 +3730,24 @@ mod tests {
             &LogSetReply { levels: m.levels },
             &[],
         );
-        let f = decode_all(&rep, Direction::ToCore, 64).unwrap();
-        check_to_core(&f[0]).unwrap();
+        let f = decode_all(&rep, Direction::ToHost, 64).unwrap();
+        check_to_host(&f[0]).unwrap();
         assert!(
             decode_all(
                 &encode(kind::LOG_SET, FF_EVENT, 0, b"{}", &[]),
-                Direction::ToCore,
+                Direction::ToHost,
                 64
             )
             .is_err()
         );
-        // The reply's word is required: `{}` is refused (a typed reply that does not decode, D6).
+        // The reply's word is required: `{}` is refused (a typed reply that does not decode).
         let empty = decode_all(
             &encode(kind::LOG_SET, FF_REPLY, 9, b"{}", &[]),
-            Direction::ToCore,
+            Direction::ToHost,
             64,
         )
         .unwrap();
-        assert!(check_to_core(&empty[0]).is_err());
+        assert!(check_to_host(&empty[0]).is_err());
         // An error reply is the refusal channel.
         let err = encode_msg(
             kind::LOG_SET,
@@ -3754,7 +3759,7 @@ mod tests {
             },
             &[],
         );
-        check_to_core(&decode_all(&err, Direction::ToCore, 64).unwrap()[0]).unwrap();
+        check_to_host(&decode_all(&err, Direction::ToHost, 64).unwrap()[0]).unwrap();
         // Absent expiry: never written.
         let text = serde_json::to_string(&LogSet {
             levels: 1,
@@ -3766,7 +3771,7 @@ mod tests {
         assert!(parse_meta::<LogSet>(br#"{"levels":"x"}"#).is_err());
     }
 
-    /// The child's checks 2-4 (mutation `mutant_log_set_no_s7` fails the S7 row).
+    /// The child's checks 2-4 (mutation `mutant_log_set_no_s7` fails the expiry rule's row).
     #[test]
     fn log_set_check_refuses_unknown_levels_bad_expiries_and_unbounded_debug() {
         // Every area at warn, at info; warn with area 11 at trace.
@@ -3799,8 +3804,8 @@ mod tests {
             ),
             (info, Some(0), "expiresInMs"),
             (info, Some(MAX_LOG_SET_EXPIRES_MS + 1), "expiresInMs"),
-            (trace_host, None, "S7"),
-            (0x4444_4444_4444_4444, None, "S7"),
+            (trace_host, None, "they expire"),
+            (0x4444_4444_4444_4444, None, "they expire"),
         ] {
             let r = ok(levels, e);
             assert!(

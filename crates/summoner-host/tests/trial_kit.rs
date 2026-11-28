@@ -38,7 +38,8 @@ fn tone(frames: usize) -> Input {
     )
 }
 
-/// The instrument's MIDI: C4 at block 0, off at 0.75 s, CC 64 on at 0.25 s and off at 1 s, all-notes-off at the end.
+/// The instrument's MIDI: middle C (note 60) at block 0, off at 0.75 s, CC 64 on at 0.25 s and off at 1 s,
+/// all-notes-off at the end.
 fn midi() -> Vec<summoner_rt::rt::MidiEvent> {
     let at = |s: f64| (s * SR) as u64;
     vec![

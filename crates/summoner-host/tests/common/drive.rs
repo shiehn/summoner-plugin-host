@@ -171,7 +171,7 @@ impl Drive {
         self.clock.desc = desc;
     }
 
-    /// The host application's `Control::clock_run`, applied at the next block's first frame.
+    /// The host application's clock run command, applied at the next block's first frame.
     pub fn clock_run(&mut self, run: bool) {
         if self.clock.running && !run {
             self.clock.stop = true;
@@ -179,7 +179,7 @@ impl Drive {
         self.clock.running = run;
     }
 
-    /// The host application's `Control::clock_reposition`, applied at the next block's first frame.
+    /// The host application's clock reposition command, applied at the next block's first frame.
     pub fn clock_reposition(&mut self, at: u64) {
         self.clock.pos = at;
         self.clock.reposition = true;
@@ -282,7 +282,7 @@ impl Drive {
             // The host application's tag rule: a fresh state records its clock's tag with no release; then the stop
             // edge or a running reposition releases.
             let release = if st.clock_tag() == ChainState::FRESH_TAG {
-                st.set_clock_tag(1); // the host application's clock A (`ClockId::A`)
+                st.set_clock_tag(1); // the host application's clock A
                 false
             } else {
                 release_edge

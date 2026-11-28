@@ -74,7 +74,7 @@ impl Region {
         w32(H_PARAM_OFF, geo.param_off() as u32);
     }
 
-    /// The supervisor's creation (D2): an unlinked shm object of `geo.mapped_bytes()`, the header written once.
+    /// The supervisor's creation: an unlinked shm object of `geo.mapped_bytes()`, the header written once.
     /// Returns the region and the object `chain.load` gives the child (on unix its descriptor, by `SCM_RIGHTS`).
     #[cfg(not(loom))]
     #[allow(clippy::disallowed_methods)] // control side: the supervisor creates regions
@@ -102,7 +102,7 @@ impl Region {
         Ok((r, fd))
     }
 
-    /// *(R3 row 1)* Wire this process's view of the region in place (`mlock`), counted; idempotent. Each side
+    /// Wire this process's view of the region in place (`mlock`), counted; idempotent. Each side
     /// wires its own mapping (a wired page can still be unmapped in the other process's page table). The bytes wired,
     /// or the refusal (the region stays usable, unwired: count it).
     #[cfg(not(loom))]
@@ -318,7 +318,7 @@ impl<'a> Slot<'a> {
     }
 }
 
-/// The child page (D7): the hub words (supervisor -> child) with their owned FanOut doorbells, and the status record and
+/// The child page: the hub words (supervisor -> child) with their owned FanOut doorbells, and the status record and
 /// counters (child -> supervisor).
 #[derive(Debug)]
 pub struct ChildPage {
@@ -400,7 +400,7 @@ impl ChildPage {
         Ok(v)
     }
 
-    /// *(R3 row 2)* Wire this process's view of the child page in place (`mlock`), counted; idempotent. The
+    /// Wire this process's view of the child page in place (`mlock`), counted; idempotent. The
     /// bytes wired, or the refusal (the page stays usable, unwired: count it).
     #[cfg(not(loom))]
     pub fn wire(&self) -> Result<u64, runecraft_rt::os::LockError> {

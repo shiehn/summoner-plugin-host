@@ -3,7 +3,7 @@
 //! trivial DSP:
 //!
 //! - a slot is `<fake name="..." gain="g" delay="n" synth="1" ignore-cc123="1" sustain="1" probe="1"
-//!   crash-load="1" echo="e" feedback="f"/>` (`descriptionXml`): a gain, then (`echo`) a decaying delay of e frames
+//!   crash-load="1" echo="e" feedback="f"/>` (its XML): a gain, then (`echo`) a decaying delay of e frames
 //!   with feedback f (`y = fma (f, line[pos], x)`, a long tail), a fixed delay of n frames (its
 //!   latency), an instrument gate
 //!   (`synth`: output `gain × 0.25` while any note is held: a count of note-ons less note-offs, reset by CC 123 /
@@ -11,23 +11,23 @@
 //!   a note let go while its channel's CC 64 is ≥ 64 stays held until that CC 64 drops below 64); `probe` makes the
 //!   chain's output channel 0 the request line's transport as the child read it (frame 0 ppq, 1 bpm, 2 time-signature
 //!   numerator, 3 denominator, 4 loop start ppq, 5 loop end ppq, 6 bar start ppq, 7 blockFlags, 8 timeSeconds,
-//!   9 timeSamples, 10 outputHostTime; the rest 0), so a test sees the transport through the child (D2);
+//!   9 timeSamples, 10 outputHostTime; the rest 0), so a test sees the transport through the child;
 //! - `drone="1"` (an instrument at `gain × 0.25` on every frame, notes or not) and `ignore-bypass="1"` (a
 //!   hostile slot that keeps processing while disabled); a resolved `<PLUGIN name="fake: drone=1 …">` carries its
-//!   knobs in its `name`, `fake:` then space-separated `knob=value` (the host application's D16 XML escapes its values);
+//!   knobs in its `name`, `fake:` then space-separated `knob=value` (the host application's XML escapes its values);
 //! - `inputs="n"` / `outputs="n"` (default 2 / 2): the slot's bus counts, under the child's C++ channel
 //!   rule around every called slot (the plugin-host child `chain.rs` `stage_inputs` / `finish_outputs`):
 //!   `P = max(max(1, in), out)`; with one input and `P != 2` channel 0 is the
 //!   average `(L + R) * 0.5`; channels at or past `inputs` are zero before the plugin runs, channels at or past
 //!   `outputs` after it, and at `P == 1` channel 1 is a copy of channel 0;
-//! - a slot that arrives with an empty `descriptionXml` is a quarantined slot (D7): it is not loaded, keeps its slot
+//! - a slot that arrives with an empty description XML is a quarantined slot: it is not loaded, keeps its slot
 //!   number, passes audio through and reports latency 0 and paramCount 0;
 //! - *(protocol 3.7)* `xparams="name|auto|clump|steps|label|default;..."`: more parameters at raw indices 4..,
 //!   plugin ids 100.. (gain, crash, wedge, burn are 10-13; only gain is automatable and settable); `param.list`
 //!   reports the 3.7 fields to a 3.7 hello (the AU clump order, pages within 48 KiB), and `param.set` writes the
 //!   value for the chain thread's next block and into the state body at once (`gain=<v>`, `p<id>=<v>`), moving the
 //!   slot's generation;
-//! - parameters through the region (D10), `id = slot << 24 | index`: 0 gain (0..1), 1 crash inside processBlock
+//! - parameters through the region, `id = slot << 24 | index`: 0 gain (0..1), 1 crash inside processBlock
 //!   (≥ 0.5), 2 wedge inside processBlock (≥ 0.5, never returns), 3 CPU burn (value × 100 ms per block);
 //! - states (`state.set` blobs) are framed state blobs, format v1: `{mode: sasp}` only (any other word, 3.0's `raw`
 //!   included, is answered `ok: false`); a fake slot is a `{builtin}` test double, so a builtin body is applied
@@ -35,20 +35,20 @@
 //!   refused blob is `ok: false`. The body's knobs: `gain=<f>` sets the gain; `CRASH` aborts inside
 //!   the state-set call; `SLOWGET=<ms>` makes the state-get call sleep on the message thread; `SLOWSET=<ms>`
 //!   applies the state (and sends its receipt) that much later; `FAIL` is applied with `ok: false`; `BAREGET` makes
-//!   `state.get` and `editor.closed` answer the bare body, unframed (a child the host application must refuse, D21);
+//!   `state.get` and `editor.closed` answer the bare body, unframed (a child the host application must refuse);
 //!   `RESTART=<n>` raises `restartComponent(kLatencyChanged)` with the slot's latency becoming n frames, and
-//!   `CYCLEMS=<ms>` makes that cycle take so long; `LAGPROBE=2` (T17's probe) makes that cycle's
+//!   `CYCLEMS=<ms>` makes that cycle take so long; `LAGPROBE=2` (the handover-lag probe) makes that cycle's
 //!   give-back and its `slot.reactivated` count land while the chain thread is inside a bypassed block, so both that
 //!   block's end and the return fade's land after the count: the report trails the host application's count by exactly
 //!   [`summoner_plugin::handover::child_bypass_lag_blocks`] (2 at B >= FADE), deterministically; `LAGPROBE=3` does the
 //!   same and also drops one earlier count (the mutant: one block past the window). `state.get` / `editor.closed`
 //!   answer `{builtin}` of the body;
-//! - D22, the reactivation (the native child's design, as the shared [`summoner_plugin::handover`] machine): the main
+//! - the reactivation (the native child's design, as the shared [`summoner_plugin::handover`] machine): the main
 //!   loop takes the restart flag at its next turn (a 16 ms tick, and after every op), announces, takes the slot's
 //!   processor out of its cell (forced past its bound), runs the cycle (a fresh plugin at the new latency: its voices
 //!   and lines reset, as `setActive(false)` / `(true)` does), puts it back, and sends `slot.reactivated`, then
 //!   `latency.changed` if the latency moved. Meanwhile that slot passes its bypass signal through (an effect's input
-//!   delayed by its applied latency; an instrument's silence), with D22's raised-cosine fades, and the response line
+//!   delayed by its applied latency; an instrument's silence), with raised-cosine fades, and the response line
 //!   carries `ST_BYPASSED`; the other slots keep processing;
 //! - *(protocol 3.8)* `chain.prepareFresh` on a render set: every slot's DSP made again on the kept plugin (its
 //!   lines and held notes from zero, its first-use latch kept), then `latency.changed` if the latency moved, then
@@ -57,18 +57,18 @@
 //!   moves on a re-prepare) and `crash-fresh=1` (the child dies inside the fresh prepare); `skip-after=<n>`
 //!   (from the instance's block n of its life on, every block acked `ST_SKIPPED` with silence);
 //! - *(protocol 3.9)* `notices=<code>,…` (the slot's `SlotInfo.notices` at `chain.loaded`) and
-//!   `prepnotices=<code>,…` (gained at `chain.prepare`: `chain.prepared`'s `slotNotices` reports each slot's whole set);
+//!   `prepnotices=<code>,…` (gained at `chain.prepare`: `chain.prepared`'s notices report each slot's whole set);
 //!
-//! (KI-68): `--hist-modelled`: a block's `processHist` entry is its modelled cost (the burn it applied, the
+//! `--hist-modelled`: a block's `processHist` entry is its modelled cost (the burn it applied, the
 //! knob's value x 100 ms), not the wall time measured around it, so a test's heavy and light blocks land in their
 //! buckets whatever the machine's load (a light block descheduled mid-block measured >= 75 % of the period).
-//! Flags: `--ignore-slot0` (force route A), `--mutant-reader-pongs` (the T11 mutation: the reader answers the
+//! Flags: `--ignore-slot0` (force route A), `--mutant-reader-pongs` (a mutation: the reader answers the
 //! wedge ping), `--lie-quarantined` (a hostile child: a quarantined slot reports latency 999 and paramCount 77, which
-//! the host application must not believe, D7), `--hang-at-hello` (a child wedged at start: it never answers `hello`; the
+//! the host application must not believe), `--hang-at-hello` (a child wedged at start: it never answers `hello`; the
 //! spawn-lock test), `--tc-us <period>` (chain threads under the time-constraint policy), `--stats <path>` (write every
 //! chain thread's wake-to-run, `key hub ns` per line, against its group's ring stamp, at shutdown), `--turns <path>`
-//! (a test-only record of D22's main-loop turns, one `begin` and one `end` line per turn with a take to make: see
-//! [`TurnLog`]), and T17's two mutations of the handover: `--mutant-hard-switch` (no fade: a hard
+//! (a test-only record of the main-loop turns, one `begin` and one `end` line per turn with a take to make: see
+//! [`TurnLog`]), and two mutations of the handover: `--mutant-hard-switch` (no fade: a hard
 //! switch into and out of the bypass) and `--mutant-no-delay-line` (the bypass signal is the slot's input undelayed).
 //! The live-hello knobs: `--hello-protocol <u32>` (the `hello` reply's `protocol` in
 //! place of `ABI_VERSION`), `--hello-undecodable` (a reply whose meta does not decode), `--hello-delay-ms <ms>` (the
@@ -76,7 +76,7 @@
 //! a test writes between incarnations: [`HelloScript`]), `--frames <path>` (a test-only record of the frames received
 //! and the hello reply: [`FrameLog`]), and the slot attribute `proto-load="refused|orphan|garbage|fds|midframe"` (a
 //! protocol fault inside `chain.load` of that slot: [`protocol_fault_at_load`]).
-//! D6's live reader blob budget (branch `live-reader`, 2026-11-01) adds `--flood <n>:<bytes>`: right after the
+//! The live reader's blob budget adds `--flood <n>:<bytes>`: right after the
 //! `hello` reply (from its own thread, so the reader goes on reading), n `log` EVENTs, each carrying a blob of
 //! `bytes` bytes (the host application ignores a log's blob), n at most 16 and bytes at most `MAX_BLOB`; or, with `bytes` 0,
 //! n at most 512 META-ONLY frames (about 80 bytes each: the reader's frame bound): a bounded
@@ -84,15 +84,15 @@
 //! first and `fake-host: flood sent` after the last (a host application reader that stops reading leaves it blocked in a write).
 //!
 //! **protocol 3.6, as the plugin-host child's double** (when its `hello` claims 3.6, the default):
-//! - the `hello` reply carries `wiredBytes` / `unwiredBytes` (its page wired in place, L1a), and `chain.prepared` the
-//!   chain's pair again (its region's plus one page, the stand-in for a prepare's processor blocks, L1b);
+//! - the `hello` reply carries `wiredBytes` / `unwiredBytes` (its page wired in place), and `chain.prepared` the
+//!   chain's pair again (its region's plus one page, the stand-in for a prepare's processor blocks);
 //!   `--chain-loaded-v0` leaves both out, as for `chain.loaded`;
 //! - `log.set` (kind 5, Inline) is answered on the reader with the codec's checks (`LogSet::check`) and check 5 (it was
 //!   given `--log-dir`), then applied to this process's word; `--log-set-refuse` answers every one `-32602`,
 //!   `--log-set-mismatch` answers a word one off from the one applied;
 //! - a request's valid `corr` is echoed on its `log.set` reply and on the `chain.loaded` / `chain.unloaded` /
-//!   `chain.prepared` it causes (the double's subset of L3's echo set), never on another event; `--corr-echo-bad`
-//!   echoes `"bad corr!"` instead (outside D7's grammar);
+//!   `chain.prepared` it causes (the double's subset of the echo set), never on another event; `--corr-echo-bad`
+//!   echoes `"bad corr!"` instead (outside the corr grammar);
 //! - `--frames` adds `log.set levels <hex> expiresInMs <n|none>` per `log.set`, and `corr <kind> <corr|invalid>` for
 //!   every received frame that carries the key.
 //!
@@ -104,13 +104,13 @@
 //! moves nothing (brought to front); `--frames` adds `editor.open key <k> slot <n> guardReset <b>` per open; a
 //! `chain.load` for a hosted key is refused (logged, nothing changes).
 //!
-//! ** (B4's spawn), as the plugin-host child (3a1c29e) does it:** `--crash-log <dir>` (both modes: absolute, canonical,
+//! **The spawn's flags, as the plugin-host child has them:** `--crash-log <dir>` (both modes: absolute, canonical,
 //! an existing folder, at most 512 bytes, else exit 2; the scan mode's `crashlog@` writes there) and `--step-ms <n>`
 //! (1..=120 000, else exit 2; only the scan mode would read it), both checked before fd 3 is touched, so a refused
-//! argv writes nothing on fd 3 (R6). A render set (`role: render`) is R1's: its region's flags must be 0 or exactly
+//! argv writes nothing on fd 3. A render set (`role: render`): its region's flags must be 0 or exactly
 //! agree with the role (`FLAG_RENDER == role render`, `FLAG_ACK_WAKE == FLAG_RENDER`, no other bit), else
 //! `chain.loaded {ok: false}`; its chain thread waits on its own `seq`, never a hub, and wakes `ack` after every block
-//! (D9), as the real child's.
+//! as the real child's.
 //!
 //! **`--scan --parent-pid <pid>`: the scan mode** (for `summoner_scan::scan`'s tests): one bundle, no
 //! chains, the conversation host's scan child holds [V host `scan_mode.rs`]: `hello` → its reply; `scan` → its `{}`
@@ -148,7 +148,7 @@
 //!   `failed` line then carries its classes as `discovered` in the blob;
 //! - `classes=<n>` (n 1..=20000): the line's classes are n synthetic VST3 classes `fake-scan-class-<i>` (valid class
 //!   ids), on `ok` and, in form B, as a `failed` line's `discovered`;
-//! - `end=aucodes`: `scanned` with `failed {reason: auCodes}` (the child's F4 refusal of some
+//! - `end=aucodes`: `scanned` with `failed {reason: auCodes}` (the child's AU-code refusal of some
 //!   AudioComponents entries), its classes (`class=` / `classes=`) the bundle's good siblings;
 //! - `protocol=<u32>`: the `hello` reply's protocol in place of `ABI_VERSION` (an older scan child);
 //! - `kill-if=<text>`: a scan whose path contains `<text>` dies by SIGKILL on itself after the receipt;
@@ -203,7 +203,7 @@ static LAB_DEATH_KILL: AtomicBool = AtomicBool::new(false);
 /// `--crash-log <dir>` (the module docs), checked in `main`.
 static CRASH_LOG: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
 
-/// A usage error (exit 2), before fd 3 is touched (R6).
+/// A usage error (exit 2), before fd 3 is touched.
 fn usage_exit(why: &str) -> ! {
     runecraft_rt::safe_eprintln!("fake-host: {why}");
     std::process::exit(2);
@@ -226,7 +226,7 @@ fn crash_log_arg(v: Option<&String>) -> std::path::PathBuf {
     }
 }
 
-/// `--step-ms <n>`, as the plugin-host child R5 checks it.
+/// `--step-ms <n>`, as the plugin-host child checks it.
 fn step_ms_arg(v: Option<&String>) -> u64 {
     match v.and_then(|v| v.parse::<u64>().ok()) {
         Some(n) if (1..=120_000).contains(&n) => n,
@@ -274,7 +274,7 @@ struct Opts {
     /// `--hello-protocol <u32>`: the `protocol` the `hello` reply sends in place of `ABI_VERSION` (the
     /// supervisor's major check).
     hello_protocol: Option<u32>,
-    /// `--hello-undecodable`: the `hello` reply's meta does not decode as a `HelloReply` (H-3).
+    /// `--hello-undecodable`: the `hello` reply's meta does not decode as a `HelloReply`.
     hello_undecodable: bool,
     /// `--hello-delay-ms <ms>`: the `hello` reply is sent that late, from its own thread, while the reader goes on
     /// reading (the hello test: anything the host application sends meanwhile is recorded before the reply).
@@ -318,7 +318,7 @@ struct Opts {
     log_set_refuse: bool,
     /// `--log-set-mismatch`: a `log.set` reply names a word one off from the one applied.
     log_set_mismatch: bool,
-    /// `--corr-echo-bad`: every echo is `"bad corr!"` (outside D7's grammar).
+    /// `--corr-echo-bad`: every echo is `"bad corr!"` (outside the corr grammar).
     corr_echo_bad: bool,
 }
 
@@ -613,13 +613,13 @@ struct Plugin {
     drift_get: AtomicBool,
     /// `TOOLARGE=<bytes>`: `state.get` answers `tooLarge` with these bytes (3.3 only).
     too_large: AtomicU64,
-    /// D22: the processor (the DSP state) in its handover cell; the chain thread reaches it only by `try_lock`.
+    /// The processor (the DSP state) in its handover cell; the chain thread reaches it only by `try_lock`.
     cell: Cell<Dsp>,
-    /// D22: the slot's last applied latency L (`chain.loaded`, then each `latency.changed`): the bypass delay.
+    /// The slot's last applied latency L (`chain.loaded`, then each `latency.changed`): the bypass delay.
     latency: AtomicU32,
-    /// D22: a pending `restartComponent(kLatencyChanged)`: 0 none, else `(new latency + 1) | cycle ms << 32`.
+    /// A pending `restartComponent(kLatencyChanged)`: 0 none, else `(new latency + 1) | cycle ms << 32`.
     restart: AtomicU64,
-    /// D22, chain thread -> main thread: blocks bypassed, and of those misaligned, since the last `slot.reactivated`.
+    /// Chain thread -> main thread: blocks bypassed, and of those misaligned, since the last `slot.reactivated`.
     bypassed: AtomicU32,
     misaligned: AtomicU32,
     /// A take that went to the re-attempt path (given up at the 2 s bound, or deferred because the turn's
@@ -630,7 +630,7 @@ struct Plugin {
     /// The slot is enabled; disabled, it outputs its input delayed by its latency
     /// (an instrument: silence).
     enabled: AtomicBool,
-    /// `LAGPROBE=<k>` (T17's probe, the module docs): 0 off, else armed for the next cycle (one-shot).
+    /// `LAGPROBE=<k>` (the handover-lag probe, the module docs): 0 off, else armed for the next cycle (one-shot).
     lag_probe: AtomicU32,
     /// The probe's rendezvous: the main thread's cycle is done and waits to give back; the chain thread is inside a
     /// bypassed block and waits for the count; the main thread has given back and counted.
@@ -754,7 +754,7 @@ fn flood(w: &Writer, n: usize, bytes: usize) {
 /// `proto-load="<fault>"` on a slot: inside `chain.load` of that
 /// slot, with the status record naming it, the child writes a fault on fd 3, then holds the load (and so the status
 /// record) until it is killed:
-/// - `refused`: a `chain.loaded` event whose meta `check_to_core` refuses;
+/// - `refused`: a `chain.loaded` event whose meta `check_to_host` refuses;
 /// - `orphan`: a reply to a request the host application never sent;
 /// - `garbage`: a frame header the host application's decoder refuses (an unknown kind);
 /// - `fds`: a well-formed event carrying a descriptor (the child never sends any);
@@ -807,7 +807,7 @@ fn protocol_fault_at_load(w: &Writer, fault: &str) -> ! {
 }
 
 /// `--turns <path>`, a test-only surface (the fake is a test double; no production path writes it): the record of
-/// each D22 main-loop turn that has a take to make (a restart flag up or a re-attempt pending), so a test can see which
+/// each main-loop turn that has a take to make (a restart flag up or a re-attempt pending), so a test can see which
 /// takes shared a turn and what the turn waited, instead of inferring it from timing. Two lines per such turn, each
 /// one `write` to a file opened `O_APPEND`, written only by the message thread:
 ///
@@ -1051,10 +1051,12 @@ pub fn main() {
     };
     let sock = UnixStream::from(fd);
     let writer: Writer = Arc::new(Mutex::new(sock.try_clone().expect("clone the socket")));
-    // Route B (D8): take slot 0 and clear the registration before anything else.
+    // Route B: take slot 0 and clear the registration before anything else.
     let slot0 = runecraft_ipc::bridge::take_registered_port();
     if scan {
-        drop(slot0); // a scan child takes slot 0 and drops it (S1)
+        // A scan child takes slot 0 and drops it (a mach port: a drop on macOS only).
+        #[cfg(target_os = "macos")]
+        drop(slot0);
         drop(writer);
         scan_mode::run(&args, sock, parent);
     }
@@ -1080,7 +1082,7 @@ pub fn main() {
                 match rx.recv(1000) {
                     Ok(m) => {
                         let ok = m.port.is_some();
-                        // No real workgroup in the lab (P1's open point): count each chain thread as a
+                        // No real workgroup in the lab (an open point): count each chain thread as a
                         // time-constraint-only fallback, the counted defect.
                         if let Some(p) = sh.page.lock().unwrap().as_ref() {
                             let n = sh.chains.lock().unwrap().len() as u64;
@@ -1265,7 +1267,7 @@ fn reader_thread(
                         Arc::new(ChildPage::open(received(pfd), &mut Vec::new()).expect("page"));
                     *sh.page.lock().unwrap() = Some(page);
                     let m: codec::Hello = f.meta_as().unwrap_or_default();
-                    // Route B: the channel hello goes to slot 0's port before the reply (D8).
+                    // Route B: the channel hello goes to slot 0's port before the reply.
                     let mut b = false;
                     if let (Some(s0), Some(own)) = (slot0.take(), own.as_ref()) {
                         b = s0.send_making(std::process::id() as u64, own, 1000).is_ok();
@@ -1275,7 +1277,7 @@ fn reader_thread(
                         _ => sh.opts.hello_protocol.unwrap_or(ABI_VERSION),
                     };
                     sh.said.store(protocol, Ordering::SeqCst);
-                    // a 3.6 double wires its page in place and reports it (the plugin-host child's R3 row 2).
+                    // a 3.6 double wires its page in place and reports it, as the plugin-host child does.
                     let (wired_bytes, unwired_bytes) =
                         if takes_3_6(protocol) && !sh.opts.chain_loaded_v0 {
                             match sh.page.lock().unwrap().as_ref().map(|p| p.wire()) {
@@ -1287,7 +1289,7 @@ fn reader_thread(
                             (0, 0)
                         };
                     let frame = if sh.opts.hello_undecodable || script == HelloScript::Undecodable {
-                        // H-3: a JSON object, but not a HelloReply (`protocol` is a string).
+                        // A JSON object, but not a HelloReply (`protocol` is a string).
                         codec::encode(
                             kind::HELLO,
                             FF_REPLY,
@@ -1400,7 +1402,7 @@ fn reader_thread(
                                 &[],
                             );
                         } else {
-                            // C9 hub switch: store the new group, wake the OLD hub once, wake a parked thread's seq,
+                            // The hub switch: store the new group, wake the OLD hub once, wake a parked thread's seq,
                             // then answer chain.unparked.
                             let old =
                                 c.region.group().swap(m.group.min(3), Ordering::AcqRel) as usize;
@@ -1635,7 +1637,7 @@ fn load(sh: &Arc<Shared>, w: &Writer, key: u64, m: codec::ChainLoad, fd: OwnedFd
         if let Some(fault) = attr(x, "proto-load") {
             protocol_fault_at_load(w, &fault);
         }
-        // A quarantined slot arrives empty: it is not loaded, and passes audio through unchanged (D7).
+        // A quarantined slot arrives empty: it is not loaded, and passes audio through unchanged.
         let quarantined = x.is_none();
         let delay = if quarantined {
             0
@@ -1800,7 +1802,7 @@ fn load(sh: &Arc<Shared>, w: &Writer, key: u64, m: codec::ChainLoad, fd: OwnedFd
         let tc = sh.opts.tc_us;
         let sr = m.rate;
         let stats = sh.opts.stats.is_some();
-        // D22: one bypass delay line per hosted effect slot, preallocated here on the main thread (the fake's
+        // One bypass delay line per hosted effect slot, preallocated here on the main thread (the fake's
         // chain.prepare is a no-op), C = max(L, 16,384) frames.
         let lines: Vec<Option<DelayLine>> = plugins
             .iter()
@@ -1825,7 +1827,7 @@ fn load(sh: &Arc<Shared>, w: &Writer, key: u64, m: codec::ChainLoad, fd: OwnedFd
             })
             .expect("chain thread")
     };
-    // (R3 row 1, as the plugin-host child will): this process's view of the region wired in place, reported.
+    // (as the plugin-host child does): this process's view of the region wired in place, reported.
     let (wired_bytes, unwired_bytes) = match region.wire() {
         Ok(n) => (n, 0),
         Err(e) => (0, e.bytes as u64),
@@ -1859,7 +1861,7 @@ fn load(sh: &Arc<Shared>, w: &Writer, key: u64, m: codec::ChainLoad, fd: OwnedFd
     }
 }
 
-/// the plugin-host child's R1 (`host.rs` `render_mode`), the same rule: whether a `chain.load` is a render set.
+/// the plugin-host child's rule (`host.rs` `render_mode`), the same one: whether a `chain.load` is a render set.
 fn render_mode(role: codec::Role, flags: u32) -> Result<bool, &'static str> {
     let render = role == codec::Role::Render;
     if flags == 0 {
@@ -1899,9 +1901,9 @@ fn message_thread(ops: Receiver<Op>, w: Writer, sh: Arc<Shared>, own: Option<Arc
             }
             false
         });
-        // D14's tick (60 Hz) for D22's restart flags. Each pass is one drain, then one turn: the drain handles exactly
+        // A 60 Hz tick for the restart flags. Each pass is one drain, then one turn: the drain handles exactly
         // the ops queued when it starts (a snapshot of the reader's count), so the flags they raise are taken
-        // in one turn (P1b), and a steady op stream cannot starve the turns: what arrives during the drain waits for
+        // in one turn, and a steady op stream cannot starve the turns: what arrives during the drain waits for
         // the next pass.
         let first = match ops.recv_timeout(Duration::from_millis(16)) {
             Ok(op) => op,
@@ -2109,7 +2111,7 @@ fn message_thread(ops: Receiver<Op>, w: Writer, sh: Arc<Shared>, own: Option<Arc
                     event(&w, kind::CHAIN_PREPARED_FRESH, &m, &[]);
                 }
                 Op::SetState(m, blob) => {
-                    // D21: `sasp` is the only mode; the fake slot is a {builtin} test double (or, with
+                    // `sasp` is the only mode; the fake slot is a {builtin} test double (or, with
                     // `controller-refuses`, a vst3-shaped one). A both-absent vst3 blob is the no-op (ok, nothing reaches
                     // the plugin); anything else is refused before the plugin.
                     let decoded = if m.mode == codec::StateMode::V1 {
@@ -2268,7 +2270,7 @@ fn message_thread(ops: Receiver<Op>, w: Writer, sh: Arc<Shared>, own: Option<Arc
                             let r = codec::EditorRef::new(m.chain_key, Some(slot), false);
                             event(&w, kind::EDITOR_AVAILABILITY, &r, &[]);
                         } else if !p.editor_open.swap(true, Ordering::SeqCst) {
-                            // An editor edit: the state moves under the host application's feet (C3). Already open: brought to
+                            // An editor edit: the state moves under the host application's feet. Already open: brought to
                             // front, nothing moves (gap 1).
                             p.state.lock().unwrap().extend_from_slice(b";edited");
                             p.child_gen.fetch_add(1, Ordering::SeqCst);
@@ -2543,7 +2545,7 @@ fn set_state(sh: &Shared, p: &Plugin, m: &codec::StateSet, body: Vec<u8>) -> boo
     let fail = text.starts_with("FAIL");
     *p.state.lock().unwrap() = body;
     p.child_gen.fetch_add(1, Ordering::SeqCst);
-    // `restartComponent(kLatencyChanged)` from inside setState: the flag only; the main loop takes it (D22 step 1).
+    // `restartComponent(kLatencyChanged)` from inside setState: the flag only; the main loop takes it.
     if let Some(n) = restart {
         p.restart.store((n + 1) | cycle_ms << 32, Ordering::SeqCst);
     }
@@ -2551,7 +2553,7 @@ fn set_state(sh: &Shared, p: &Plugin, m: &codec::StateSet, body: Vec<u8>) -> boo
     !fail
 }
 
-/// What `state.get` and `editor.closed` answer: the body framed as a `{builtin}` state blob (D21), or bare under `BAREGET`.
+/// What `state.get` and `editor.closed` answer: the body framed as a `{builtin}` state blob, or bare under `BAREGET`.
 fn framed_state(p: &Plugin) -> Vec<u8> {
     let body = p.state.lock().unwrap().clone();
     if p.bare_get.load(Ordering::SeqCst) {
@@ -2567,7 +2569,7 @@ fn framed_state(p: &Plugin) -> Vec<u8> {
     }
 }
 
-/// D22 on the main thread, one turn: every slot whose restart flag is up announces and takes its processor, runs the
+/// The main thread's turn: every slot whose restart flag is up announces and takes its processor, runs the
 /// cycle, gives it back, and sends `slot.reactivated` (then `latency.changed` if the latency moved). A slot whose word
 /// is not `HOSTED` (a cycle still returning) keeps its flag for the next turn.
 ///
@@ -2739,7 +2741,7 @@ fn cycle(
         std::thread::sleep(Duration::from_millis(pt.cycle_ms));
     }
     let cycle_ns = t0.elapsed().as_nanos().min(u64::MAX as u128) as u64;
-    // T17's probe: give back only once the chain thread is inside a bypassed block (bounded: 2 s, then go on).
+    // The lag probe: give back only once the chain thread is inside a bypassed block (bounded: 2 s, then go on).
     let probe = p.lag_probe.load(Ordering::SeqCst) != 0;
     if probe {
         p.probe_ready.store(true, Ordering::SeqCst);
@@ -2808,7 +2810,7 @@ fn stop_chain(c: &mut Chain, sh: &Shared) -> Vec<u64> {
     }
 }
 
-/// A fake plugin's DSP state: the processor D22's cell holds. The chain thread reaches it only by `try_lock`; the main
+/// A fake plugin's DSP state: what the handover cell holds. The chain thread reaches it only by `try_lock`; the main
 /// thread replaces it whole in a reactivation cycle (a fresh plugin at its new latency).
 struct Dsp {
     /// The plugin's latency: a fixed delay of `delay` frames.
@@ -2846,7 +2848,7 @@ fn answer_ping(r: &Region) {
     }
 }
 
-/// T17's mutation `--mutant-hard-switch`: the bypass signal wherever the envelope has left y, y elsewhere: no fade.
+/// The mutation `--mutant-hard-switch`: the bypass signal wherever the envelope has left y, y elsewhere: no fade.
 fn hard_switch(mix: &handover::Mix, out: &mut [f32], b: &[f32]) {
     for (i, (x, &bv)) in out.iter_mut().zip(b).enumerate() {
         if mix.pass || mix.at(i).0 > 0 {
@@ -2879,7 +2881,7 @@ fn chain_thread(
     let fade = Fade::default();
     let mut sides = vec![ChainSide::default(); plugins.len()];
     let mut buf = [vec![0.0f32; mf], vec![0.0f32; mf]];
-    // D22: the bypass signal of the slot being processed.
+    // The bypass signal of the slot being processed.
     let mut byp = [vec![0.0f32; mf], vec![0.0f32; mf]];
     let mut lat: Vec<u64> = Vec::with_capacity(if stats { 1 << 20 } else { 0 });
     let mut done = r.ack().load(Ordering::Acquire);
@@ -2893,7 +2895,7 @@ fn chain_thread(
     let mut midi: Vec<(usize, [u8; 3])> = Vec::with_capacity(geo.max_midi as usize);
     let mut woke = false;
     loop {
-        // C9: group, then its hub, then seq, every iteration.
+        // The hub switch: group, then its hub, then seq, every iteration.
         let g = r.group().load(Ordering::Acquire) as usize;
         let h = page.hub(g).load(Ordering::Acquire);
         let s = r.seq().load(Ordering::Acquire);
@@ -2920,7 +2922,7 @@ fn chain_thread(
                 let mut modelled_ns = 0u64;
                 let slot = r.slot(n);
                 let frames = (slot.u32(S_FRAMES).load(Ordering::Relaxed) as usize).min(mf);
-                // host sets (`param.set`), applied before the block, then the region's (D10).
+                // host sets (`param.set`), applied before the block, then the region's.
                 for p in plugins.iter() {
                     for (i, x) in p.params.iter().enumerate() {
                         if x.dirty.swap(false, Ordering::AcqRel) {
@@ -2933,7 +2935,7 @@ fn chain_thread(
                         }
                     }
                 }
-                // Parameters (D10).
+                // Parameters.
                 let np = slot
                     .u32(S_PARAM_COUNT)
                     .load(Ordering::Relaxed)
@@ -2988,13 +2990,13 @@ fn chain_thread(
                 let mut status = ST_PROCESSED;
                 for (k, p) in plugins.iter().enumerate() {
                     // A quarantined slot has no processor: it passes its audio through unchanged, and never sets
-                    // ST_BYPASSED (D7, D22).
+                    // ST_BYPASSED (quarantined, or in its reactivation).
                     if p.quarantined {
                         continue;
                     }
-                    // D22: the word decides whether the plugin runs and how its output mixes with the bypass signal.
+                    // The word decides whether the plugin runs and how its output mixes with the bypass signal.
                     let mut begun = sides[k].begin(&p.cell);
-                    // T17's probe: inside the first bypassed block after the main thread's cycle is done, wait for its
+                    // The lag probe: in the first bypassed block after the main thread's cycle is done, wait for its
                     // give-back and count, so this block's end and the return fade's land after the count (bounded:
                     // 2 s, then go on). Off (one load) unless `LAGPROBE` armed it.
                     if p.lag_probe.load(Ordering::SeqCst) != 0
@@ -3039,7 +3041,7 @@ fn chain_thread(
                             die();
                         }
                         if wedge[k] {
-                            // Hung inside processBlock: never acks, never answers the ping (C1). It sleeps rather
+                            // Hung inside processBlock: never acks, never answers the ping. It sleeps rather
                             // than spins: the same hang for the host application, no core burnt while the session runs.
                             loop {
                                 std::thread::sleep(Duration::from_secs(1));
@@ -3213,14 +3215,14 @@ fn chain_thread(
                 hist.store(hist.load(Ordering::Relaxed) + 1, Ordering::Relaxed);
                 slot.u64(R_ECHO).store(n, Ordering::Relaxed);
                 slot.u32(R_STATUS).store(status, Ordering::Relaxed);
-                // D23: +140 is reserved (3.0's latencyFrames): written 0, never read, never reused.
+                // +140 is reserved (3.0's latencyFrames): written 0, never read, never reused.
                 slot.u32(R_RESERVED_LATENCY).store(0, Ordering::Relaxed);
                 slot.u32(R_PROCESS_NS)
                     .store(ns.min(u32::MAX as u64) as u32, Ordering::Relaxed);
                 r.processed().fetch_add(1, Ordering::Relaxed);
                 r.ack().store(n, Ordering::Release);
                 if render {
-                    // D9: the render worker waits on ack; it is woken after every block.
+                    // The render worker waits on ack; it is woken after every block.
                     let _ = r.ack_waker().wake();
                 }
                 answer_ping(&r);
@@ -3231,7 +3233,7 @@ fn chain_thread(
         if s < done {
             done = s; // a reset seq: follow it
         }
-        // D9: a render set waits on its own seq, never a hub (the worker and the supervisor's ping wake it).
+        // A render set waits on its own seq, never a hub (the worker and the supervisor's ping wake it).
         let waited = if render || parked.load(Ordering::SeqCst) {
             r.seq_waker()
                 .wait(s, Some(Instant::now() + Duration::from_millis(250)))
@@ -3239,7 +3241,20 @@ fn chain_thread(
             page.hub_waker(g)
                 .wait(h, Some(Instant::now() + Duration::from_millis(250)))
         };
-        woke = waited == Waited::Woken;
+        woke = match waited {
+            Waited::Woken => true,
+            Waited::TimedOut => false,
+            // A wait the OS refuses returns at once: back off one millisecond so the loop polls instead of
+            // spinning (the seq and the hub are re-read on the next turn).
+            Waited::Failed(_) => {
+                std::thread::sleep(Duration::from_millis(1));
+                false
+            }
+            _ => {
+                std::thread::sleep(Duration::from_millis(1));
+                false
+            }
+        };
         if woke && r.seq().load(Ordering::Acquire) == s {
             page.word64(P_SPURIOUS_WAKES)
                 .fetch_add(1, Ordering::Relaxed);
@@ -3289,7 +3304,7 @@ mod scan_mode {
         oversize: bool,
         /// `flood=<n>:<bytes>`: (frames, blob bytes each).
         flood: Option<(usize, usize)>,
-        /// `class=gain`: an `ok` describes the bundle as the lab gain's class (D15's vectors), named by the
+        /// `class=gain`: an `ok` describes the bundle as the lab gain's class (the class-id vectors), named by the
         /// bundle's stem, so the host application's index keys it.
         class_gain: bool,
         /// `protocol=<u32>`: the `hello` reply's protocol in place of `ABI_VERSION` (a 3.4 scan child).
@@ -3424,7 +3439,7 @@ mod scan_mode {
         let _ = (&*sock).write_all(&frame);
     }
 
-    /// A frame with no blob, framed by hand in the D6 header layout, for a meta over `MAX_META` (which the codec's
+    /// A frame with no blob, framed by hand in the frame header layout, for a meta over `MAX_META` (which the codec's
     /// encoder asserts against).
     fn frame_unchecked(kind: u16, flags: u16, id: u64, meta: &[u8]) -> Vec<u8> {
         let len = u32::try_from(meta.len()).unwrap_or_else(|_| usage("a meta over 4 GiB"));
@@ -3864,8 +3879,8 @@ mod io_rule_tests {
         summoner_plugin::channels::channel_rule_after(i, o, bufs, frames);
     }
 
-    /// The fake's D8 rule around an identity plugin on a 2-wide block of `(L, R) = (1, 3)`, every row worked by
-    /// hand from the D8 rule (the staging before the call and the pop after it).
+    /// The fake's channel rule around an identity plugin on a 2-wide block of `(L, R) = (1, 3)`, every row worked by
+    /// hand from the channel rule (the staging before the call and the pop after it).
     #[test]
     fn the_channel_rule_is_the_childs_for_every_case() {
         let rows: [((u32, u32), (f32, f32)); 9] = [

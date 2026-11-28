@@ -41,8 +41,8 @@ fn home(name: &str) -> PathBuf {
     h
 }
 
-/// The release host child (no test hooks: the product surface), built as release_build.rs builds it, in its own
-/// target dir (this test's build lock is not needed). `summoner-host --scan` is the child backend.
+/// The release host child (no test hooks: the product surface), built as the release-build link guard builds it, in its
+/// own target dir (this test's build lock is not needed). `summoner-host --scan` is the child backend.
 fn host_child() -> PathBuf {
     static BUILT: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
     BUILT
@@ -282,7 +282,7 @@ fn the_group_is_killed_whole_and_a_leftover_is_named() {
 
 /// The pedal: `pending` is written BEFORE a probe exists; a pending entry at load (a supervisor that died) is a
 /// crash, and not re-probed. One strike: a second pass spawns nothing; a rescan that NAMES a path re-probes it.
-/// plugin-scan.json is only in the scratch HOME: no file this test writes is left anywhere else (a before/after diff,
+/// The pedal file is only in the scratch HOME: no file this test writes is left anywhere else (a before/after diff,
 /// so a stray left by some other run before it starts is not this test's).
 #[test]
 fn the_pedal_and_one_strike() {
@@ -352,13 +352,13 @@ fn the_pedal_and_one_strike() {
     // And done afterwards: nothing pending on disk.
     let text = std::fs::read_to_string(h.join("plugin-scan.json")).unwrap();
     assert!(!text.contains("pending"), "{text}");
-    // plugin-scan.json only under the scratch HOMEs of these tests. One exclusion, anchored at its root: the host
-    // application's test scratch root (its scan_record tests); nothing in this repo writes there. Its concurrent runs
+    // The pedal file only under the scratch HOMEs of these tests. One exclusion, anchored at its root: the host
+    // application's test scratch root (its scan record tests); nothing in this repo writes there. Its concurrent runs
     // leave dirs there mid-run, so the exclusion stays even once the host application cleans up after itself;
-    // everywhere else in the lab home, a stray plugin-scan.json still fails. A second, likewise anchored: the host
-    // application's plugin_scan_tests scratch root, whose tests are to remove their scratch.
+    // everywhere else in the lab home, a stray pedal file still fails. A second, likewise anchored: the host
+    // application's plugin-scan tests' scratch root, whose tests are to remove their scratch.
     // The lab HOME (the test runs with it), read at run time.
-    // Mutant: this test leaves a plugin-scan.json outside its scratch HOME; the diff must fail it. Removed on drop
+    // Mutant: this test leaves a pedal file outside its scratch HOME; the diff must fail it. Removed on drop
     // (the failing assert unwinds), so the mutant run leaves nothing either.
     #[cfg(mutant_pedal_leaves_stray)]
     let _stray = Stray::leave();
@@ -370,7 +370,7 @@ fn the_pedal_and_one_strike() {
     );
 }
 
-/// Every plugin-scan.json under this repo and the lab home, except the scratch HOMEs of these tests and the host
+/// Every pedal file under this repo and the lab home, except the scratch HOMEs of these tests and the host
 /// application's two anchored test scratch roots, sorted. `h` is this test's scratch HOME (it must not
 /// be under a host application's root, or the exclusions would hide its writes).
 fn scan_files_outside_scratch(h: &Path) -> Vec<String> {
@@ -416,7 +416,7 @@ fn scan_files_outside_scratch(h: &Path) -> Vec<String> {
     files
 }
 
-/// The mutant's stray: a plugin-scan.json under the lab home's tmp, outside every scratch root, removed on drop.
+/// The mutant's stray: a pedal file under the lab home's tmp, outside every scratch root, removed on drop.
 #[cfg(mutant_pedal_leaves_stray)]
 struct Stray(PathBuf);
 

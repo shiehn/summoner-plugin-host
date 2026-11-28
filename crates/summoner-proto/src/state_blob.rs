@@ -45,7 +45,7 @@ pub const HEADER: usize = 12;
 /// An au chunk₀ is a binary plist (`kCFPropertyListBinaryFormat_v1_0`): refusal 8's magic.
 pub const BPLIST: &[u8; 8] = b"bplist00";
 
-/// The three formats of D21.
+/// The three formats of the state blob.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum Format {
@@ -77,7 +77,7 @@ impl Format {
     }
 }
 
-/// Why a blob is refused: D21's eight refusals, each by name (refusal 4 has three faces, 1 two).
+/// Why a blob is refused: the format's eight refusals, each by name (refusal 4 has three faces, 1 two).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum Refusal {
@@ -99,14 +99,14 @@ pub enum Refusal {
     Overrun,
     /// 6: bytes after the last chunk.
     Trailing(usize),
-    /// 7: a total over `MAX_BLOB` (64 MiB, the frame's blob cap, D6).
+    /// 7: a total over `MAX_BLOB` (64 MiB, the frame's blob cap).
     TooLarge(usize),
     /// 8: an au chunk₀ that does not begin with `bplist00`.
     NotBplist,
 }
 
 impl Refusal {
-    /// The refusal's name, as logs and `project.open`'s warning carry it.
+    /// The refusal's name, as logs and an application's open warning carry it.
     pub fn name(self) -> &'static str {
         match self {
             Refusal::Short(_) => "short",
@@ -166,7 +166,7 @@ impl Blob<'_> {
         }
     }
 
-    /// The both-absent vst3 blob: accepted, and a set of it is a counted no-op (`stateEmptySets`).
+    /// The both-absent vst3 blob: accepted, and a set of it is a counted no-op (the host counts empty sets).
     pub fn both_absent(&self) -> bool {
         matches!(
             self,
@@ -192,7 +192,7 @@ fn u32_at(b: &[u8], at: usize) -> u32 {
     u32::from_le_bytes([b[at], b[at + 1], b[at + 2], b[at + 3]])
 }
 
-/// Decode `b`, accepting exactly D21's one form. The checks run in this order, so a blob with several faults is
+/// Decode `b`, accepting exactly the format's one form. The checks run in this order, so a blob with several faults is
 /// refused by the first: 7 (the size, before anything is read), 1, 2, 3, 4 (the `present` bits and the reserved
 /// byte), 5, 4 (an absent chunk's length, once both lengths are in bounds), 6, 8.
 pub fn decode(b: &[u8]) -> Result<Blob<'_>, Refusal> {
@@ -265,7 +265,7 @@ pub fn decode(b: &[u8]) -> Result<Blob<'_>, Refusal> {
     })
 }
 
-/// The host application's frame check (D21 *Where it runs*): [`decode`]'s verdict, without keeping the chunks.
+/// The host application's frame check (where the format runs): [`decode`]'s verdict, without keeping the chunks.
 pub fn check(b: &[u8]) -> Result<Checked, Refusal> {
     decode(b).map(|x| Checked {
         format: x.format(),

@@ -1295,7 +1295,7 @@ pub fn summoner_proto::codec::au_codes_string(kind: u32, sub: u32, manu: u32) ->
 pub fn summoner_proto::codec::au_version_string(v: u32) -> alloc::string::String
 pub fn summoner_proto::codec::check_au_codes(codes: &str) -> core::result::Result<[u32; 3], summoner_proto::codec::ProtoError>
 pub fn summoner_proto::codec::check_class_id(id: &str) -> core::result::Result<(), summoner_proto::codec::ProtoError>
-pub fn summoner_proto::codec::check_to_core(f: &summoner_proto::codec::Frame) -> core::result::Result<(), summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::check_to_host(f: &summoner_proto::codec::Frame) -> core::result::Result<(), summoner_proto::codec::ProtoError>
 pub fn summoner_proto::codec::corr_of_meta(meta: &[u8]) -> summoner_proto::codec::CorrRead
 pub fn summoner_proto::codec::decode_descriptions_blob(blob: &[u8], description_count: u64) -> core::result::Result<alloc::vec::Vec<summoner_proto::plugin::ScanClass>, summoner_proto::codec::form_b::ScannedFault>
 pub fn summoner_proto::codec::decode_header(b: &[u8; 24], dir: summoner_proto::codec::Direction) -> core::result::Result<summoner_proto::codec::Header, summoner_proto::codec::ProtoError>
@@ -1434,7 +1434,7 @@ pub variant summoner_proto::codec::CorrRefused::MetaLess
 pub variant summoner_proto::codec::CorrRefused::NotObject
 pub variant summoner_proto::codec::CorrRefused::TooLong
 pub variant summoner_proto::codec::Direction::ToChild
-pub variant summoner_proto::codec::Direction::ToCore
+pub variant summoner_proto::codec::Direction::ToHost
 pub variant summoner_proto::codec::EditorWindow::Hwnd(u64)
 pub variant summoner_proto::codec::LineFault::Description(alloc::string::String)
 pub variant summoner_proto::codec::LineFault::NonCanonical {}

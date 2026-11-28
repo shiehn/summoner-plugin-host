@@ -753,8 +753,8 @@ fn an_entry_with_a_bad_code_byte_is_a_failed_verdict_and_its_sibling_is_reported
 
 /// Any VALIDATION failure outranks `auCodes` as the bundle's verdict, wherever the refused entry stands. The host
 /// application trusts that every `discovered` entry beside `failed {reason: auCodes}` passed validation and indexes
-/// them as good (the host application's `index::build_entries`;
-/// `au_codes_means_every_discovered_entry_passed_validation`), so a refusal FIRST must not hide a later sibling's
+/// them as good (the host application's scan index, and its
+/// test of that rule), so a refusal FIRST must not hide a later sibling's
 /// failure. The fixture (testkit/plugins/CMakeLists.txt, badorder): entry 0 refused for its codes, entry 1 refuses its
 /// own state, entry 2 good. The verdict is entry 1's `state`; both validated entries ride in `discovered` (the host
 /// application keeps them `validationFailed`, never listed); the refusal stays in the probe's validation, by its own

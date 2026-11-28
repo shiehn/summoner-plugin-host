@@ -51,7 +51,7 @@ macro_rules! rec {
     }};
 }
 
-/// D6: control -> supervisor commands in flight.
+/// Control -> supervisor commands in flight.
 pub const COMMAND_BOUND: usize = 1024;
 
 /// A `param.list` page holds at most 256 parameters.
@@ -65,7 +65,7 @@ pub const PARAM_CAP: u32 = 16_384;
 /// bounds the bytes).
 pub const PARAM_NAME_CHARS: usize = summoner_plugin::params::NAME_CHARS;
 
-/// A `param.list` entry as the host application takes it (V1, the child is untrusted): the name and label cut, `default` and
+/// A `param.list` entry as the host application takes it (the child is untrusted): the name and label cut, `default` and
 /// `value` clamped to [0, 1] (the page was refused when either is not finite). From a child below 3.7, every 3.7 field
 /// is its default, whatever the child sent (never presence).
 fn clamp_entry(p: codec::ParamEntry, v37: bool) -> codec::ParamEntry {
@@ -95,53 +95,53 @@ fn clamp_entry(p: codec::ParamEntry, v37: bool) -> codec::ParamEntry {
         msg
     }
 }
-/// D6: reader -> supervisor frames, and blob bytes, in flight. The frame bound is each reader's own (
+/// Reader -> supervisor frames, and blob bytes, in flight. The frame bound is each reader's own (
 /// 2026-11-01), enforced with the byte budget by [`BlobGate`]: every frame counts, a meta-only one included.
 pub const READER_FRAMES: usize = 256;
-/// D6's 256 MiB: the blob bytes the readers may hold between the socket and the supervisor, the frame the decoder is
+/// 256 MiB: the blob bytes the readers may hold between the socket and the supervisor, the frame the decoder is
 /// filling included ([`BlobGate`]). Every frame's blob fits it (the codec's cap is 64 MiB), so a frame within the caps
 /// always admits once the supervisor has taken the frames before it.
 pub const READER_BLOB_BYTES: usize = 256 * 1024 * 1024;
 const _: () = assert!(codec::MAX_BLOB <= READER_BLOB_BYTES);
-/// D6: requests in flight to the child.
+/// Requests in flight to the child.
 pub const IN_FLIGHT: usize = 64;
-/// D7: respawn attempts before every chain stays silent.
+/// Respawn attempts before every chain stays silent.
 pub const ATTEMPTS: u32 = 3;
-/// Descriptors one child incarnation holds in the host application besides its chain loads' (T0, the host application's `FD_BUDGET`): the
+/// Descriptors one child incarnation holds in the host application besides its chain loads' (its descriptor budget): the
 /// socket and the reader's clone (2), and the child page's until HELLO is written (1). Each chain load's region
 /// descriptor is held from `load_chain` until its frame is written; the frames wait behind [`IN_FLIGHT`] with no count
 /// of their own yet (one per chain loading), so the budget counts [`IN_FLIGHT`] of them, an assumption to enforce
-/// when the host application starts the bridge (T4).
+/// when the host application starts the bridge.
 pub const CHILD_FDS: usize = 3;
 /// A `hello` reply not verified this long after the
 /// `hello` was sent is a no-blame kill, with an attempt counted. Evaluated on the 250 ms tick, so the kill
-/// lands at most one tick after it is due (as D7's thresholds).
+/// lands at most one tick after it is due (as the respawn thresholds).
 pub const HELLO_DEADLINE: Duration = Duration::from_secs(2);
 
 /// Until the incarnation's `hello` reply is verified, the only frame sent to it is `hello`. The mutation
 /// check (`--cfg mutant_pre_hello_sends`, never in a normal build) restores the old pipelining (every chain's
 /// `chain.load`, states and `chain.prepare` queued right behind `hello`, and `Load` / `SetState` sent at once), so
-/// live_hello `nothing_but_hello_reaches_a_child_before_its_hello_is_verified` fails.
+/// the host application's hello tests fail.
 const WAIT_FOR_HELLO: bool = !cfg!(mutant_pre_hello_sends);
 /// The protocol-major check of the live `hello` reply. The mutation check (`--cfg
-/// mutant_major_unchecked`) removes it, so live_hello's major-mismatch test fails.
+/// mutant_major_unchecked`) removes it, so the host application's major-mismatch test fails.
 const CHECK_MAJOR: bool = !cfg!(mutant_major_unchecked);
 /// A protocol-fault kill is never attributed. The mutation check (`--cfg mutant_protocol_blamed`)
-/// attributes it by `inSlot` and the status record as before, so live_hello's no-blame tests fail.
+/// attributes it by `inSlot` and the status record as before, so the host application's no-blame tests fail.
 const PROTOCOL_UNBLAMED: bool = !cfg!(mutant_protocol_blamed);
-/// H-2: the hello deadline. The mutation check (`--cfg mutant_no_hello_deadline`) removes it, so live_hello
-/// `a_hello_that_never_comes_is_killed_at_its_deadline_and_blames_nothing` fails.
+/// The hello deadline. The mutation check (`--cfg mutant_no_hello_deadline`) removes it, so the host
+/// application's test of a hello that never comes fails.
 const ENFORCE_HELLO_DEADLINE: bool = !cfg!(mutant_no_hello_deadline);
 /// N4: a child that exits 2 before its `hello` is verified is a usage error, the
 /// engine's: no blame, no respawn. `--cfg mutant_usage_exit_respawns` (never in a normal build) treats it as an
 /// ordinary death again (the backoff loop); the host application's usage-exit test fails.
 const USAGE_EXIT_TERMINAL: bool = !cfg!(mutant_usage_exit_respawns);
 /// The child's usage exit (both children: an unknown flag, a missing value, a bad `--crash-log`, a bad `--step-ms`;
-/// always before any byte on fd 3, the plugin-host child R6).
+/// always before any byte on fd 3, as in the plugin-host child).
 pub const EXIT_USAGE: i32 = 2;
 
 /// The region header flags of a chain: a render set's are `FLAG_RENDER | FLAG_ACK_WAKE`, every
-/// other chain's 0. The child refuses a load whose flags disagree with its role (the plugin-host child R1), so these two
+/// other chain's 0. The child refuses a load whose flags disagree with its role (as the child does), so these two
 /// always travel together, from the one place that writes them. `--cfg mutant_render_flags_zero` (never in a
 /// normal build) writes 0 for every chain, as before; the host application's render tests fail.
 pub fn region_flags(role: codec::Role) -> u32 {
@@ -161,7 +161,7 @@ pub const BURST_BYTES: u64 = 64 << 20;
 pub const BURST_WINDOW: usize = 2;
 
 impl Command {
-    /// A save point's burst with E4's budgets.
+    /// A save point's burst with its budgets.
     pub fn save_burst(token: u64, remark: Vec<(u64, u32)>) -> Command {
         Command::SaveBurst {
             token,
@@ -472,7 +472,7 @@ pub fn crash_log_for_spawn(dir: &std::path::Path, stderr_tag: &str) -> Option<Pa
 }
 
 /// The live `hello` reply's `protocol` is compatible when its major (`protocol >> 16`) is the host application's
-/// ([`ABI_VERSION`]); a different minor is additive (D20) and accepted. A reply with no `protocol` decodes as 0
+/// ([`ABI_VERSION`]); a different minor is additive and accepted. A reply with no `protocol` decodes as 0
 /// (`HelloReply` is `#[serde(default)]`), so it is a mismatch.
 pub fn hello_compatible(child_protocol: u32) -> bool {
     !CHECK_MAJOR || child_protocol >> 16 == ABI_VERSION >> 16
@@ -523,7 +523,7 @@ pub struct Config {
     pub render_suspect: Duration,
     /// The control socket's send timeout; a send that stalls past it is a wedged child (2 s).
     pub send_timeout: Duration,
-    /// [`HELLO_DEADLINE`] (H-2).
+    /// [`HELLO_DEADLINE`].
     pub hello_deadline: Duration,
     /// The generations poll's period while an editor is open (2 s).
     pub poll_interval: Duration,
@@ -539,7 +539,7 @@ pub struct Config {
     pub sample_rate: f64,
     /// The bound of the caller's event channel (4096); the supervisor itself does not read it.
     pub event_bound: usize,
-    /// D6's reader -> supervisor blob budget, [`READER_BLOB_BYTES`]. A parameter for tests only (a small budget): a
+    /// The reader -> supervisor blob budget, [`READER_BLOB_BYTES`]. A parameter for tests only (a small budget): a
     /// budget below the codec's 64 MiB blob cap makes a frame whose blob passes the whole budget a protocol fault
     /// (`ReaderEnd::Refused`, `NotAdmitted`) rather than a reader waiting forever; at [`READER_BLOB_BYTES`] no frame
     /// within the caps can be one.
@@ -602,7 +602,7 @@ impl Config {
             forgive_after: Duration::from_secs(60),
             wedge_suspect: Duration::from_secs(2),
             wedge_verdict: Duration::from_secs(2),
-            // D9: fixed at 30 s, never the environment's, and never under the worker's budget (which
+            // Fixed at 30 s, never the environment's, and never under the worker's budget (which
             // is clamped to it): the worker fails a slow block before the supervisor could judge it.
             render_suspect: summoner_rt::render::RENDER_SUSPECT,
             send_timeout: Duration::from_secs(2),
@@ -668,7 +668,7 @@ impl ChainSpec {
     }
 }
 
-/// A slot's state as the model references it (the package blob, D7 re-apply source). The blob is a framed state blob, format v1 (D21):
+/// A slot's state as the model references it (the package blob, the re-apply source). The blob is a framed state blob, format v1:
 /// one that fails [`state_blob::check`] is never sent ([`Event::StateRefused`]).
 #[derive(Clone, Debug)]
 #[non_exhaustive]
@@ -782,7 +782,7 @@ pub enum Command {
         /// The normalized value, 0 to 1.
         value: f32,
     },
-    /// D17: open the slot's editor window in the child. `guard_reset` asks for the editor-reset guard. A render
+    /// Open the slot's editor window in the child. `guard_reset` asks for the editor-reset guard. A render
     /// chain never gets
     /// `editor.open` (`editor-windows.md`): the command is dropped and counted
     /// (`editor_opens_refused`).
@@ -801,7 +801,7 @@ pub enum Command {
         /// The slot; `None`: every slot of the chain.
         slot: Option<u32>,
     },
-    /// C3: read the moved slots within the burst deadline, answer with [`Event::Burst`]:
+    /// Read the moved slots within the burst deadline, answer with [`Event::Burst`]:
     /// the burst carries its own time `budget` (the supervisor requests no read past it) and its `bytes` budget (once
     /// the blobs received reach it, no more reads are requested: the rest stay moved, listed stale); `remark` are the
     /// slots control could not [`Command::Remark`] on its own (a full channel), read again by this burst. A second
@@ -824,12 +824,12 @@ pub enum Command {
         /// The slot, in chain order.
         slot: u32,
     },
-    /// D8: hand a workgroup port to the child (the lab passes a stand-in port).
+    /// Hand a workgroup port to the child (the lab passes a stand-in port).
     AttachWorkgroup {
         /// The workgroup port.
         port: MachSend,
     },
-    /// C10: a loop boundary or a transport stop; pending depth lowerings land.
+    /// A loop boundary or a transport stop; pending depth lowerings land.
     Boundary,
     /// `plugin.restartHost`: clears quarantine and the attempt counter, restarts the child.
     RestartHost,
@@ -853,7 +853,7 @@ pub enum DownReason {
     /// A send to the child stalled past the send timeout.
     Stall,
     /// The supervisor killed the child for a protocol
-    /// fault (a frame `check_to_core` refused, a reply to nothing, a frame the reader's decoder refused, descriptors
+    /// fault (a frame `check_to_host` refused, a reply to nothing, a frame the reader's decoder refused, descriptors
     /// from the child, a `hello` reply that does not decode or did not come within [`HELLO_DEADLINE`]). Never
     /// attributed; the respawn is armed and an attempt counted, as for any death. Never `Crash`.
     Protocol,
@@ -863,7 +863,7 @@ pub enum DownReason {
         /// The protocol the child's `hello` named (`major << 16 | minor`).
         child_protocol: u32,
         /// The protocol this supervisor speaks.
-        core_protocol: u32,
+        host_protocol: u32,
     },
     /// N4: the child exited [`EXIT_USAGE`] before its `hello` was verified: the host application spawned it wrongly (a
     /// bad flag, a crash-log folder gone after launch). No plugin code ran: never attributed, and no respawn (the same
@@ -872,9 +872,9 @@ pub enum DownReason {
 }
 
 impl DownReason {
-    /// The reason word of `event.pluginHostRestarted {reason}` (D7, C7: `crash|wedge`). A send stall is a wedged
-    /// child (D6's bounds table). `protocol` (H-5) and `incompatible` are [P] names, beside `crash` and `wedge`, for
-    /// Acceptance at L3 (as C7's name).
+    /// The reason word of `event.pluginHostRestarted {reason}` (`crash|wedge`). A send stall is a wedged
+    /// child (the bounds table). `protocol` and `incompatible` are [P] names, beside `crash` and `wedge`, for
+    /// acceptance.
     pub fn wire_word(self) -> &'static str {
         match self {
             DownReason::Crash => "crash",
@@ -923,7 +923,7 @@ impl RestartedSlot {
     }
 }
 
-/// One slot of a ready chain as the host application holds it (D6 `chain.loaded`, clamped; D7 quarantine enforced).
+/// One slot of a ready chain as the host application holds it (`chain.loaded`, clamped; quarantine enforced).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct ReadySlot {
@@ -939,7 +939,7 @@ pub struct ReadySlot {
     /// quarantined.
     pub has_editor: bool,
     /// *(protocol 3.9)* The slot's notice codes from the child (`SlotInfo.notices`, replaced by
-    /// `chain.prepared`'s `slotNotices`), clamped ([`codec::slot_notices_clamped`]); none for a slot that is not
+    /// `chain.prepared`'s notices), clamped ([`codec::slot_notices_clamped`]); none for a slot that is not
     /// loaded or is quarantined.
     pub notices: Vec<String>,
 }
@@ -1007,7 +1007,7 @@ pub enum Event {
     },
     /// The chain is loaded and prepared (`chain.prepared`): control (re)compiles its Bridge node.
     /// `slots` is per slot, in chain order: a quarantined slot keeps its number, as an empty pass-through with
-    /// latency 0 and paramCount 0 (D7).
+    /// latency 0 and paramCount 0.
     ChainReady {
         /// The chain's key.
         key: u64,
@@ -1029,7 +1029,7 @@ pub enum Event {
         /// Per slot, in chain order, with the new notice sets.
         slots: Vec<ReadySlot>,
     },
-    /// The chain's child died or the chain wedged: control recompiles it as `Silent` (D7).
+    /// The chain's child died or the chain wedged: control recompiles it as `Silent`.
     ChainDown {
         /// The chain's key.
         key: u64,
@@ -1087,7 +1087,7 @@ pub enum Event {
     /// A `param.list` page, as the child answered it, clamped (the child is untrusted): `total`
     /// ≤ [`PARAM_CAP`] (the per-chain cache bound), at most the `count` asked for (≤ [`PARAM_PAGE`]), each name cut
     /// to [`PARAM_NAME_CHARS`] characters and each label to `params::LABEL_CHARS`. `ids` are the child's, unjudged
-    /// (`slot << 24 | index` by D10; a lying child's are its own, V1).: from a child below 3.7 the 3.7 fields
+    /// (`slot << 24 | index` in the region; a lying child's are its own): from a child below 3.7 the 3.7 fields
     /// are their defaults whatever it sent (`automatable` false). `ok` false: the child answered an error, a reply
     /// that is not a page, or (3.7) a `default` or `value` that is not finite.
     ParamList {
@@ -1172,7 +1172,7 @@ pub enum Event {
         /// The operation the slot was in.
         op: String,
     },
-    /// D17: the child closed the slot's editor window and said so (`editor.closed`: its close button, or
+    /// The child closed the slot's editor window and said so (`editor.closed`: its close button, or
     /// `editor.close`). Emitted after the close's state read ([`Event::StateRead`], or the burst's). A chain unload
     /// closes its windows with NO `editor.closed` (the child's `close_windows`): see [`Event::EditorGone`].
     EditorClosed {
@@ -1207,7 +1207,7 @@ pub enum Event {
         /// The child incarnation whose receipt named the window ([`Event::ChildUp`]'s).
         incarnation: u64,
     },
-    /// D17: `editor.availability`: the slot has no editor the child can show (no view, a render chain, the
+    /// `editor.availability`: the slot has no editor the child can show (no view, a render chain, the
     /// editor dylib missing); no window was opened. The slot's `hasEditor` is false from now on.
     EditorUnavailable {
         /// The chain's key.
@@ -1261,9 +1261,9 @@ pub enum Event {
         /// Whether its threads joined the workgroup.
         joined: bool,
     },
-    /// A state blob failed the frame check (`stateFormatRefused`).
+    /// A state blob failed the frame check.
     /// - [`StateSource::Package`]: the model's blob was never sent; the slot loads with no state applied, and
-    ///   `project.open` names it in a warning (the blob stays in the package, never rewritten). `generation` is the
+    ///   the application's project open names it in a warning (the blob stays in the package, never rewritten). `generation` is the
     ///   model's.
     /// - [`StateSource::Child`]: a `state.get` or `editor.closed` blob was not stored; the slot keeps its last known
     ///   blob, stale (a save burst lists it in `stale`). `generation` is the child's.
@@ -1281,7 +1281,7 @@ pub enum Event {
     },
     /// A slot's `restartComponent(kLatencyChanged)` cycle ended (`slot.reactivated`, clamped). The
     /// last three are the supervisor's per-(chain, slot) counts, saturating; `getState` surfaces a notice for a slot
-    /// whose `total_bypassed_blocks` > 0 (its wire name is settled with 0001's catalogue at L3).
+    /// whose `total_bypassed_blocks` > 0 (its wire name is the host application's).
     SlotReactivated {
         /// The chain's key.
         key: u64,
@@ -1332,7 +1332,7 @@ struct Reload {
     waiting: BTreeSet<u32>,
 }
 
-/// Where a refused state blob came from (D21's two check points).
+/// Where a refused state blob came from (the two check points).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum StateSource {
@@ -1364,9 +1364,9 @@ pub struct ControlCounters {
     pub(crate) chains_active: AtomicU32,
     /// Chains at pipeline depth 2 now.
     pub(crate) chains_depth2: AtomicU32,
-    /// *(R3; not in 0004)* Gauges: the child's wired and unwired chain memory, summed over the loaded chains
+    /// Gauges (not in the telemetry layout): the child's wired and unwired chain memory, summed over the loaded chains
     /// (`chain.loaded`'s `wiredBytes` / `unwiredBytes`; a child that sends neither counts 0). The host application reports them as
-    /// `childWiredBytes` / `childUnwiredBytes`.
+    /// its wired and unwired child bytes.
     pub(crate) child_wired_bytes: AtomicU64,
     /// The unwired half of [`ControlCounters::child_wired_bytes`]'s gauge.
     pub(crate) child_unwired_bytes: AtomicU64,
@@ -1388,13 +1388,13 @@ pub struct ControlCounters {
     pub(crate) msg_thread_long_holds: AtomicU64,
     /// The child's spurious wakes (its page's count).
     pub(crate) spurious_wakes: AtomicU64,
-    /// `bridgeReactivations` (control telemetry offset 440): `slot.reactivated` events, cumulative.
+    /// Reactivations (control telemetry offset 440): `slot.reactivated` events, cumulative.
     pub(crate) reactivations: AtomicU64,
-    /// D22 (`bridgeReactivationStalls`, control 448): reactivations whose cycle or take passed its bound.
+    /// Reactivation stalls (control telemetry offset 448): reactivations whose cycle or take passed its bound.
     pub(crate) reactivation_stalls: AtomicU64,
-    /// D21 (`stateFormatRefused`, control 456): state blobs refused by the frame check, from the child or the package.
+    /// Control telemetry offset 456: state blobs refused by the frame check, from the child or the package.
     pub(crate) state_format_refused: AtomicU64,
-    /// D21 (`stateEmptySets`, control 464): both-absent vst3 sets sent (no-ops in the child).
+    /// Empty state sets (control telemetry offset 464): both-absent vst3 sets sent (no-ops in the child).
     pub(crate) state_empty_sets: AtomicU64,
     /// Vst3 sets that failed after a chunk reached the plugin.
     pub(crate) state_partial_sets: AtomicU64,
@@ -1407,39 +1407,39 @@ pub struct ControlCounters {
     /// Chain-mates of an abandoned slot reloaded from their
     /// stored blob because their read before the reload failed, was refused, or passed `RELOAD_READ_DEADLINE`.
     pub(crate) reload_state_fallbacks: AtomicU64,
-    /// Not in 0004: the respawn attempt counter, for tests and logs.
+    /// Not in the telemetry layout: the respawn attempt counter, for tests and logs.
     pub(crate) attempts: AtomicU32,
     /// Protocol faults that killed the child (counted loudly, never attributed), and, as before, a reader
-    /// that ended at EOF mid-frame or on a `recv` error (those deaths stay attributed, H-4).
+    /// that ended at EOF mid-frame or on a `recv` error (those deaths stay attributed).
     pub(crate) protocol_errors: AtomicU64,
     /// The live hello (`child_incompatible`; not in the telemetry layout, placing it is an ABI
     /// step): `hello` replies whose protocol major was not the host application's, cumulative.
     pub(crate) child_incompatible: AtomicU64,
-    /// N4 (not in 0004; for tests and logs): children that exited 2 before their `hello` was verified.
+    /// N4 (not in the telemetry layout; for tests and logs): children that exited 2 before their `hello` was verified.
     pub(crate) child_usage_exits: AtomicU64,
     /// The live child's `hello` protocol (`major << 16 | minor`; 0 before a verified hello). A minor of
     /// 2 or more takes `SlotDesc.enabled` and `slot.setEnabled`.
     pub(crate) child_protocol: AtomicU32,
-    /// not in 0004 (tests and logs): `EditorOpen` commands dropped because the chain is a render set (a render
+    /// Not in telemetry (tests and logs): `EditorOpen` commands dropped because the chain is a render set (a render
     /// chain never opens an editor) or is not hosted.
     pub(crate) editor_opens_refused: AtomicU64,
-    /// (rule 2), not in 0004: `Load` commands refused because their key is already
+    /// Not in the telemetry layout: `Load` commands refused because their key is already
     /// a hosted chain (a key is never loaded twice; the child refuses it too). Loud.
     pub(crate) loads_refused_live_key: AtomicU64,
-    /// Not in 0004, for tests and logs (as `attempts`): consecutive attributed deaths naming the same slot (D7's
+    /// Not in telemetry (tests, logs; as `attempts`): consecutive attributed deaths naming the same slot (the rule's
     /// "two consecutive deaths"; 2 quarantines it), 0 after a death attributed to no slot. An unattributed death
     /// leaves it as it was, as it leaves `last_attribution`.
     pub(crate) attribution_run: AtomicU32,
-    /// H-1 (a): 100 ms for a warm spawn (every spawn after a process's first). Not in 0004,
+    /// The warm-spawn budget, 100 ms (every spawn after a process's first). Not in the layout,
     /// for tests and logs: the last incarnation's `hello` round trip, from its send to its verified reply (decoded,
     /// major checked), in real time (ns), stored before its `ChildUp` is emitted. The 2 s [`HELLO_DEADLINE`] stays the
     /// hard kill ceiling.
     pub(crate) hello_rtt_ns: AtomicU64,
-    /// H-1 (b): ≤ 500 ms for a cold launch (a process's first spawn). Not in 0004, for tests
+    /// The cold-launch budget, ≤ 500 ms (a process's first spawn). Not in the layout, for tests
     /// and logs: the last incarnation's launch, from the start of its `posix_spawn` to its verified `hello` reply, in
     /// real time (ns), stored before its `ChildUp` is emitted.
     pub(crate) hello_launch_ns: AtomicU64,
-    /// D6's reader blob budget (branch `live-reader`, 2026-11-01), not in 0004, for tests and logs: the blob bytes the
+    /// The reader blob budget, not in the telemetry layout, for tests and logs: the blob bytes the
     /// readers hold now (admitted from a frame's header, the frame the decoder is filling included, until the
     /// supervisor takes the frame or it is dropped). Never above `Config::reader_blob_budget`.
     pub(crate) reader_blob_held: AtomicU64,
@@ -1447,7 +1447,7 @@ pub struct ControlCounters {
     pub(crate) reader_blob_peak: AtomicU64,
     /// Blob bytes admitted, cumulative.
     pub(crate) reader_blob_admitted: AtomicU64,
-    /// D6's frame bound, not in 0004, for tests and logs: the frames in flight from the
+    /// The reader frame bound, not in the telemetry layout, for tests and logs: the frames in flight from the
     /// readers to the supervisor now (admitted from a header until the supervisor takes the frame or it is dropped),
     /// summed over the readers.
     pub(crate) reader_frames_held: AtomicU64,
@@ -1458,12 +1458,12 @@ pub struct ControlCounters {
     /// Frames whose admission waited for the supervisor to free blob bytes or a frame (the reader stopped reading
     /// meanwhile: a flooding child stalls only itself), cumulative.
     pub(crate) reader_blob_waits: AtomicU64,
-    /// not in 0004 (tests and logs): the live child's `HelloReply.wiredBytes` / `unwiredBytes` (its page),
+    /// Not in telemetry (tests and logs): the live child's `HelloReply.wiredBytes` / `unwiredBytes` (its page),
     /// 0 while no verified child runs. Already inside `child_wired_bytes` / `child_unwired_bytes`.
     pub(crate) child_page_wired_bytes: AtomicU64,
     /// The unwired half of [`ControlCounters::child_page_wired_bytes`].
     pub(crate) child_page_unwired_bytes: AtomicU64,
-    /// not in 0004 (tests and logs; `system.logInfo.childLogSet` has the engine-wide sums): this bridge's
+    /// Not in the telemetry layout (tests and logs; the host application sums them): this bridge's
     /// `log.set` frames sent, replies naming the word sent, error replies, and replies whose word was not the one sent.
     pub(crate) log_set_sent: AtomicU64,
     /// `log.set` replies naming the word sent.
@@ -1472,7 +1472,7 @@ pub struct ControlCounters {
     pub(crate) log_set_refused: AtomicU64,
     /// `log.set` replies naming another word.
     pub(crate) log_set_mismatch: AtomicU64,
-    /// not in 0004 (tests and logs): requests sent with a `corr`; corrs not added (`with_corr` refused:
+    /// Not in the telemetry layout (tests and logs): requests sent with a `corr`; corrs not added (`with_corr` refused:
     /// invalid, meta-less, or the meta at its cap); echoes read on the child's answers; echoes ignored (malformed, or on
     /// a frame that is no answer).
     pub(crate) corr_sent: AtomicU64,
@@ -1530,9 +1530,9 @@ impl ControlCounters {
         self.chains_depth2.load(Ordering::Acquire)
     }
 
-    /// *(R3; not in 0004)* Gauges: the child's wired and unwired chain memory, summed over the loaded chains
+    /// Gauges (not in the telemetry layout): the child's wired and unwired chain memory, summed over the loaded chains
     /// (`chain.loaded`'s `wiredBytes` / `unwiredBytes`; a child that sends neither counts 0). The host application reports them as
-    /// `childWiredBytes` / `childUnwiredBytes`.
+    /// its wired and unwired child bytes.
     pub fn child_wired_bytes(&self) -> u64 {
         self.child_wired_bytes.load(Ordering::Acquire)
     }
@@ -1587,22 +1587,22 @@ impl ControlCounters {
         self.spurious_wakes.load(Ordering::Acquire)
     }
 
-    /// `bridgeReactivations` (control telemetry offset 440): `slot.reactivated` events, cumulative.
+    /// Reactivations (control telemetry offset 440): `slot.reactivated` events, cumulative.
     pub fn reactivations(&self) -> u64 {
         self.reactivations.load(Ordering::Acquire)
     }
 
-    /// D22 (`bridgeReactivationStalls`, control 448): reactivations whose cycle or take passed its bound.
+    /// Reactivation stalls (control telemetry offset 448): reactivations whose cycle or take passed its bound.
     pub fn reactivation_stalls(&self) -> u64 {
         self.reactivation_stalls.load(Ordering::Acquire)
     }
 
-    /// D21 (`stateFormatRefused`, control 456): state blobs refused by the frame check, from the child or the package.
+    /// Control telemetry offset 456: state blobs refused by the frame check, from the child or the package.
     pub fn state_format_refused(&self) -> u64 {
         self.state_format_refused.load(Ordering::Acquire)
     }
 
-    /// D21 (`stateEmptySets`, control 464): both-absent vst3 sets sent (no-ops in the child).
+    /// Empty state sets (control telemetry offset 464): both-absent vst3 sets sent (no-ops in the child).
     pub fn state_empty_sets(&self) -> u64 {
         self.state_empty_sets.load(Ordering::Acquire)
     }
@@ -1630,13 +1630,13 @@ impl ControlCounters {
         self.reload_state_fallbacks.load(Ordering::Acquire)
     }
 
-    /// Not in 0004: the respawn attempt counter, for tests and logs.
+    /// Not in the telemetry layout: the respawn attempt counter, for tests and logs.
     pub fn attempts(&self) -> u32 {
         self.attempts.load(Ordering::Acquire)
     }
 
     /// Protocol faults that killed the child (counted loudly, never attributed), and, as before, a reader
-    /// that ended at EOF mid-frame or on a `recv` error (those deaths stay attributed, H-4).
+    /// that ended at EOF mid-frame or on a `recv` error (those deaths stay attributed).
     pub fn protocol_errors(&self) -> u64 {
         self.protocol_errors.load(Ordering::Acquire)
     }
@@ -1647,7 +1647,7 @@ impl ControlCounters {
         self.child_incompatible.load(Ordering::Acquire)
     }
 
-    /// N4 (not in 0004; for tests and logs): children that exited 2 before their `hello` was verified.
+    /// N4 (not in the telemetry layout; for tests and logs): children that exited 2 before their `hello` was verified.
     pub fn child_usage_exits(&self) -> u64 {
         self.child_usage_exits.load(Ordering::Acquire)
     }
@@ -1658,26 +1658,26 @@ impl ControlCounters {
         self.child_protocol.load(Ordering::Acquire)
     }
 
-    /// not in 0004 (tests and logs): `EditorOpen` commands dropped because the chain is a render set (a render
+    /// Not in telemetry (tests and logs): `EditorOpen` commands dropped because the chain is a render set (a render
     /// chain never opens an editor) or is not hosted.
     pub fn editor_opens_refused(&self) -> u64 {
         self.editor_opens_refused.load(Ordering::Acquire)
     }
 
-    /// (rule 2), not in 0004: `Load` commands refused because their key is already
+    /// Not in the telemetry layout: `Load` commands refused because their key is already
     /// a hosted chain (a key is never loaded twice; the child refuses it too). Loud.
     pub fn loads_refused_live_key(&self) -> u64 {
         self.loads_refused_live_key.load(Ordering::Acquire)
     }
 
-    /// Not in 0004, for tests and logs (as `attempts`): consecutive attributed deaths naming the same slot (D7's
+    /// Not in telemetry (tests, logs; as `attempts`): consecutive attributed deaths naming the same slot (the rule's
     /// "two consecutive deaths"; 2 quarantines it), 0 after a death attributed to no slot. An unattributed death
     /// leaves it as it was, as it leaves `last_attribution`.
     pub fn attribution_run(&self) -> u32 {
         self.attribution_run.load(Ordering::Acquire)
     }
 
-    /// H-1 (a): 100 ms for a warm spawn (every spawn after a process's first). Not in 0004,
+    /// The warm-spawn budget, 100 ms (every spawn after a process's first). Not in the layout,
     /// for tests and logs: the last incarnation's `hello` round trip, from its send to its verified reply (decoded,
     /// major checked), in real time (ns), stored before its `ChildUp` is emitted. The 2 s [`HELLO_DEADLINE`] stays the
     /// hard kill ceiling.
@@ -1685,14 +1685,14 @@ impl ControlCounters {
         self.hello_rtt_ns.load(Ordering::Acquire)
     }
 
-    /// H-1 (b): ≤ 500 ms for a cold launch (a process's first spawn). Not in 0004, for tests
+    /// The cold-launch budget, ≤ 500 ms (a process's first spawn). Not in the layout, for tests
     /// and logs: the last incarnation's launch, from the start of its `posix_spawn` to its verified `hello` reply, in
     /// real time (ns), stored before its `ChildUp` is emitted.
     pub fn hello_launch_ns(&self) -> u64 {
         self.hello_launch_ns.load(Ordering::Acquire)
     }
 
-    /// D6's reader blob budget (branch `live-reader`, 2026-11-01), not in 0004, for tests and logs: the blob bytes the
+    /// The reader blob budget, not in the telemetry layout, for tests and logs: the blob bytes the
     /// readers hold now (admitted from a frame's header, the frame the decoder is filling included, until the
     /// supervisor takes the frame or it is dropped). Never above `Config::reader_blob_budget`.
     pub fn reader_blob_held(&self) -> u64 {
@@ -1709,7 +1709,7 @@ impl ControlCounters {
         self.reader_blob_admitted.load(Ordering::Acquire)
     }
 
-    /// D6's frame bound, not in 0004, for tests and logs: the frames in flight from the
+    /// The reader frame bound, not in the telemetry layout, for tests and logs: the frames in flight from the
     /// readers to the supervisor now (admitted from a header until the supervisor takes the frame or it is dropped),
     /// summed over the readers.
     pub fn reader_frames_held(&self) -> u64 {
@@ -1732,7 +1732,7 @@ impl ControlCounters {
         self.reader_blob_waits.load(Ordering::Acquire)
     }
 
-    /// not in 0004 (tests and logs): the live child's `HelloReply.wiredBytes` / `unwiredBytes` (its page),
+    /// Not in telemetry (tests and logs): the live child's `HelloReply.wiredBytes` / `unwiredBytes` (its page),
     /// 0 while no verified child runs. Already inside `child_wired_bytes` / `child_unwired_bytes`.
     pub fn child_page_wired_bytes(&self) -> u64 {
         self.child_page_wired_bytes.load(Ordering::Acquire)
@@ -1743,7 +1743,7 @@ impl ControlCounters {
         self.child_page_unwired_bytes.load(Ordering::Acquire)
     }
 
-    /// not in 0004 (tests and logs; `system.logInfo.childLogSet` has the engine-wide sums): this bridge's
+    /// Not in the telemetry layout (tests and logs; the host application sums them): this bridge's
     /// `log.set` frames sent, replies naming the word sent, error replies, and replies whose word was not the one sent.
     pub fn log_set_sent(&self) -> u64 {
         self.log_set_sent.load(Ordering::Acquire)
@@ -1764,7 +1764,7 @@ impl ControlCounters {
         self.log_set_mismatch.load(Ordering::Acquire)
     }
 
-    /// not in 0004 (tests and logs): requests sent with a `corr`; corrs not added (`with_corr` refused:
+    /// Not in the telemetry layout (tests and logs): requests sent with a `corr`; corrs not added (`with_corr` refused:
     /// invalid, meta-less, or the meta at its cap); echoes read on the child's answers; echoes ignored (malformed, or on
     /// a frame that is no answer).
     pub fn corr_sent(&self) -> u64 {
@@ -1788,7 +1788,7 @@ impl ControlCounters {
 }
 
 /// The child's state, as [`ControlCounters::child_state`] reads it. Its [`ChildState::code`] is the control section's
-/// `childState` word (0 none, 1 starting, 2 up, 3 backoff, 4 exhausted).
+/// child-state word (0 none, 1 starting, 2 up, 3 backoff, 4 exhausted).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum ChildState {
@@ -1881,7 +1881,7 @@ impl Bridge {
         })
     }
 
-    /// Never blocks: a full queue is `Busy` (D6). The command carries no `corr` ([`Bridge::send_corr`]).
+    /// Never blocks: a full queue is `Busy`. The command carries no `corr` ([`Bridge::send_corr`]).
     // `Busy` hands the command back unmoved (no allocation on the BUSY path); its size is the command's.
     #[allow(clippy::result_large_err)]
     pub fn send(&self, c: Command) -> Result<(), Busy> {
@@ -1942,13 +1942,13 @@ impl Drop for Bridge {
 enum Inbound {
     /// A command and the `corr` of the request control was serving when it sent it.
     Cmd(Command, Option<String>),
-    /// A frame and its share of D6's reader bounds, its frame and its blob bytes ([`BlobTicket`]).
+    /// A frame and its share of the reader bounds, its frame and its blob bytes ([`BlobTicket`]).
     Frame(u64, Frame, BlobTicket),
     ReaderDone(u64, ReaderEnd),
     Died(u64, runecraft_ipc::process::ChildExit),
 }
 
-/// Why the reader thread stopped (H-4 sorts them).
+/// Why the reader thread stopped (the protocol fault rule sorts them).
 #[derive(Debug)]
 enum ReaderEnd {
     /// EOF between frames: an ordinary death, attributed.
@@ -2006,14 +2006,14 @@ enum Pending {
     Shutdown,
 }
 
-/// Whether a death is attributed (D7) or not.
+/// Whether a death is attributed or not.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Blame {
     Attributed,
     None,
 }
 
-/// What follows a death: D7's backoff, or the exhausted state at once.
+/// What follows a death: the respawn backoff, or the exhausted state at once.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Respawn {
     Backoff,
@@ -2048,20 +2048,20 @@ struct SlotEntry {
     state: Option<SlotState>,
     applied: bool,
     child_gen: u64,
-    /// The child generation of the last completed read: a slot with `child_gen != read_gen` has moved (D6).
+    /// The child generation of the last completed read: a slot with `child_gen != read_gen` has moved.
     read_gen: u64,
     editor_open: bool,
     /// Protocol 3.4: `SlotInfo.hasEditor`, corrected by `editor.availability`.
     has_editor: bool,
     last_read_at: Duration,
     name: String,
-    /// From `chain.loaded` (D6), as clamped by the host application; 0 for a quarantined slot whatever the child said (D7).
+    /// From `chain.loaded`, as clamped by the host application; 0 for a quarantined slot whatever the child said.
     loaded_ok: bool,
     /// the child's notices for the slot (`chain.loaded`, then `chain.prepared`), clamped.
     notices: Vec<String>,
     latency: u32,
     param_count: u32,
-    /// D22, per (chain, slot), saturating (the child is untrusted): cycles, bypassed blocks, stalls.
+    /// Reactivation counts per (chain, slot), saturating (the child is untrusted): cycles, bypassed blocks, stalls.
     reactivations: u32,
     bypassed_blocks: u32,
     stalls: u32,
@@ -2087,7 +2087,7 @@ struct Chain {
     depth: DepthController,
     /// The enabled flags the last `chain.load` carried (a toggle while it loads is re-sent once loaded).
     sent_enabled: Vec<bool>,
-    /// *(R3)* The child's wired and unwired chain memory, as its last `chain.loaded` reported (0 from a child
+    /// The child's wired and unwired chain memory, as its last `chain.loaded` reported (0 from a child
     /// that sends neither).
     wired_bytes: u64,
     unwired_bytes: u64,
@@ -2103,11 +2103,11 @@ struct Child {
     up_at: Duration,
     /// The reply to `hello` was decoded and passed the major check. Until then only `hello` is sent.
     hello_ok: bool,
-    /// H-2: when the unverified `hello` becomes a no-blame kill (the hello's send time + [`Config::hello_deadline`]).
+    /// When the unverified `hello` becomes a no-blame kill (the hello's send time + [`Config::hello_deadline`]).
     hello_by: Duration,
-    /// H-1: the hello's send, in real time (the round trip is measured whatever the configured clock).
+    /// The hello's send, in real time (the round trip is measured whatever the configured clock).
     hello_sent: std::time::Instant,
-    /// H-1 (b): the start of this incarnation's `posix_spawn`, in real time.
+    /// The cold-launch budget: the start of this incarnation's `posix_spawn`, in real time.
     spawn_started: std::time::Instant,
     dead: bool,
     mach_rx: Option<MachReceive>,
@@ -2126,7 +2126,7 @@ struct Child {
 struct Burst {
     token: u64,
     deadline: Duration,
-    /// E1: the byte budget, and the blob bytes received so far.
+    /// The byte budget, and the blob bytes received so far.
     byte_budget: u64,
     bytes: u64,
     /// Reads sent.
@@ -2163,7 +2163,7 @@ struct Supervisor {
     next_poll: Duration,
     next_depth: Duration,
     burst: Option<Burst>,
-    /// D6's reader -> supervisor blob budget, shared with every incarnation's reader.
+    /// The reader -> supervisor blob budget, shared with every incarnation's reader.
     blob_gate: Arc<BlobGate>,
     shutting_down: bool,
     shutdown_by: Option<std::time::Instant>,
@@ -2179,7 +2179,7 @@ struct Supervisor {
     /// `corr` of every record written meanwhile.
     echo: Option<String>,
     /// the last level generation this supervisor forwarded (or recorded with no
-    /// child to send it to); its own, so every bridge of the process forwards each `system.setLog`.
+    /// child to send it to); its own, so every bridge of the process forwards each log-level change.
     log_gen_sent: u64,
     /// the verified child's page memory (wired, unwired), 0 with none.
     page_wired: (u64, u64),
@@ -2250,7 +2250,7 @@ impl Supervisor {
 
     fn emit(&self, e: Event) {
         self.log_event(&e);
-        // The supervisor waits on control's channel; control never waits on the supervisor (D6).
+        // The supervisor waits on control's channel; control never waits on the supervisor.
         let _ = self.events.send(e);
     }
 
@@ -2269,7 +2269,7 @@ impl Supervisor {
             match rx.recv_timeout(wait) {
                 Ok(Inbound::Cmd(c, corr)) => {
                     self.pending_cmds.fetch_sub(1, Ordering::AcqRel);
-                    // a `system.setLog` that completed before this command was sent reaches the child first.
+                    // a log-level change that completed before this command was sent reaches the child first.
                     self.sync_log_levels();
                     self.corr = corr;
                     let stop = self.command(c);
@@ -2279,7 +2279,7 @@ impl Supervisor {
                     }
                 }
                 Ok(Inbound::Frame(inc, f, ticket)) => {
-                    // D6: the frame is taken, so it and its blob bytes leave the readers' bounds (a waiting reader
+                    // The frame is taken, so it and its blob bytes leave the readers' bounds (a waiting reader
                     // admits).
                     ticket.redeem();
                     if self
@@ -2293,7 +2293,7 @@ impl Supervisor {
                 Ok(Inbound::ReaderDone(inc, end)) => {
                     if self.child.as_ref().is_some_and(|c| c.incarnation == inc) {
                         match end {
-                            // H-4: frames the host application refuses, as the protocol fault rule's; the reader sent this before it closed the
+                            // Frames the host application refuses, as the protocol fault rule's; the reader sent this before it closed the
                             // socket, so the child's own exit (its EOF) cannot be seen first.
                             ReaderEnd::Refused(e) => self.protocol_fault(&format!(
                                 "the reader's decoder refused the stream: {e}"
@@ -2302,14 +2302,14 @@ impl Supervisor {
                                 .protocol_fault("descriptors from the child (it never sends any)"),
                             // N4: an EOF before the verified hello waits for the exit status (the reaper's report
                             // follows at once), so a usage exit is told from a crash. A child that closed fd 3 and
-                            // lives on is the hello deadline's (H-2).
+                            // lives on is the hello deadline's.
                             ReaderEnd::Eof
                                 if USAGE_EXIT_TERMINAL
                                     && self.child.as_ref().is_some_and(|c| {
                                         !c.hello_ok || cfg!(mutant_usage_exit_ignores_hello)
                                     }) => {}
                             ReaderEnd::Eof => self.death(DownReason::Crash),
-                            // A crash can cut a frame in half: attributed, as before (H-4), and counted as before.
+                            // A crash can cut a frame in half: attributed, as before, and counted as before.
                             ReaderEnd::EofMidFrame | ReaderEnd::Recv(_) => {
                                 let what = match &end {
                                     ReaderEnd::Recv(e) => format!("a recv error: {e}"),
@@ -2358,7 +2358,7 @@ impl Supervisor {
             {
                 break;
             }
-            // an idle supervisor forwards a `system.setLog` within one tick.
+            // an idle supervisor forwards a log-level change within one tick.
             self.sync_log_levels();
             self.tick();
             if let Some(b) = self.barrier.take() {
@@ -2396,6 +2396,8 @@ impl Supervisor {
     fn try_spawn(&mut self) -> std::io::Result<()> {
         let (ours, theirs) = runecraft_ipc::channel::channel_pair()?;
         let mach_rx = MachReceive::new().ok();
+        // The child's send right of route B: a mach port, so macOS only.
+        #[cfg(target_os = "macos")]
         let send = match (&mach_rx, self.cfg.route) {
             (Some(r), RoutePref::B) => r.make_send().ok(),
             _ => None,
@@ -2416,6 +2418,8 @@ impl Supervisor {
         };
         #[cfg(not(target_os = "macos"))]
         let process = runecraft_ipc::process::spawn_child(&spawn, theirs)?;
+        // The parent's copy of the send right goes now that the child holds its own (a port has no drop elsewhere).
+        #[cfg(target_os = "macos")]
         drop(send);
         let process = Arc::new(process);
         let pid = process.pid();
@@ -2467,7 +2471,7 @@ impl Supervisor {
         });
         let hello = codec::Hello::new(self.cfg.child_id.clone(), page_objs.len() as u32);
         self.request(kind::HELLO, &hello, &[], page_objs, Pending::Hello);
-        // H-2: the deadline runs from the hello's send (`request` writes it at once; a stall there is a Stall kill).
+        // The deadline runs from the hello's send (`request` writes it at once; a stall there is a Stall kill).
         let sent = self.now();
         if let Some(c) = &mut self.child {
             c.hello_by = sent + self.cfg.hello_deadline;
@@ -2480,7 +2484,7 @@ impl Supervisor {
         Ok(())
     }
 
-    /// Every chain loads on this child, in order, from the table (D7 re-apply): `chain.load`, its states, then
+    /// Every chain loads on this child, in order, from the table (the re-apply): `chain.load`, its states, then
     /// `chain.prepare`.
     fn load_all(&mut self) {
         let keys: Vec<u64> = self.chains.keys().copied().collect();
@@ -2569,7 +2573,7 @@ impl Supervisor {
             ..Default::default()
         };
         self.request(kind::CHAIN_LOAD, &msg, &[], region_objs, Pending::Receipt);
-        // Then the states, from the model's blobs, in `sasp` mode (D7, D21), then prepare. A blob that fails the frame
+        // Then the states, from the model's blobs, in `sasp` mode, then prepare. A blob that fails the frame
         // check is never sent: the slot loads with no state applied (and nothing waits on its confirmation).
         let mut sets = Vec::new();
         let ch = self.chains.get_mut(&key).expect("present");
@@ -2606,13 +2610,13 @@ impl Supervisor {
         );
     }
 
-    /// `state.set {mode: sasp}` (D21: the one production mode). The package blob is checked first: a refused one is
+    /// `state.set {mode: sasp}` (the one production mode). The package blob is checked first: a refused one is
     /// never sent (counted, [`Event::StateRefused`]), and false is returned. A both-absent vst3 blob is sent and
-    /// counted (`stateEmptySets`): the child answers it `ok: true` without touching the plugin.
+    /// counted: the child answers it `ok: true` without touching the plugin.
     fn send_state(&mut self, key: u64, st: &SlotState) -> bool {
         let checked = state_blob::check(&st.blob);
         // The mutation check (never in a normal build): the package blob's frame check is skipped, so a refused blob
-        // is sent (e2e_state `a_bare_package_blob_is_never_sent_…` fails).
+        // is sent (the host application's state test of a bare package blob fails).
         #[cfg(mutant_sasp_package_unchecked)]
         let checked = checked.or_else(|_| state_blob::check(&state_blob::builtin(&[])));
         match checked {
@@ -2717,7 +2721,7 @@ impl Supervisor {
                         }
                     }
                     Err(e) => {
-                        // A stall past SO_SNDTIMEO (2 s) is a wedged child; any other error is a dead one (D6).
+                        // A stall past SO_SNDTIMEO (2 s) is a wedged child; any other error is a dead one.
                         stalled = matches!(
                             e.kind(),
                             std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
@@ -2922,7 +2926,7 @@ impl Supervisor {
                     .chains
                     .get(&key)
                     .is_some_and(|c| c.spec.role == codec::Role::Render);
-                // every verified 4.x child takes kind 25 (its gate went with R3's).
+                // every verified 4.x child takes kind 25 (its gate went with the wired-memory one).
                 if !render {
                     self.emit(Event::PreparedFresh {
                         slots: Vec::new(),
@@ -3180,7 +3184,7 @@ impl Supervisor {
         self.pump_burst();
     }
 
-    /// E5: the next burst reads this slot again.
+    /// The next burst reads this slot again.
     fn remark(&mut self, key: u64, slot: u32) {
         if let Some(s) = self
             .chains
@@ -3260,7 +3264,7 @@ impl Supervisor {
         stale.sort_unstable();
         stale.dedup();
         if !b.generations_answered {
-            // A dead or wedged reader: every slot with an open editor is stale (D6).
+            // A dead or wedged reader: every slot with an open editor is stale.
             for (&k, ch) in &self.chains {
                 for (i, s) in ch.slots.iter().enumerate() {
                     if s.editor_open && !stale.contains(&(k, i as u32)) {
@@ -3290,11 +3294,11 @@ impl Supervisor {
     // -----------------------------------------------------------------------------------------------------------------
 
     fn frame(&mut self, f: Frame) {
-        if let Err(e) = codec::check_to_core(&f) {
-            // A protocol fault (and H-3: an undecodable `hello` reply is refused here, before `on_hello`).
+        if let Err(e) = codec::check_to_host(&f) {
+            // A protocol fault (and an undecodable `hello` reply is refused here, before `on_hello`).
             let h = f.header;
             self.protocol_fault(&format!(
-                "a {} {} (id {}) the core refuses: {e}",
+                "a {} {} (id {}) the host refuses: {e}",
                 codec::kind_name(h.kind).unwrap_or("?"),
                 frame_word(&h),
                 h.id
@@ -3408,7 +3412,7 @@ impl Supervisor {
                     self.publish_wired();
                 }
                 if let Some(ch) = self.chains.get_mut(&m.chain_key) {
-                    // D7: a quarantined slot is an empty pass-through that keeps its number; it adds no
+                    // A quarantined slot is an empty pass-through that keeps its number; it adds no
                     // latency and no parameter, whatever the child reports for it.
                     let mut q_latency = 0u32;
                     for (i, s) in ch.slots.iter_mut().enumerate() {
@@ -3448,7 +3452,7 @@ impl Supervisor {
                 if let Some(ch) = self.chains.get_mut(&m.chain_key)
                     && let Some(s) = ch.slots.get_mut(m.slot as usize)
                 {
-                    // Anything older than the pending gen is ignored (D6).
+                    // Anything older than the pending gen is ignored.
                     if s.state
                         .as_ref()
                         .is_some_and(|x| x.generation == m.generation)
@@ -3540,7 +3544,7 @@ impl Supervisor {
                 }
                 let changed = self.replace_notices(m.chain_key, &m.slot_notices);
                 // a 3.6 child's pair after the prepare replaces the chain's; absent keeps `chain.loaded`'s.
-                // `--cfg mutant_prepared_absent_zero` (never in a normal build) reads absent as 0; child_wired.rs's
+                // `--cfg mutant_prepared_absent_zero` (never in a normal build) reads absent as 0; the host's
                 // 3.5 prepare test fails.
                 let zero = cfg!(mutant_prepared_absent_zero).then_some(0);
                 if let Some(ch) = self.chains.get_mut(&m.chain_key) {
@@ -3673,7 +3677,7 @@ impl Supervisor {
         }
     }
 
-    /// D22: a slot's cycle ended. The child is untrusted: an unknown chain or slot, or a quarantined one (it has no
+    /// A slot's cycle ended. The child is untrusted: an unknown chain or slot, or a quarantined one (it has no
     /// processor), is ignored; the counts are clamped and the supervisor's own saturate. The stall rule is the host application's,
     /// from its own geometry: a forced take, or a cycle over 4 block budgets.
     fn on_reactivated(&mut self, m: codec::SlotReactivated) {
@@ -3724,7 +3728,7 @@ impl Supervisor {
         self.emit(ev);
         // A take abandoned at the horizon never leaves the slot silently out of its cell. It is quarantined
         // (the notice is `Event::Quarantined`, op "reactivation"), and its chain is reloaded so the child hosts the
-        // slot as D7's empty pass-through (latency 0, no parameters), as the host application now models it.
+        // slot as the empty pass-through (latency 0, no parameters), as the host application now models it.
         if m.abandoned && self.quarantine.insert((m.chain_key, m.slot)) {
             self.counters
                 .chains_quarantined
@@ -3785,7 +3789,7 @@ impl Supervisor {
         if let Some(bytes) = reply.as_ref().and_then(|m| m.too_large())
             && !f.header.is_error()
         {
-            // E1: the stored blob is re-applied (ok is false: an empty blob), and control hears `tooLarge`.
+            // The stored blob is re-applied (ok is false: an empty blob), and control hears `tooLarge`.
             self.too_large(key, slot, child_gen, bytes, None);
         } else if !f.header.is_error() {
             // An ordinary read too: control adopts it (StateRead), or hears the refusal (StateRefused).
@@ -3819,10 +3823,10 @@ impl Supervisor {
         }
     }
 
-    /// The reload itself: `chain.unload`, then `chain.load` with the quarantined slot empty (D7's pass-through).
+    /// The reload itself: `chain.unload`, then `chain.load` with the quarantined slot empty (the pass-through).
     fn reload(&mut self, key: u64) {
-        // (S4 (a)): the child's unload closes this chain's windows silently; say so first. `--cfg
-        // mutant_editor_reload_silent` (never in a normal build) says nothing; e2e_recovery's horizon test fails.
+        // The child's unload closes this chain's windows silently; say so first. `--cfg
+        // mutant_editor_reload_silent` (never in a normal build) says nothing; the host's horizon test fails.
         let open: Vec<u32> = self.chains.get_mut(&key).map_or(Vec::new(), |ch| {
             ch.slots
                 .iter_mut()
@@ -3947,7 +3951,7 @@ impl Supervisor {
                 incarnation: inc,
             });
         }
-        // After a respawn, once every chain is back: tell the app what each re-applied slot may have lost (C7).
+        // After a respawn, once every chain is back: tell the app what each re-applied slot may have lost.
         if let Some(reason) = self.restart_reason
             && self.chains.values().all(|c| c.ready)
         {
@@ -3958,7 +3962,7 @@ impl Supervisor {
     }
 
     fn on_hello(&mut self, f: &Frame) {
-        // H-3: a reply that does not decode is a protocol fault, no blame (`check_to_core` refuses it first; this is
+        // A reply that does not decode is a protocol fault, no blame (`check_to_host` refuses it first; this is
         // the same rule should the two ever differ).
         let m = match f.meta_as::<codec::HelloReply>() {
             Ok(m) => m,
@@ -3978,7 +3982,7 @@ impl Supervisor {
                 .child_protocol
                 .store(m.protocol, Ordering::Relaxed);
             c.hello_ok = true;
-            // H-1: send -> verified, and posix_spawn's start -> verified (the budgets, 100 ms warm and 500 ms cold,
+            // Send -> verified, and posix_spawn's start -> verified (the budgets, 100 ms warm and 500 ms cold,
             // are asserted in the timing suite).
             let ns = |d: Duration| u64::try_from(d.as_nanos()).unwrap_or(u64::MAX);
             self.counters
@@ -4053,7 +4057,7 @@ impl Supervisor {
         }
     }
 
-    /// forward a `system.setLog` that completed since the last turn (the level generation moved). With no
+    /// forward a log-level change that completed since the last turn (the level generation moved). With no
     /// verified child the generation is only recorded: the next `hello` sends what differs from launch.
     fn sync_log_levels(&mut self) {
         let st = self.cfg.levels.level_state();
@@ -4191,7 +4195,7 @@ impl Supervisor {
         }
         let reason = DownReason::Incompatible {
             child_protocol: m.protocol,
-            core_protocol: ABI_VERSION,
+            host_protocol: ABI_VERSION,
         };
         self.counters
             .child_incompatible
@@ -4199,8 +4203,8 @@ impl Supervisor {
         let ver = |p: u32| format!("{}.{} ({p:#x})", p >> 16, p & 0xffff);
         let stderr_tag = self.cfg.names.stderr;
         runecraft_rt::safe_eprintln!(
-            "{stderr_tag}: INCOMPATIBLE plugin-host child (pid {}, incarnation {}): its hello{} says protocol {}, the \
-             core speaks {} (the major must match); host {:?}. The child is killed and not respawned: every \
+            "{stderr_tag}: INCOMPATIBLE plugin-host child (pid {}, incarnation {}): its hello{} says protocol {}, this \
+             host speaks {} (the major must match); host {:?}. The child is killed and not respawned: every \
              chain stays silent until plugin.restartHost or a reopen. No plugin is blamed.",
             c.pid,
             c.incarnation,
@@ -4228,7 +4232,7 @@ impl Supervisor {
         let stderr_tag = self.cfg.names.stderr;
         runecraft_rt::safe_eprintln!(
             "{stderr_tag}: ENGINE-SIDE ERROR: the plugin-host child (pid {}, incarnation {}) exited {EXIT_USAGE} (a usage \
-             error) before its hello: the core started it with an argv it refuses ({:?} {:?}). No plugin is blamed and \
+             error) before its hello: the host started it with an argv it refuses ({:?} {:?}). No plugin is blamed and \
              it is not respawned: every chain stays silent until plugin.restartHost or a reopen.",
             c.pid,
             c.incarnation,
@@ -4264,7 +4268,7 @@ impl Supervisor {
                 .and_then(|c| c.slots.get_mut(e.slot as usize))
                 && e.child_gen != s.child_gen
             {
-                // E0(b): an editor the generations poll found open marks the slot's movement as the user's.
+                // An editor the generations poll found open marks the slot's movement as the user's.
                 s.editor_seen |= e.editor_open;
                 s.child_gen = e.child_gen;
                 moved.push((e.chain_key, e.slot, e.child_gen));
@@ -4361,7 +4365,7 @@ impl Supervisor {
         self.burst_answered(burst, key, slot);
     }
 
-    /// E1 (protocol 3.3): a state over the frame cap. The slot keeps its stored state and is not left moved (its
+    /// (protocol 3.3) A state over the frame cap. The slot keeps its stored state and is not left moved (its
     /// read generation catches up), so only its next `Moved` reads it again; control raises the notice.
     fn too_large(&mut self, key: u64, slot: u32, child_gen: u64, bytes: u64, burst: Option<u64>) {
         if let Some(s) = self
@@ -4396,12 +4400,12 @@ impl Supervisor {
         burst: Option<u64>,
     ) {
         let now = self.now();
-        // D21: the host application checks the frame only. A refused blob is not stored, and the read counts as failed: the slot
+        // The host application checks the frame only. A refused blob is not stored, and the read counts as failed: the slot
         // keeps its last known blob, marked stale as for a read that did not answer (it stays "moved", so the next
         // burst asks again; a burst that requested it lists it in `stale`).
         let checked = state_blob::check(&blob);
         // The mutation check (never in a normal build): the child blob's frame check is skipped, so a refused blob is
-        // stored (e2e_state `a_bare_blob_from_the_child_is_not_stored_…` fails).
+        // stored (the host application's state test of a bare child blob fails).
         #[cfg(mutant_sasp_child_unchecked)]
         let checked = checked.or_else(|_| state_blob::check(&state_blob::builtin(&[])));
         if let Err(reason) = checked {
@@ -4418,8 +4422,8 @@ impl Supervisor {
                 newer = burst.is_none() && child_gen > s.child_gen;
                 s.child_gen = s.child_gen.max(child_gen);
             }
-            // The mutation check (never in a normal build): the refused read swallows the movement; e_capture_bridge's
-            // `a_refused_live_read_at_a_newer_generation_reports_moved` fails.
+            // The mutation check (never in a normal build): the refused read swallows the movement; the host
+            // application's test of a refused live read at a newer generation fails.
             if newer && !cfg!(mutant_refused_swallows_move) {
                 self.emit(Event::Moved {
                     slots: vec![(key, slot, child_gen)],
@@ -4437,7 +4441,7 @@ impl Supervisor {
         // a read outside a burst (a live `state.get`, an editor's close, a reload's) whose generation is above
         // the last one seen moved since: reported as the generations poll would have ([`Event::Moved`], before the read),
         // since raising `child_gen` here leaves no difference for the next poll to find. A burst's own read (it asked
-        // because the slot moved) and a generation already seen (a whole set's, E2) report nothing.
+        // because the slot moved) and a generation already seen (a whole set's) report nothing.
         let mut newer = false;
         if let Some(s) = self
             .chains
@@ -4452,14 +4456,14 @@ impl Supervisor {
             s.read_gen = s.read_gen.max(child_gen);
         }
         // The mutation check (never in a normal build): the read swallows the movement (the old behaviour);
-        // e_capture_bridge's `a_live_read_at_a_newer_generation_reports_moved_before_the_read` and the engine's
-        // capture_tests `a_live_read_that_finds_a_movement_is_captured_at_once` fail.
+        // the host application's tests of a live read at a newer generation (it reports moved before the read, and
+        // the movement it finds is captured at once) fail.
         if newer && !cfg!(mutant_read_swallows_move) {
             self.emit(Event::Moved {
                 slots: vec![(key, slot, child_gen)],
             });
         }
-        // E0(b): the editor was open since the last completed read (an editor still open stays seen).
+        // The editor was open since the last completed read (an editor still open stays seen).
         let user = self
             .chains
             .get_mut(&key)
@@ -4471,7 +4475,7 @@ impl Supervisor {
             });
         let blob: Arc<[u8]> = blob.into();
         // `--cfg mutant_state_hasher_ignored` (never in a normal build): the configured hasher is not asked;
-        // e_capture_bridge's `a_whole_set_names_its_generation_and_is_never_read_back` (its hash check) fails.
+        // the host application's whole-set test (its hash check) fails.
         let sha = if cfg!(mutant_state_hasher_ignored) {
             String::new()
         } else {
@@ -4481,13 +4485,13 @@ impl Supervisor {
             && b.token == t
             && now <= b.deadline
         {
-            // E1: the byte budget counts as reads arrive.
+            // The byte budget counts as reads arrive.
             b.bytes = b.bytes.saturating_add(blob.len() as u64);
             b.fresh
                 .push(Fresh::new(key, slot, child_gen, blob, sha, user));
             return;
         }
-        // A late read (or an editor close): an ordinary state change for control (D6).
+        // A late read (or an editor close): an ordinary state change for control.
         self.emit(Event::StateRead {
             key,
             slot,
@@ -4500,7 +4504,7 @@ impl Supervisor {
     }
 
     // -----------------------------------------------------------------------------------------------------------------
-    // Death, attribution, respawn (D7)
+    // Death, attribution, respawn
     // -----------------------------------------------------------------------------------------------------------------
 
     fn kill(&mut self, reason: DownReason) {
@@ -4513,8 +4517,8 @@ impl Supervisor {
         }
     }
 
-    /// The protocol fault, with the hello faults (H-2, H-3) and the reader's own
-    /// refusals (H-4): the supervisor kills the child for a protocol fault. Counted loudly (`protocol_errors` and a
+    /// The protocol fault, with the hello faults and the reader's own
+    /// refusals: the supervisor kills the child for a protocol fault. Counted loudly (`protocol_errors` and a
     /// stderr line naming the fault), never attributed (no `inSlot` or status-record blame, no quarantine,
     /// `last_attribution` untouched), reason [`DownReason::Protocol`]. The respawn is armed and an attempt counted, as
     /// for any death, so a child that garbles fd 3 every time reaches `Exhausted` after its attempts. Only when this
@@ -4589,7 +4593,7 @@ impl Supervisor {
 
     /// [`Supervisor::death`], with the attribution and the respawn chosen: `Blame::None` reads neither `inSlot` nor the
     /// status record and leaves `last_attribution` as it is (an unattributed death neither breaks
-    /// nor completes D7's run of two); `Respawn::Never` arms no backoff and counts no attempt.
+    /// nor completes the run of two); `Respawn::Never` arms no backoff and counts no attempt.
     fn death_as(&mut self, reason: DownReason, blame: Blame, respawn: Respawn) {
         let Some(c) = &mut self.child else { return };
         if c.dead {
@@ -4679,7 +4683,7 @@ impl Supervisor {
                 .attribution_run
                 .store(self.attribution_run, Ordering::Relaxed);
         }
-        // C7: what each slot may lose, for the restart event.
+        // What each slot may lose, for the restart event.
         let now = self.now();
         self.restarted_slots.clear();
         for (&k, ch) in &self.chains {
@@ -4695,7 +4699,7 @@ impl Supervisor {
                 }
             }
         }
-        // the windows died with the child; the respawn opens none (the host application reports each as `childDied`).
+        // the windows died with the child; the respawn opens none (the host application reports each one).
         for ch in self.chains.values_mut() {
             for s in ch.slots.iter_mut() {
                 s.editor_open = false;
@@ -4824,7 +4828,7 @@ impl Supervisor {
             self.spawn();
         }
         let Some(c) = &self.child else { return };
-        // H-2: a hello not verified by its deadline is a no-blame kill, an attempt counted.
+        // A hello not verified by its deadline is a no-blame kill, an attempt counted.
         if ENFORCE_HELLO_DEADLINE && !c.dead && !c.hello_ok && now >= c.hello_by {
             let waited = now.saturating_sub(c.hello_by) + self.cfg.hello_deadline;
             self.protocol_fault(&format!(
@@ -4921,7 +4925,7 @@ impl Supervisor {
         }
     }
 
-    /// C1 (D7): suspect after 2 s of an outstanding block without ack progress; ping through the region (the reader
+    /// Wedge detector: suspect after 2 s of an outstanding block without ack progress; ping via the region (the reader
     /// cannot answer for the chain thread); 2 s later, no pong = down: kill, and the slot inside processBlock is
     /// attributed.
     fn wedge_detector(&mut self, now: Duration) {
@@ -5010,7 +5014,7 @@ impl Supervisor {
     }
 }
 
-/// D6's reader -> supervisor bounds (branch `live-reader`): the blob bytes every
+/// The reader -> supervisor bounds: the blob bytes every
 /// incarnation's reader holds between the socket and the supervisor, the frame the decoder is filling included (one
 /// budget, shared), and each reader's frames in flight (its own bound; [`READER_FRAMES`]).
 ///
@@ -5019,7 +5023,7 @@ impl Supervisor {
 ///   budget; else the reader waits, before the decoder reserves the body, so both bounds are exact (no overshoot).
 ///   Every frame counts against the frame bound, a meta-only one included.
 /// - **Wait, never fault**: a waiting reader stops reading its socket, so the child's writes back up; a flooding child
-///   stalls only itself (D6's table). It blocks on a condvar, woken when the supervisor frees a frame or when the
+///   stalls only itself. It blocks on a condvar, woken when the supervisor frees a frame or when the
 ///   supervisor's receiver is gone ([`InboundRx`]'s drop closes the gate): then it ends, so no reader outlives the
 ///   supervisor.
 /// - **Freed by a ticket**: each admitted frame has a [`BlobTicket`] riding with it (its frame and its blob bytes); the
@@ -5239,7 +5243,7 @@ impl Drop for InboundRx {
 }
 
 /// The reader thread: frames and validates the child's output; a protocol error or EOF ends this incarnation. Each
-/// frame is admitted by D6's bounds from its header, before the decoder allocates its body ([`BlobGate`]); the reader
+/// frame is admitted by the bounds from its header, before the decoder allocates its body ([`BlobGate`]); the reader
 /// ends without a word when the supervisor's receiver is gone.
 fn reader(
     mut sock: runecraft_ipc::channel::ChanRx,
@@ -5247,10 +5251,10 @@ fn reader(
     tx: SyncSender<Inbound>,
     gate: Arc<BlobGate>,
 ) {
-    let mut dec = codec::Decoder::new(Direction::ToCore);
+    let mut dec = codec::Decoder::new(Direction::ToHost);
     let mut buf = vec![0u8; 64 * 1024];
     let mut fds: Vec<runecraft_ipc::channel::Transferable> = Vec::new();
-    // This reader's frames in flight (D6's frame bound is per reader).
+    // This reader's frames in flight (the frame bound is per reader).
     let mine = Arc::new(ReaderFrames::default());
     // The share of the frame the decoder is filling: it leaves with the frame, or is freed (dropped) when the reader
     // ends mid-frame.
@@ -5317,13 +5321,13 @@ fn reader(
         }
     };
     drop(filling.take());
-    // The end is queued BEFORE the socket closes (H-4): a child that exits on the EOF this shutdown gives it cannot
+    // The end is queued BEFORE the socket closes: a child that exits on the EOF this shutdown gives it cannot
     // have its reaper's report reach the supervisor first, so a refusal is always the death's first sign.
     let _ = tx.send(Inbound::ReaderDone(inc, why));
     let _ = sock.shutdown();
 }
 
-/// The bench seam (feature `bench-seams`): D6's reader bounds
+/// The bench seam (feature `bench-seams`): the reader bounds
 /// ([`BlobGate`], [`ReaderFrames`], [`BlobTicket`]) and the shipped reader thread ([`reader`]), for
 /// a reader bench. It adds no behaviour: every call is the shipped function, so the bench times the code the
 /// supervisor runs. Enabled only by this crate's own dev-dependency, so no `cargo build` of a binary has it.
@@ -5448,7 +5452,7 @@ pub mod bench_seam {
 
 /// One `bridge.*` record per supervisor event (debug; a death, a quarantine or exhaustion at warn), each
 /// with the `chain` key where it has one (the merge tool joins the child's records on `chain` and `mono`). Plugin
-/// names are hashed (D8).
+/// names are hashed.
 impl Supervisor {
     fn log_event(&self, e: &Event) {
         match e {
@@ -5706,10 +5710,10 @@ mod tests {
         assert_eq!(c.state_hasher.sha256_hex(b"abc"), "fixed-3");
     }
 
-    /// The same major is compatible whatever the minor (D20: additive); another major is not.
+    /// The same major is compatible whatever the minor (minors are additive); another major is not.
     #[test]
     fn the_hello_check_compares_the_protocol_major_only() {
-        assert_eq!(ABI_VERSION >> 16, 4, "the core speaks 4.x");
+        assert_eq!(ABI_VERSION >> 16, 4, "the host speaks 4.x");
         for ok in [4 << 16, 4 << 16 | 1, 4 << 16 | 7, 4 << 16 | 0xffff] {
             assert!(hello_compatible(ok), "{ok:#x}");
         }
@@ -5732,7 +5736,7 @@ mod tests {
         assert!(!hello_compatible(e.protocol));
     }
 
-    /// H-3: a `hello` reply whose meta does not decode is refused by `check_to_core`, so it reaches `protocol_fault`.
+    /// A `hello` reply whose meta does not decode is refused by `check_to_host`, so it reaches `protocol_fault`.
     #[test]
     fn an_undecodable_hello_reply_is_refused_before_on_hello() {
         let bytes = codec::encode(
@@ -5742,17 +5746,17 @@ mod tests {
             br#"{"protocol": "3.1"}"#,
             &[],
         );
-        let mut d = codec::Decoder::new(Direction::ToCore);
+        let mut d = codec::Decoder::new(Direction::ToHost);
         let mut frames = Vec::new();
         d.feed(&bytes, &mut |f| frames.push(f))
             .expect("the decoder takes it");
         assert_eq!(frames.len(), 1);
-        assert!(codec::check_to_core(&frames[0]).is_err());
+        assert!(codec::check_to_host(&frames[0]).is_err());
         assert!(frames[0].meta_as::<codec::HelloReply>().is_err());
     }
 
     // -----------------------------------------------------------------------------------------------------------------
-    // D6's reader blob budget (branch `live-reader`): `reader` driven over a socket pair, this test the child (it
+    // The reader blob budget: `reader` driven over a socket pair, this test the child (it
     // writes a few bounded frames) and the consumer (it holds the receiver, so it decides when bytes are freed).
     // -----------------------------------------------------------------------------------------------------------------
 
@@ -6056,7 +6060,7 @@ mod tests {
         assert_eq!(rig.counters.reader_blob_waits.load(Ordering::Relaxed), 0);
     }
 
-    /// D6's frame bound: a flood of 300 META-ONLY frames (no blob, so the byte budget never
+    /// The reader frame bound: a flood of 300 META-ONLY frames (no blob, so the byte budget never
     /// binds) is held at EXACTLY 256 in flight for the reader, the 257th waiting at its header. Mutant
     /// `mutant_live_reader_no_frame_bound` admits all 300 and fails here.
     #[test]
@@ -6150,7 +6154,7 @@ mod tests {
         assert_eq!(first.gate.frames(), READER_FRAMES);
     }
 
-    /// H-5: the no-blame reasons have their own words, never `crash`.
+    /// The no-blame reasons have their own words, never `crash`.
     #[test]
     fn the_reasons_wire_words() {
         assert_eq!(DownReason::Crash.wire_word(), "crash");
@@ -6159,7 +6163,7 @@ mod tests {
         assert_eq!(DownReason::Protocol.wire_word(), "protocol");
         let i = DownReason::Incompatible {
             child_protocol: 2 << 16,
-            core_protocol: ABI_VERSION,
+            host_protocol: ABI_VERSION,
         };
         assert_eq!(i.wire_word(), "incompatible");
     }

@@ -266,7 +266,7 @@ pub field summoner::supervisor::Config::tick: core::time::Duration
 pub field summoner::supervisor::Config::wedge_suspect: core::time::Duration
 pub field summoner::supervisor::Config::wedge_verdict: core::time::Duration
 pub field summoner::supervisor::DownReason::Incompatible::child_protocol: u32
-pub field summoner::supervisor::DownReason::Incompatible::core_protocol: u32
+pub field summoner::supervisor::DownReason::Incompatible::host_protocol: u32
 pub field summoner::supervisor::Event::Burst::fresh: alloc::vec::Vec<summoner::supervisor::Fresh>
 pub field summoner::supervisor::Event::Burst::incarnation: u64
 pub field summoner::supervisor::Event::Burst::stale: alloc::vec::Vec<(u64, u32)>

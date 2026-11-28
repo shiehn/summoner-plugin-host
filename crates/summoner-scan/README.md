@@ -115,7 +115,7 @@ cargo run -p summoner-scan --example summoner_scan_quickstart -- target/debug/su
 | `scan::ScanConfig` | `ScanConfig::new(program, env)`: the program, its environment, the budgets |
 | `scan::Pedal` | your durable pending mark: `pending` before the spawn, `settle` after |
 | `scan::ScanReport` | everything about one scan: the end, the exit, the captured stderr, the timings |
-| `scan::ScanEnd` | the verdict, or why there is none (`NotRun`, `EngineFault`, `CoreFault`) |
+| `scan::ScanEnd` | the verdict, or why there is none (`NotRun`, `EngineFault`, `HostFault`) |
 | `scan::Captured`, `scan::Bounded` | bounded capture of a probe's stderr |
 | `scan::BUDGET`, `BUDGET_AU`, `STEP`, `STEP_AU`, `OUTER_LIMIT` | the default limits |
 

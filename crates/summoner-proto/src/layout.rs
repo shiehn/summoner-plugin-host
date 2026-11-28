@@ -1,4 +1,4 @@
-//! The byte-exact region (ABI 3.1, additive), the child page, and the control frame header: offsets as constants, checked at compile time, plus the field table a C header is generated from
+//! The byte-exact region (protocol 4.x; the region bytes are 3.1's, additive), the child page, and the control frame header: offsets as constants, checked at compile time, plus the field table a C header can be generated from
 //! ([`SECTIONS`]). Little-endian; every field a naturally aligned `u32` / `u64`; `f32` / `f64` stored as bits.
 //!
 //! Region: `[0, 128)` header (supervisor, once) · `[128, 256)` doorbell line (supervisor; `ping` by the supervisor) · `[256, 384)`
@@ -9,29 +9,29 @@
 pub const MAGIC: u32 = 0x4353_4153;
 /// Protocol 4.0 (a major bump; the host application and the child are a pinned pair, so there is no 3.x path: each side
 /// refuses the other major with the existing version-mismatch error): `SlotDesc.plugin` ([`crate::plugin::PluginRef`])
-/// replaces `descriptionXml`, `scanned.classes` ([`crate::plugin::ScanClass`], raw facts) replaces `descriptions`,
+/// replaces the 3.x description XML, `scanned.classes` ([`crate::plugin::ScanClass`], raw facts) replaces `descriptions`,
 /// the 3.x hello's toolkit field and its test state mode are gone. Every 3.x addition below is part of 4.0.
 ///
 /// `major << 16 | minor`: 3.10, following 3.9 (additive: `SlotInfo.notices` on `chain.loaded`
-/// and `chain.prepared`'s `slotNotices`, a slot's notice codes, absent none and written only when not empty; the
+/// and `chain.prepared`'s per-slot notices, a slot's notice codes, absent none and written only when not empty; the
 /// region is 3.1's, unchanged; nothing is gated: an older child sends none). 3.8 (additive: kind 25 `chain.prepareFresh` (ReceiptAck)
 /// and its completion event kind 61 `chain.preparedFresh {chainKey, ok, ms, latency, error?}`: a render set's slots
 /// released and prepared again on their kept instances, the render warm-up's clean start; the region is 3.1's,
-/// unchanged; the host application sends it only to a child whose `hello` claims 3.8). 3.7 (additive: `ParamEntry`'s `pluginId`,
+/// unchanged; the host application sends it only to a child whose `hello` claims 3.8). 3.7 (additive: `ParamEntry`'s plugin id,
 /// `automatable`, `default`, `value`, `stepCount`, `label` and `order`, names cut at 1024 characters and pages bounded at
 /// 48 KiB of meta, and kind 35 `param.set` (MainThread, answered with its read-back); the region is 3.1's, unchanged;
 /// the host application sends `param.set` and reads the new fields only from a child whose `hello` claims 3.7). 3.6 (additive: `log.set` (kind 5, Inline), the
 /// optional top-level `corr` on request metas and its echo on the answers, `HelloReply.wiredBytes` /
 /// `unwiredBytes` (absent 0) and `chain.prepared`'s pair (absent keeps `chain.loaded`'s); the region is 3.1's,
-/// unchanged; the host application sends `log.set` and `corr` only to a child whose `hello` claims 3.6). 3.5 (additive: `PluginDescription.auCodes` and
-/// `auVersion`, an AU's component codes and version, absent for a VST3 and from an older child; the region is 3.1's,
+/// unchanged; the host application sends `log.set` and `corr` only to a child whose `hello` claims 3.6). 3.5 (additive: the description's AU codes and
+/// version, an AU's component codes and version, absent for a VST3 and from an older child; the region is 3.1's,
 /// unchanged). 3.4 (`editor-windows.md` gaps 4 and 5, additive: `chain.loaded`'s
 /// `SlotInfo.hasEditor`, absent true, and `editor.open`'s `guardReset`, absent false; the region is 3.1's, unchanged).
 /// 3.3 is additive: `state.applied.childGeneration`, and `state.get`'s
 /// `{ok: false, reason: "tooLarge", bytes}`. 3.2 is additive:
-/// `SlotDesc.enabled`, `slot.setEnabled`. Today's C++ protocol is 2. 3.1 is additive: `ST_BYPASSED`
-/// (D22), the `slot.reactivated` event (D22), `latencyFrames` at +140 removed and reserved (D23), and the `state.set`
-/// mode `sasp` (D21). Both children check only the major.
+/// `SlotDesc.enabled`, `slot.setEnabled`. Today's C++ protocol is 2. 3.1 is additive: `ST_BYPASSED`,
+/// the `slot.reactivated` event, `latencyFrames` at +140 removed and reserved, and the `state.set`
+/// mode `sasp` (the state blob's framing). Both children check only the major.
 ///
 /// 4.1 is the Windows-only additive minor (a Windows host application and child advertise it: `chain.load`'s `fanSlot`, the
 /// `editor.open` receipt's `editorWindow`, the FanOut registration region); on unix the constant stays 4.0, so
@@ -123,7 +123,7 @@ pub const A_PROCESSED: usize = 264;
 pub const A_PONG: usize = 272;
 /// Ack: `in_slot`, slot + 1 while the chain thread is inside a plugin's process call, else 0.
 pub const A_IN_SLOT: usize = 280;
-/// The chain's ring group as the child's reader last stored it (C9: accepted at +284 of the ack line,
+/// The chain's ring group as the child's reader last stored it (the hub switch: accepted at +284 of the ack line,
 /// the child's line, written by the child's reader). The host application never reads it for the exchange.
 pub const A_GROUP: usize = 284;
 /// Ack: `process_hist`, block counts by the child's process time over the period, in 1/20 steps.
@@ -173,7 +173,7 @@ pub const R_ECHO: usize = 128;
 /// Response: `status` (the `ST_*` bits).
 pub const R_STATUS: usize = 136;
 /// Was 3.0's `latencyFrames` (the chain's latency now), which nothing read: PDC is a compile-time
-/// quantity that only `chain.loaded` and `latency.changed` move (D4). Reserved: written 0, never read, and **never
+/// quantity that only `chain.loaded` and `latency.changed` move. Reserved: written 0, never read, and **never
 /// reused**, so a 3.0 child that still writes a latency here cannot be misread as any 3.1 field.
 pub const R_RESERVED_LATENCY: usize = 140;
 /// Response: `process_ns`, the child's time for this block.
@@ -192,7 +192,7 @@ pub const R_RESERVED: usize = 164;
 /// Where a slot's planes start.
 pub const PLANES: usize = 256;
 
-/// `blockFlags`' transport bits live with the transport that sets them (orrery-time), re-exported here so the
+/// `block_flags`' transport bits live with the transport that sets them (orrery-time), re-exported here so the
 /// layout keeps every flag; reset and discontinuity are the region's own.
 pub use orrery_time::{
     BF_BAR_START_VALID, BF_LOOP_POINTS_VALID, BF_LOOPING, BF_PLAYING, BF_RECORDING,
@@ -217,7 +217,7 @@ pub const MIDI_RECORD: usize = 24;
 /// The size of a parameter change record `{id u32, value f32}`.
 pub const PARAM_RECORD: usize = 8;
 
-// Limits (D2).
+// Limits.
 /// The most frames of one block.
 pub const MAX_FRAMES: u32 = 8192;
 /// The most channels in or out.
@@ -231,7 +231,7 @@ pub const MAX_SLOTS: usize = 32;
 /// `tap_slot`'s value for no tap.
 pub const NO_TAP: u32 = u32::MAX;
 
-// The child page (D7 Attribution): one 16 KiB page. Lines 0-3: the ring-group hub words (supervisor -> child). From 1,024
+// The child page (for attribution): one 16 KiB page. Lines 0-3: the ring-group hub words (supervisor -> child). From 1,024
 // the child's status record and its own counters (child -> supervisor).
 /// The child page's size: one 16 KiB page.
 pub const CHILD_PAGE_BYTES: usize = 16 * 1024;
@@ -240,7 +240,7 @@ pub const RING_GROUPS: usize = 4;
 /// Each ring group's hub word offset in the child page (supervisor, Release).
 pub const P_HUB: [usize; RING_GROUPS] = [0, 128, 256, 384];
 /// On each hub line, after the hub word: the host-ticks stamp of the group's last ring. A documented diagnostic word
-/// a Relaxed store by the callback, for the child's wake-to-run (T6 / T8); explicitly NOT part of
+/// a Relaxed store by the callback, for the child's wake-to-run measurement; explicitly NOT part of
 /// the child contract (a child must not depend on it; the host application never reads it).
 pub const P_RING_STAMP: usize = 8;
 /// Where the child's status record starts in the child page.
@@ -259,9 +259,9 @@ pub const P_NAME: usize = 1048;
 pub const P_NAME_BYTES: usize = 64;
 /// Where the child's own counters start in the child page.
 pub const P_COUNTERS: usize = 1152;
-/// Chain-thread wakes that found `seq` unchanged (`bridgeSpuriousWakes`, child-counted).
+/// Chain-thread wakes that found `seq` unchanged (child-counted).
 pub const P_SPURIOUS_WAKES: usize = 1152;
-/// Chain-thread joins that fell back to time-constraint only (`workgroupFallbacks`).
+/// Chain-thread joins that fell back to time-constraint only.
 pub const P_WG_FALLBACKS: usize = 1160;
 /// Chain threads currently joined to the workgroup.
 pub const P_WG_JOINED: usize = 1168;
@@ -294,7 +294,7 @@ pub fn op_name(op: u32) -> &'static str {
     }
 }
 
-// The control frame header (D6): 24 bytes, little-endian.
+// The control frame header: 24 bytes, little-endian.
 /// Frame header: `frame_len`, the bytes after this field (`20 + meta_len + blob_len`).
 pub const F_FRAME_LEN: usize = 0;
 /// Frame header: `kind` (`u16`).
@@ -325,7 +325,7 @@ const _: () = {
     assert!(F_BLOB_LEN + 4 == FRAME_HEADER);
 };
 
-/// A chain's geometry: chosen by the host application, kept by the host application, never read back from the region (D2).
+/// A chain's geometry: chosen by the host application, kept by the host application, never read back from the region.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Geometry {
     /// The most frames of one block.
@@ -374,7 +374,7 @@ impl Geometry {
         }
     }
 
-    /// The geometry's limits (D2): an error names the first one broken.
+    /// The geometry's limits: an error names the first one broken.
     pub fn validate(&self) -> Result<(), GeometryError> {
         if self.max_frames == 0
             || !self.max_frames.is_multiple_of(32)
@@ -535,13 +535,7 @@ pub const HEADER_FIELDS: &[Field] = &[
         1,
         "384 + 2 x slot_bytes",
     ),
-    f(
-        "flags",
-        H_FLAGS,
-        U32,
-        1,
-        "bit 0 render set, bit 1 ack wake (D9)",
-    ),
+    f("flags", H_FLAGS, U32, 1, "bit 0 render set, bit 1 ack wake"),
     f(
         "chain_key",
         H_CHAIN_KEY,
@@ -611,7 +605,7 @@ pub const DOORBELL_FIELDS: &[Field] = &[
         D_PING - DOORBELL_LINE,
         U64,
         1,
-        "C1 wedge nonce (supervisor); 0 = none",
+        "the wedge detector's nonce (supervisor); 0 = none",
     ),
     f("reserved", D_RESERVED - DOORBELL_LINE, Reserved64, 14, "0"),
 ];
@@ -651,7 +645,7 @@ pub const ACK_FIELDS: &[Field] = &[
         A_GROUP - ACK_LINE,
         U32,
         1,
-        "the ring group, written by the child's READER (Release; the C9 hub switch); the core never reads it for the exchange",
+        "the ring group, written by the child's READER (Release; the hub switch); the host never reads it for the exchange",
     ),
     f(
         "process_hist",
@@ -670,7 +664,7 @@ pub const REQUEST_FIELDS: &[Field] = &[
         S_BLOCK_SEQ,
         U64,
         1,
-        "the seq this slot holds (core)",
+        "the seq this slot holds (host)",
     ),
     f("frames", S_FRAMES, U32, 1, "<= max_frames"),
     f(
@@ -705,14 +699,14 @@ pub const REQUEST_FIELDS: &[Field] = &[
         R_STATUS,
         U32,
         1,
-        "bit 0 processed, bit 1 skipped (busy), bit 2 a plugin threw, bit 3 a hosted slot passed through (D22)",
+        "bit 0 processed, bit 1 skipped (busy), bit 2 a plugin threw, bit 3 a hosted slot passed through",
     ),
     f(
         "reserved_latency",
         R_RESERVED_LATENCY,
         Reserved32,
         1,
-        "D23: 3.0's latencyFrames, removed; written 0, never read, never reused",
+        "3.0's latencyFrames, removed; written 0, never read, never reused",
     ),
     f(
         "process_ns",
@@ -760,14 +754,14 @@ pub const CHILD_PAGE_FIELDS: &[Field] = &[
         P_HUB[0],
         U64,
         1,
-        "ring group 0 hub word (core; Release)",
+        "ring group 0 hub word (host; Release)",
     ),
     f(
         "ring_stamp0",
         8,
         U64,
         1,
-        "DIAGNOSTIC ONLY, NOT part of the child contract: host ticks of the group's last ring, a Relaxed store by the callback (T6 / T8 wake-to-run); a child must not depend on it",
+        "DIAGNOSTIC ONLY, NOT part of the child contract: host ticks of the group's last ring, a Relaxed store by the callback (the wake-to-run measure); a child must not depend on it",
     ),
     f("reserved_hub0", 16, Reserved64, 14, ""),
     f("hub1", P_HUB[1], U64, 1, "ring group 1"),
@@ -776,7 +770,7 @@ pub const CHILD_PAGE_FIELDS: &[Field] = &[
         136,
         U64,
         1,
-        "DIAGNOSTIC ONLY, NOT part of the child contract: host ticks of the group's last ring, a Relaxed store by the callback (T6 / T8 wake-to-run); a child must not depend on it",
+        "DIAGNOSTIC ONLY, NOT part of the child contract: host ticks of the group's last ring, a Relaxed store by the callback (the wake-to-run measure); a child must not depend on it",
     ),
     f("reserved_hub1", 144, Reserved64, 14, ""),
     f("hub2", P_HUB[2], U64, 1, "ring group 2"),
@@ -785,7 +779,7 @@ pub const CHILD_PAGE_FIELDS: &[Field] = &[
         264,
         U64,
         1,
-        "DIAGNOSTIC ONLY, NOT part of the child contract: host ticks of the group's last ring, a Relaxed store by the callback (T6 / T8 wake-to-run); a child must not depend on it",
+        "DIAGNOSTIC ONLY, NOT part of the child contract: host ticks of the group's last ring, a Relaxed store by the callback (the wake-to-run measure); a child must not depend on it",
     ),
     f("reserved_hub2", 272, Reserved64, 14, ""),
     f(
@@ -793,14 +787,14 @@ pub const CHILD_PAGE_FIELDS: &[Field] = &[
         P_HUB[3],
         U64,
         1,
-        "ring group 3 (may span several levels; rung after the deepest, C9)",
+        "ring group 3 (may span several levels; rung after the deepest)",
     ),
     f(
         "ring_stamp3",
         392,
         U64,
         1,
-        "DIAGNOSTIC ONLY, NOT part of the child contract: host ticks of the group's last ring, a Relaxed store by the callback (T6 / T8 wake-to-run); a child must not depend on it",
+        "DIAGNOSTIC ONLY, NOT part of the child contract: host ticks of the group's last ring, a Relaxed store by the callback (the wake-to-run measure); a child must not depend on it",
     ),
     f("reserved_hub3", 400, Reserved64, 14, ""),
     f("reserved_core", 512, Reserved64, 64, ""),
@@ -888,25 +882,25 @@ pub const SECTIONS: &[Section] = &[
         tag: "header",
         size: LINE,
         fields: HEADER_FIELDS,
-        doc: "Region [0, 128): written by the core once",
+        doc: "Region [0, 128): written by the host once",
     },
     Section {
         tag: "doorbell",
         size: LINE,
         fields: DOORBELL_FIELDS,
-        doc: "Region [128, 256): core -> child",
+        doc: "Region [128, 256): host -> child",
     },
     Section {
         tag: "ack",
         size: LINE,
         fields: ACK_FIELDS,
-        doc: "Region [256, 384): child -> core",
+        doc: "Region [256, 384): child -> host",
     },
     Section {
         tag: "slot_lines",
         size: PLANES,
         fields: REQUEST_FIELDS,
-        doc: "A slot's request line (core) and response line (child); planes follow at +256",
+        doc: "A slot's request line (host) and response line (child); planes follow at +256",
     },
     Section {
         tag: "midi",
@@ -924,7 +918,7 @@ pub const SECTIONS: &[Section] = &[
         tag: "child_page",
         size: P_WG_JOINED + 8,
         fields: CHILD_PAGE_FIELDS,
-        doc: "The child page (16 KiB mapping): hubs (core), status record and counters (child). ring_stamp* are diagnostic words, NOT part of the child contract",
+        doc: "The child page (16 KiB mapping): hubs (host), status record and counters (child). ring_stamp* are diagnostic words, NOT part of the child contract",
     },
     Section {
         tag: "frame_header",

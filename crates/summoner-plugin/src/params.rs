@@ -14,13 +14,13 @@ use std::collections::BTreeMap;
 /// `order` of a parameter that is not in the flat list (a VST3 unit cycle leaves its groups out of the root's walk).
 pub const NOT_IN_TREE: u32 = u32::MAX;
 
-/// Rev 2 C3: a name is cut at this many characters.
+/// A name is cut at this many characters.
 pub const NAME_CHARS: usize = 1024;
 
 /// A `param.list` reply's meta stays at or under this many bytes (`MAX_META` is 64 KiB).
 pub const PAGE_BYTES: usize = 48 * 1024;
 
-/// Rev 2 C5: a label is cut at this many characters.
+/// A label is cut at this many characters.
 pub const LABEL_CHARS: usize = 64;
 
 /// The VST3 root unit (`Vst::kRootUnitId`).
@@ -201,7 +201,7 @@ mod tests {
         let units = [(1, 0), (2, 0), (3, 1)];
         // Params: 0 in 1, 1 in root, 2 in 2, 3 in 1, 4 in 3, 5 in root, 6 in 2.
         let order = vst3_unit_order(&units, &[1, 0, 2, 1, 3, 0, 2]);
-        // Root: [G1, p1, G2, p5]; G1: [p0, p3, G3]; G3: [p4]; G2: [p2, p6].
+        // Root: [u1, p1, u2, p5]; u1: [p0, p3, u3]; u3: [p4]; u2: [p2, p6] (uN: unit N's group; pN: parameter N).
         // Flat: p0, p3, p4, p1, p2, p6, p5.
         assert_eq!(order, vec![0, 3, 4, 1, 2, 6, 5]);
     }
@@ -210,7 +210,7 @@ mod tests {
     fn vst3_ancestors_are_made_first_and_attached_in_unwinding_order() {
         // 5 → 4 → 0: the first parameter is in 5, so 4 joins the root, then 5 joins 4.
         let order = vst3_unit_order(&[(4, 0), (5, 4)], &[5, 4, 0]);
-        // Root: [G4, p2]; G4: [G5, p1]; G5: [p0]. Flat: p0, p1, p2.
+        // Root: [u4, p2]; u4: [u5, p1]; u5: [p0]. Flat: p0, p1, p2.
         assert_eq!(order, vec![0, 1, 2]);
     }
 
@@ -218,13 +218,13 @@ mod tests {
     fn an_unknown_unit_is_the_root_and_a_later_unit_id_replaces_an_earlier_one() {
         // Unit 9 is unknown: root. Unit 1 is listed twice; the later parent (2) wins.
         let order = vst3_unit_order(&[(1, 0), (2, 0), (1, 2)], &[9, 1, 0]);
-        // p0 → root. p1 → G1 (parent G2, made first: root ← G2, G2 ← G1). Root: [p0, G2, p2]; G2: [G1]; G1: [p1].
+        // p0 → root. p1 → u1 (parent u2, made first: root ← u2, u2 ← u1). Root: [p0, u2, p2]; u2: [u1]; u1: [p1].
         assert_eq!(order, vec![0, 1, 2]);
         let order = vst3_unit_order(&[(1, 0), (2, 0), (1, 2)], &[0, 2, 1]);
-        // Root: [p0, G2]; G2: [p1, G1]; G1: [p2]. Flat: p0, p1, p2.
+        // Root: [p0, u2]; u2: [p1, u1]; u1: [p2]. Flat: p0, p1, p2.
         assert_eq!(order, vec![0, 1, 2]);
         let order = vst3_unit_order(&[(1, 0), (2, 0), (1, 2)], &[1, 0, 2]);
-        // Root: [G2, p1]; G2: [G1, p2]; G1: [p0]. Flat: p0, p2, p1.
+        // Root: [u2, p1]; u2: [u1, p2]; u1: [p0]. Flat: p0, p2, p1.
         assert_eq!(order, vec![0, 2, 1]);
     }
 
@@ -247,7 +247,7 @@ mod tests {
     fn au_clumps_gather_at_their_first_member() {
         // p0 clump 7, p1 none, p2 clump 3, p3 clump 7, p4 none, p5 clump 3.
         let order = au_clump_order(&[Some(7), None, Some(3), Some(7), None, Some(3)]);
-        // Root: [C7 (p0, p3), p1, C3 (p2, p5), p4]. Flat: p0, p3, p1, p2, p5, p4.
+        // Root: [c7 (p0, p3), p1, c3 (p2, p5), p4] (cN: clump N). Flat: p0, p3, p1, p2, p5, p4.
         assert_eq!(order, vec![0, 2, 3, 1, 5, 4]);
     }
 

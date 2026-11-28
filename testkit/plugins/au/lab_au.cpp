@@ -375,7 +375,7 @@ public:
         const size_t n = size_t(CFDataGetLength(data));
         const UInt32 before = core_->latency();
         if (kKind == 3 && n > 6 && std::memcmp(p, "LATER=", 6) == 0) {
-            core_->setState(p, n);  // the core moves its latency <ms> later, on a thread of its own
+            core_->setState(p, n);  // the DSP core moves its latency <ms> later, on a thread of its own
             uint64_t ms = 0;
             for (size_t i = 6; i < n && p[i] >= '0' && p[i] <= '9' && ms < 60000; ++i)
                 ms = ms * 10 + uint64_t(p[i] - '0');

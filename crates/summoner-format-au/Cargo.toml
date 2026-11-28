@@ -12,7 +12,7 @@ runecraft-rt.workspace = true
 runecraft-log.workspace = true
 summoner-plugin.workspace = true
 summoner-proto.workspace = true
-# The prefault helpers (`runecraft_rt::os::prefaulted`, `prefault_spare`): runecraft-rt's.
+# The prefault helpers (`runecraft_rt::os::prefaulted` and its spare-page helper): runecraft-rt's.
 # The block flags' bits (BF_*), read as the VST3 slot reads them, for the AU HostCallbacks' transport.
 summoner-proc.workspace = true
 summoner-sys = { workspace = true, features = ["au"] }

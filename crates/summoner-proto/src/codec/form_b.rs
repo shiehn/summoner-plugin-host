@@ -1,23 +1,23 @@
 //! `scanned` form B, the codec half. The scanned descriptions travel in the frame's blob part as JSON Lines
-//! (`plugin-scan-descriptions/1`, W2); the meta names the form and the count (W3). This module is the one definition
-//! both sides link: the scan child's encoder (host's W8 step 5) and the host application's strict decode (W5's checks 2 to 9).
+//! (`plugin-scan-descriptions/1`); the meta names the form and the count. This module is the one definition both
+//! sides link: the scan child's encoder and the host application's strict decode (decode checks 2 to 9).
 //!
-//! - **The bounds** (W3's table): [`MAX_BLOB`] (the frame's, unchanged), [`MAX_SCAN_DESCRIPTIONS`] (16,384 lines) and
+//! - **The bounds:** [`MAX_BLOB`] (the frame's, unchanged), [`MAX_SCAN_DESCRIPTIONS`] (16,384 lines) and
 //!   [`MAX_DESCRIPTION_LINE`] (64 KiB, the newline excluded), each refused before anything it bounds is allocated.
-//!   The per-entry bound (8 MiB) is NOT a wire bound: it is the record's,
-//!   the host application's scan record entry bound, enforced at settle, encode and decode
-//!   (`scan_record/record.rs`); a form B line within these bounds may still make an entry pass it, and that is the
-//!   record's no-verdict EngineFault. `scan_record/tests/bound.rs` pins the relation (`MAX_SCAN_DESCRIPTIONS ==
-//!   MAX_ENTRIES`, W3's "16,384 is the record's entry bound"; `MAX_ENTRY_BYTES < MAX_BLOB`).
-//! - **The decode** is two halves so the caller keeps W5's order: [`parse_scanned_meta`] is step 2's parse (form A or
-//!   B, told apart by the meta key `descriptionsBlob`, never by the blob's length); the caller then checks S1's echo
-//!   of `format` and `path` (step 2's second half, the scan supervisor's rule); [`ScannedMeta::with_blob`] is steps 3
-//!   to 9. [`decode_scanned`] is both halves with no echo check (host's tests, the fuzz target).
-//! - **The verdicts** are typed: [`ScannedFault::Limit`] is W5's engine limits L2 to L4 (an EngineFault, no strike);
-//!   L1 is the header's, [`super::Decoder::oversized_header`]. [`ScannedFault::Malformed`] is everything else (a
-//!   strike, `failed {protocolAfterScan}`).
-//! - **The encoder** ([`encode_scanned`]) never panics: past a bound it gives the `overLimit` frame (W8), and a meta
-//!   past [`MAX_META`] gives only the 24-byte header with its true lengths (the L1 path).
+//!   A per-entry bound is NOT a wire bound: it belongs to the application's record of the scan. An application that
+//!   stores the descriptions should bound its record at [`MAX_SCAN_DESCRIPTIONS`] entries, and keep its per-entry
+//!   bound below [`MAX_BLOB`]; a form B line within these bounds may still make an entry pass that bound, and that is
+//!   the record's no-verdict EngineFault.
+//! - **The decode** is two halves so the caller keeps the decode's order: [`parse_scanned_meta`] is step 2's parse
+//!   (form A or B, told apart by the meta key `descriptionsBlob`, never by the blob's length); the caller then checks
+//!   the echo of `format` and `path` (step 2's second half, the scan supervisor's rule); [`ScannedMeta::with_blob`] is
+//!   steps 3 to 9. [`decode_scanned`] is both halves with no echo check (tests, the fuzz target).
+//! - **The verdicts** are typed: [`ScannedFault::Limit`] is the engine limits after the header (the over-limit
+//!   report, the count limit and the line limit; an EngineFault, no strike); the blob limit is the header's,
+//!   [`super::Decoder::oversized_header`]. [`ScannedFault::Malformed`] is everything else (a strike,
+//!   `failed {protocolAfterScan}`).
+//! - **The encoder** ([`encode_scanned`]) never panics: past a bound it gives the `overLimit` frame, and a meta
+//!   past [`MAX_META`] gives only the 24-byte header with its true lengths (the blob-limit path).
 //!
 //! N9: fuzzed (the frame fuzz target runs [`decode_scanned`] on every `scanned` frame it decodes, and
 //! its form B mode builds frames with [`encode_scanned_form_b`] and mutates them).
@@ -29,19 +29,19 @@ use super::{
 };
 use serde::{Deserialize, Serialize};
 
-/// W1: the form B version this codec reads and writes: `scan`'s offer (`descriptionsBlob: 1`) and form B's meta key.
+/// The form B version this codec reads and writes: `scan`'s offer (`descriptionsBlob: 1`) and form B's meta key.
 pub const SCAN_DESCRIPTIONS_BLOB: u32 = 1;
-/// W3: the most descriptions (blob lines) one form B `scanned` carries. Past it: the sender's `overLimit: "count"`
-/// (L2), or a `descriptionCount` over it (L3)..
+/// The most descriptions (blob lines) one form B `scanned` carries. Past it: the sender's `overLimit: "count"`
+/// (the over-limit report), or a `descriptionCount` over it (the count limit).
 pub const MAX_SCAN_DESCRIPTIONS: usize = 16_384;
-/// W3: the most bytes of one blob line, its newline excluded (= [`MAX_META`], so form B refuses nothing form A
-/// accepted). Past it: `overLimit: "line"` (L2), or L4..
+/// The most bytes of one blob line, its newline excluded (= [`MAX_META`], so form B refuses nothing form A
+/// accepted). Past it: `overLimit: "line"` (the over-limit report), or the line limit.
 pub const MAX_DESCRIPTION_LINE: usize = MAX_META;
 const _: () = assert!(MAX_DESCRIPTION_LINE == 64 * 1024 && MAX_SCAN_DESCRIPTIONS == 16_384);
-// W3: 16,384 lines of the largest size fit in MAX_BLOB only at 4 KiB on average; the blob cap is its own limit (L1).
+// 16,384 lines of the largest size fit in MAX_BLOB only at 4 KiB on average; the blob cap is its own limit.
 const _: () = assert!(MAX_BLOB / MAX_SCAN_DESCRIPTIONS == 4096);
 
-/// The most bytes of a decode error's text that a fault keeps (W5 step 9: "never quoting more than a bounded
+/// The most bytes of a decode error's text that a fault keeps (decode step 9: "never quoting more than a bounded
 /// prefix"); the cut is at a UTF-8 boundary.
 pub const MAX_FAULT_TEXT: usize = 256;
 
@@ -58,22 +58,22 @@ fn bounded(s: impl std::fmt::Display) -> String {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// The faults (W5)
+// The faults
 // ---------------------------------------------------------------------------------------------------------------------
 
-/// Why a `scanned` was refused, after the header (W5 steps 2 to 9). The first check that fails decides.
+/// Why a `scanned` was refused, after the header (decode steps 2 to 9). The first check that fails decides.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ScannedFault {
-    /// An engine limit (W5's L2 to L4): `ScanEnd::EngineFault`, its `why` starting `OVERSIZED_SCANNED`; no verdict, no
-    /// strike. (L1 is the header's: [`super::Decoder::oversized_header`].)
+    /// An engine limit (the over-limit report, the count limit or the line limit): `ScanEnd::EngineFault`, its
+    /// `why` starting `OVERSIZED_SCANNED`; no verdict, no strike. (The blob limit is the header's: [`super::Decoder::oversized_header`].)
     Limit(ScannedLimit),
     /// Anything else: `failed {protocolAfterScan}`, a strike.
     Malformed(ScannedMalformed),
 }
 
 impl ScannedFault {
-    /// True for W5's engine limits (no verdict, no strike).
+    /// True for the engine limits (no verdict, no strike).
     pub fn is_engine_limit(&self) -> bool {
         matches!(self, ScannedFault::Limit(_))
     }
@@ -88,15 +88,15 @@ impl std::fmt::Display for ScannedFault {
                     description_count,
                 } => write!(
                     f,
-                    "L2: the child reports overLimit {word:?} ({description_count} descriptions)"
+                    "the over-limit report: the child reports overLimit {word:?} ({description_count} descriptions)"
                 ),
                 ScannedLimit::Count { description_count } => write!(
                     f,
-                    "L3: descriptionCount {description_count} is over MAX_SCAN_DESCRIPTIONS {MAX_SCAN_DESCRIPTIONS}"
+                    "the count limit: descriptionCount {description_count} is over MAX_SCAN_DESCRIPTIONS {MAX_SCAN_DESCRIPTIONS}"
                 ),
                 ScannedLimit::Line { index, len } => write!(
                     f,
-                    "L4: blob line {index} is {len} bytes, over MAX_DESCRIPTION_LINE {MAX_DESCRIPTION_LINE}"
+                    "the line limit: blob line {index} is {len} bytes, over MAX_DESCRIPTION_LINE {MAX_DESCRIPTION_LINE}"
                 ),
             },
             ScannedFault::Malformed(m) => write!(f, "malformed scanned: {m:?}"),
@@ -106,24 +106,25 @@ impl std::fmt::Display for ScannedFault {
 
 impl std::error::Error for ScannedFault {}
 
-/// W5's engine limits after the header.
+/// The engine limits after the header.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ScannedLimit {
-    /// L2: `overLimit` in a well-formed form B meta with an empty blob: the child's own report. `word` is the child's
-    /// (`count`, `line`, `blob`, or a newer word: still L2, kept for the log).
+    /// The over-limit report: `overLimit` in a well-formed form B meta with an empty blob, the child's own report.
+    /// `word` is the child's
+    /// (`count`, `line`, `blob`, or a newer word: still the over-limit report, kept for the log).
     OverLimit {
         /// The child's `overLimit` word.
         word: String,
         /// The meta's `descriptionCount`.
         description_count: u64,
     },
-    /// L3: `descriptionCount` over [`MAX_SCAN_DESCRIPTIONS`].
+    /// The count limit: `descriptionCount` over [`MAX_SCAN_DESCRIPTIONS`].
     Count {
         /// The meta's `descriptionCount`.
         description_count: u64,
     },
-    /// L4: the line at `index` (0-based) is `len` bytes, its newline excluded, over [`MAX_DESCRIPTION_LINE`].
+    /// The line limit: the line at `index` (0-based) is `len` bytes, its newline excluded, over [`MAX_DESCRIPTION_LINE`].
     Line {
         /// The line's index in the blob, from 0.
         index: usize,
@@ -132,7 +133,7 @@ pub enum ScannedLimit {
     },
 }
 
-/// W5's strike rows, by the step that refuses them.
+/// The strike rows, by the step that refuses them.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ScannedMalformed {
@@ -191,7 +192,7 @@ pub enum ScannedMalformed {
     },
 }
 
-/// Why a blob line is not a description (W5 step 9).
+/// Why a blob line is not a description (decode step 9).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum LineFault {
@@ -224,12 +225,12 @@ fn limit<T>(l: ScannedLimit) -> Result<T, ScannedFault> {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// The meta (W3)
+// The meta
 // ---------------------------------------------------------------------------------------------------------------------
 
-/// The meta of a form B `scanned` (W3): `format`, `path` and the outcome as form A has them, plus the form
+/// The meta of a form B `scanned`: `format`, `path` and the outcome as form A has them, plus the form
 /// (`descriptionsBlob: 1`, implied), the count and the optional `overLimit`. Written with its keys sorted (the text's
-/// examples, byte for byte); read as any JSON object (an unknown key is dropped, D20's additive rule).
+/// examples, byte for byte); read as any JSON object (an unknown key is dropped, the protocol's additive rule).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct FormBMeta {
@@ -239,9 +240,10 @@ pub struct FormBMeta {
     pub path: String,
     /// The scan's outcome, as form A has it.
     pub outcome: ScannedOutcome,
-    /// The number of blob lines (W3): 0 to [`MAX_SCAN_DESCRIPTIONS`], or over it only with `over_limit`.
+    /// The number of blob lines: 0 to [`MAX_SCAN_DESCRIPTIONS`], or over it only with `over_limit`.
     pub description_count: u64,
-    /// W5's L2: the sender's report that its line passes a bound (`count`, `line`, `blob`); the blob is then empty.
+    /// The over-limit report: the sender's report that its line passes a bound (`count`, `line`, `blob`); the blob
+    /// is then empty.
     pub over_limit: Option<String>,
 }
 
@@ -267,7 +269,7 @@ impl FormBMeta {
 }
 
 /// The form B meta as written: keys in sorted order, `detail` absent when empty, `overLimit` and `reason` absent when
-/// none (W3's three examples).
+/// none (the three meta examples).
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct FormBMetaOut<'a> {
@@ -305,7 +307,7 @@ fn reason_word(f: &ScanFailure) -> &str {
 
 impl FormBMeta {
     /// The meta's bytes (compact JSON, keys sorted). Infallible for these types; `None` only if serde_json ever
-    /// failed, which the encoder turns into the L1 header rather than a panic.
+    /// failed, which the encoder turns into the blob-limit header rather than a panic.
     pub fn to_bytes(&self) -> Option<Vec<u8>> {
         let (outcome, reason, detail) = match &self.outcome {
             ScannedOutcome::Ok => ("ok", None, ""),
@@ -341,7 +343,7 @@ struct FormBMetaUnchecked {
     over_limit: Option<String>,
 }
 
-/// A `scanned` meta, parsed (W5 step 2): form A (protocol 3.1, frozen) or form B.
+/// A `scanned` meta, parsed (decode step 2): form A (protocol 3.1, frozen) or form B.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ScannedMeta {
@@ -351,7 +353,7 @@ pub enum ScannedMeta {
     B(FormBMeta),
 }
 
-/// W5 step 2's parse. The meta is a JSON object ([`parse_meta`]'s check); the key `descriptionsBlob` decides the form:
+/// Decode step 2's parse. The meta is a JSON object ([`parse_meta`]'s check); the key `descriptionsBlob` decides the form:
 /// absent, form A, decoded exactly as 3.1's [`Scanned`]; present, form B, and it must be the integer 1, with no
 /// `descriptions` or `discovered` key (step 4's key rule), and a `descriptionCount`. A child's `protocolAfterScan` is
 /// refused in either form.
@@ -399,7 +401,7 @@ pub fn parse_scanned_meta(meta: &[u8]) -> Result<ScannedMeta, ScannedFault> {
 // ---------------------------------------------------------------------------------------------------------------------
 
 /// A form B `scanned`, decoded: the outcome, and the blob's descriptions in the child's discovery order. Their meaning
-/// is the outcome's (W4): `ok`, the validated `descriptions`; `failed`, `discovered`.
+/// is the outcome's: `ok`, the validated `descriptions`; `failed`, `discovered`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct ScannedB {
@@ -442,7 +444,7 @@ pub enum ScannedLine {
 }
 
 impl ScannedLine {
-    /// The verdict and the discovered classes (W4): a form B `failed` carries discovery's classes beside an unchanged
+    /// The verdict and the discovered classes: a form B `failed` carries discovery's classes beside an unchanged
     /// `failed {reason, detail}` verdict; form A, and every `ok`, carry none.
     pub fn into_verdict(self) -> (ScanResult, Vec<ScanClass>) {
         match self {
@@ -485,9 +487,9 @@ impl ScannedMeta {
         }
     }
 
-    /// W5 steps 3 to 9, after the caller's echo check (step 2). `offered`: this host sent `descriptionsBlob: 1` in the
-    /// `scan` this answers. Form A: `blob` must be empty (step 3). Form B: offered (step 4); `overLimit` gives L2 with
-    /// an empty blob, a strike with one (step 5); then [`decode_descriptions_blob`] (steps 6 to 9).
+    /// Decode steps 3 to 9, after the caller's echo check (step 2). `offered`: this host sent `descriptionsBlob: 1` in the
+    /// `scan` this answers. Form A: `blob` must be empty (step 3). Form B: offered (step 4); `overLimit` gives the
+    /// over-limit report with an empty blob, a strike with one (step 5); then [`decode_descriptions_blob`] (steps 6 to 9).
     pub fn with_blob(self, blob: &[u8], offered: bool) -> Result<ScannedLine, ScannedFault> {
         let b = match self {
             ScannedMeta::A(s) => {
@@ -525,7 +527,7 @@ impl ScannedMeta {
 }
 
 /// Both halves of the decode on one frame, with no echo check: a `scanned` EVENT with id 0, its meta parsed (step 2),
-/// then [`ScannedMeta::with_blob`]. The scan supervisor runs the halves itself, with S1's echo between them.
+/// then [`ScannedMeta::with_blob`]. The scan supervisor runs the halves itself, with the echo between them.
 pub fn decode_scanned(f: &Frame, offered: bool) -> Result<ScannedLine, ScannedFault> {
     let h = &f.header;
     if h.kind != kind::SCANNED || h.flags != FF_EVENT || h.id != 0 {
@@ -539,30 +541,30 @@ pub fn decode_scanned(f: &Frame, offered: bool) -> Result<ScannedLine, ScannedFa
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// The blob (W2)
+// The blob
 // ---------------------------------------------------------------------------------------------------------------------
 
-/// W5 steps 6 to 9 on a form B blob of `description_count` lines (`plugin-scan-descriptions/1`, W2), the first failing
+/// Decode steps 6 to 9 on a form B blob of `description_count` lines (`plugin-scan-descriptions/1`), the first failing
 /// check deciding:
-/// 6. the count is at most [`MAX_SCAN_DESCRIPTIONS`] (L3), before anything is allocated;
+/// 6. the count is at most [`MAX_SCAN_DESCRIPTIONS`] (the count limit), before anything is allocated;
 /// 7. the framing, one pass with no allocation: a count of 0 with an empty blob, above 0 with a non-empty one; the last
-///    byte 0x0A; exactly `description_count` 0x0A bytes (a strike);
-/// 8. every line's length, its newline excluded, at most [`MAX_DESCRIPTION_LINE`] (L4), before any line is parsed: a
-///    long line is the limit even if it would not parse;
+/// byte 0x0A; exactly `description_count` 0x0A bytes (a strike);
+/// 8. every line's length, its newline excluded, at most [`MAX_DESCRIPTION_LINE`] (the line limit), before any line is parsed: a
+/// long line is the limit even if it would not parse;
 /// 9. every line's content: first byte `{`, UTF-8, a [`ScanClass`] (its decode checks it), and its canonical bytes (a
-///    strike naming the line).
+/// strike naming the line).
 ///
 /// The lines are parsed in place (slices of `blob`); the descriptions are the only allocation, bounded by the count.
-/// **Canonical lines only** (replacing W2's "the receiver does not check canonicality"):
+/// **Canonical lines only** (replacing the original format's "the receiver does not check canonicality"):
 /// each parsed line re-encodes, through the encoder's own serialisation, to exactly its bytes, compared as it is
 /// written with no allocation, or it is [`LineFault::NonCanonical`]. So an unknown key (a newer child's additive
 /// field) is refused in form B: a new description field needs a new form B version (the offer), never a silent
-/// addition. Form A keeps D20's additive rule.
+/// addition. Form A keeps the protocol's additive rule.
 pub fn decode_descriptions_blob(
     blob: &[u8],
     description_count: u64,
 ) -> Result<Vec<ScanClass>, ScannedFault> {
-    // 6. L3. Its mutant (never in a normal build): no count cap.
+    // 6. The count limit. Its mutant (never in a normal build): no count cap.
     #[cfg(not(mutant_scan_descriptions_uncapped))]
     if description_count > MAX_SCAN_DESCRIPTIONS as u64 {
         return limit(ScannedLimit::Count { description_count });
@@ -608,7 +610,7 @@ pub fn decode_descriptions_blob(
 }
 
 fn check_line_len(index: usize, line: &[u8]) -> Result<(), ScannedFault> {
-    // L4. Its mutant (never in a normal build): no line cap.
+    // The line limit. Its mutant (never in a normal build): no line cap.
     #[cfg(not(mutant_scan_line_uncapped))]
     if line.len() > MAX_DESCRIPTION_LINE {
         return limit(ScannedLimit::Line {
@@ -683,10 +685,10 @@ impl std::io::Write for SameAs<'_> {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// The encoder (W8 step 5): the scan child's
+// The encoder: the scan child's
 // ---------------------------------------------------------------------------------------------------------------------
 
-/// The bound a form B sender passed (W8), named by `overLimit`.
+/// The bound a form B sender passed, named by `overLimit`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum OverLimit {
@@ -715,8 +717,8 @@ impl OverLimit {
 pub enum ScannedFrame {
     /// The whole frame: form A, or form B with its blob. Then `shutdown` as usual.
     Whole(Vec<u8>),
-    /// Form B past a bound (W8): the form B meta with the true `descriptionCount`, `overLimit` naming the first bound
-    /// passed, and an empty blob; the host application's L2. Then `shutdown` as usual.
+    /// Form B past a bound: the form B meta with the true `descriptionCount`, `overLimit` naming the first bound
+    /// passed, and an empty blob; the host application's over-limit report. Then `shutdown` as usual.
     OverLimit {
         /// The first bound passed.
         bound: OverLimit,
@@ -724,9 +726,9 @@ pub enum ScannedFrame {
         frame: Vec<u8>,
     },
     /// The meta itself passes [`MAX_META`] (a form A shell bundle's line; or a form B meta whose `path` or `detail` is
-    /// past it): only the 24-byte header with its true lengths, which a host application at or after `8e05b95`
-    /// makes L1's EngineFault. Then wait for the host application's EOF. A form B header-only names the meta's length and a blob of
-    /// 0 (the blob is never built).
+    /// past it): only the 24-byte header with its true lengths, which the host application's decoder makes the blob
+    /// limit's EngineFault. Then wait for the host application's EOF. A form B header-only names the meta's length
+    /// and a blob of 0 (the blob is never built).
     HeaderOnly {
         /// The frame header's bytes, with the true lengths.
         header: [u8; FRAME_HEADER],
@@ -771,7 +773,7 @@ fn header_only(meta_len: usize, blob_len: usize) -> ScannedFrame {
     }
 }
 
-/// The scan child's one call (W8 step 5): form B when the `scan` offered it ([`super::Scan::offers_descriptions_blob`]),
+/// The scan child's one call: form B when the `scan` offered it ([`super::Scan::offers_descriptions_blob`]),
 /// form A otherwise. Never panics.
 pub fn encode_scanned(s: &Scanned, offered: bool) -> ScannedFrame {
     if offered {
@@ -781,7 +783,7 @@ pub fn encode_scanned(s: &Scanned, offered: bool) -> ScannedFrame {
     }
 }
 
-/// Form A, byte-identical to protocol 3.1's `Scanned` at `1488c63` (the frozen form): `descriptions` only on `ok`,
+/// Form A, byte-identical to protocol 3.1's `Scanned` (the frozen form): `descriptions` only on `ok`,
 /// `[]` on `failed`, no `discovered`. A meta past [`MAX_META`] is [`ScannedFrame::HeaderOnly`], never a panic.
 pub fn encode_scanned_form_a(s: &Scanned) -> ScannedFrame {
     let failed_copy;
@@ -806,12 +808,12 @@ pub fn encode_scanned_form_a(s: &Scanned) -> ScannedFrame {
     ScannedFrame::Whole(encode(kind::SCANNED, FF_EVENT, 0, &meta, &[]))
 }
 
-/// Form B (W2, W3): the meta with `descriptionsBlob: 1` and `descriptionCount`, then every description of `s` in its
+/// Form B: the meta with `descriptionsBlob: 1` and `descriptionCount`, then every description of `s` in its
 /// order, each `serde_json`'s compact encoding of [`ScanClass`] (its field order, absent fields
 /// left out) and one 0x0A, in the same frame. The first bound passed (the count, checked first; then, line by line
 /// in order, a line over [`MAX_DESCRIPTION_LINE`] or the blob over [`MAX_BLOB`]) gives [`ScannedFrame::OverLimit`];
 /// a meta past [`MAX_META`] gives [`ScannedFrame::HeaderOnly`]. Built in one buffer, header first; never panics. The
-/// sender passes each description through `check` before (W8 step 4); this does not.
+/// sender passes each description through `check` before (the encoder's step 4); this does not.
 pub fn encode_scanned_form_b(s: &Scanned) -> ScannedFrame {
     let n = s.classes.len();
     let meta = FormBMeta {
@@ -893,7 +895,7 @@ pub fn encode_scanned_form_b(s: &Scanned) -> ScannedFrame {
 // - `mutant_scan_encode_blob_unchecked`: `the_encoder_reports_a_blob_past_64_mib`;
 // - `mutant_scan_line_canon_unchecked`: `a_non_canonical_line_is_refused`;
 // - `mutant_scan_form_label_on_wire`: `the_scan_wire_names_no_format_label` and
-//   `the_scan_frames_are_protocol_4_0s_bytes`.
+// `the_scan_frames_are_protocol_4_0s_bytes`.
 // ---------------------------------------------------------------------------------------------------------------------
 
 #[cfg(test)]
@@ -902,12 +904,12 @@ mod tests {
     use crate::codec::{Decoder, Direction, FF_REPLY, Header, ProtoError, Scan, decode_header};
     use crate::layout::{F_BLOB_LEN, F_META_LEN};
 
-    /// W3's three examples, byte for byte (the text's keys are sorted, which is how the encoder writes them).
+    /// The three meta examples, byte for byte (the text's keys are sorted, which is how the encoder writes them).
     const EX1: &str = r#"{"descriptionCount":1000,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"<abs bundle path>"}"#;
     const EX2: &str = r#"{"descriptionCount":3,"descriptionsBlob":1,"detail":"…","format":"vst3","outcome":"failed","path":"…","reason":"process"}"#;
     const EX3: &str = r#"{"descriptionCount":20000,"descriptionsBlob":1,"format":"vst3","outcome":"ok","overLimit":"count","path":"…"}"#;
 
-    /// The fake's synthetic class `fake-scan-class-<i>` (How tested 1), as a 4.0 scan reports it (raw facts).
+    /// The fake's synthetic class `fake-scan-class-<i>` as a 4.0 scan reports it (raw facts).
     fn class(i: usize) -> ScanClass {
         ScanClass::Vst3(crate::plugin::Vst3Class {
             path: "/x/shell.vst3".into(),
@@ -965,7 +967,7 @@ mod tests {
 
     /// The one frame in `bytes`, through the host application's streaming decoder.
     fn frame(bytes: &[u8]) -> Frame {
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         let mut out = Vec::new();
         for c in bytes.chunks(4093) {
             d.feed(c, &mut |f| out.push(f)).unwrap();
@@ -1031,8 +1033,8 @@ mod tests {
         }
     }
 
-    /// W3's three metas are the encoder's bytes, and each decodes and re-encodes to the same bytes (How tested 1's
-    /// shape at the codec: 1,000 classes in form B, in order; a `failed` with 3 discovered; 20,000 is `overLimit`).
+    /// The three meta examples are the encoder's bytes, and each decodes and re-encodes to the same bytes (the
+    /// scan test's shape at the codec: 1,000 classes in form B, in order; a `failed` with 3 discovered; 20,000 is `overLimit`).
     #[test]
     fn the_texts_three_metas_are_byte_exact_both_ways() {
         // Example 1: 1,000 lines in the blob, the meta under 1 KiB.
@@ -1086,7 +1088,7 @@ mod tests {
             bytes
         );
 
-        // Example 3: 20,000 classes pass the count; the line carries no blob and is L2.
+        // Example 3: 20,000 classes pass the count; the line carries no blob and is the over-limit report.
         let s3 = scanned("…", ScannedOutcome::Ok, classes(20_000));
         let ScannedFrame::OverLimit { bound, frame: fb } = encode_scanned(&s3, true) else {
             panic!("over the count")
@@ -1108,7 +1110,7 @@ mod tests {
         assert_eq!(m.to_bytes().unwrap(), EX3.as_bytes());
     }
 
-    /// W2's bytes: each line is serde_json's compact [`ScanClass`] (protocol 4.0: its field order, absent facts left
+    /// The original format's bytes: each line is serde_json's compact [`ScanClass`] (protocol 4.0: its field order, absent facts left
     /// out) and one 0x0A; 0, 1 and many lines; the classes round-trip.
     #[test]
     fn the_blob_is_json_lines_of_the_codecs_compact_descriptions() {
@@ -1154,7 +1156,7 @@ mod tests {
             assert!(disc.is_empty());
         }
         // The default description in its canonical bytes is a line; an unknown META key is dropped (the meta keeps
-        // D20's additive rule; the lines are canonical only).
+        // The protocol's additive rule; the lines are canonical only).
         let blob = format!("{}\n", default_line());
         let d = decode_descriptions_blob(blob.as_bytes(), 1).unwrap();
         assert_eq!(d[0], default_class());
@@ -1202,9 +1204,9 @@ mod tests {
         assert_eq!(b.outcome, s.outcome);
     }
 
-    /// How tested 2: with no offer the encoder writes form A byte-identical to protocol 3.1's `Scanned` at `1488c63`
-    /// (the fixture below is that commit's serde shape: `git diff 1488c63 aa300aa` shows no change to `ScanFormat` ..
-    /// `ScanResult`, nor to the lock's serde crates): descriptions only on `ok`, `[]` on `failed`, no `discovered`.
+    /// With no offer the encoder writes form A byte-identical to protocol 3.1's `Scanned` (the fixture below is the
+    /// 3.1 codec's serde shape; form B changed nothing in `ScanFormat` .. `ScanResult`, nor in the lock's serde
+    /// crates): descriptions only on `ok`, `[]` on `failed`, no `discovered`.
     /// Form A decodes as today; form A's frame with no blob is accepted whether or not the host application offered form B (an
     /// old child ignores the offer).
     #[test]
@@ -1276,7 +1278,7 @@ mod tests {
         path: String,
     }
 
-    /// W1's offer: `Scan::new` makes none (bytes as 3.1's), the builder adds `descriptionsBlob: 1`, an old child's
+    /// The form B offer: `Scan::new` makes none (bytes as 3.1's), the builder adds `descriptionsBlob: 1`, an old child's
     /// frozen decode ignores it, the path rules still hold, and only version 1 is form B for this codec.
     #[test]
     fn the_offer_is_one_optional_key_an_old_child_ignores() {
@@ -1331,7 +1333,7 @@ mod tests {
         );
     }
 
-    /// W5's strike rows (How tested 4's codec half), each `Malformed` and named by its step.
+    /// The strike rows (the codec half), each `Malformed` and named by its step.
     #[test]
     fn every_strike_row_is_malformed_and_names_its_step() {
         let one = b"{}\n".to_vec();
@@ -1437,8 +1439,8 @@ mod tests {
         }
         // 9: each line's content, naming its index.
         let good = serde_json::to_string(&class(0)).unwrap();
-        // serde's sequence form of a whole class: the `{` check refuses it first, by name. (Since the S2 amend's
-        // tolerated unknown fields, a flattened map, serde refuses the sequence form too; the check stays the first.)
+        // serde's sequence form of a whole class: the `{` check refuses it first, by name. (Since the scan
+        // class tolerates unknown fields, a flattened map, serde refuses the sequence form too; the check stays the first.)
         let seq = r#"["vst3","/x/a.vst3",0,"factory","00000000000000000000000000000000","Audio Module Class","n",[],"V",null,"1","s"]"#;
         let upper = serde_json::to_string(&class(0)).unwrap().replace(
             "00000000000000000000000000000000",
@@ -1512,8 +1514,8 @@ mod tests {
         ));
     }
 
-    /// W5's order: the framing (7) before the line sizes (8), the sizes of every line before any content (9). A long
-    /// line is L4 even when it would not parse, and even when an earlier line is malformed; a child that drops its
+    /// The decode's order: the framing (7) before the line sizes (8), the sizes of every line before any content (9). A long
+    /// line is the line limit even when it would not parse, and even when an earlier line is malformed; a child that drops its
     /// newlines is struck at 7, never taken for one long line.
     #[test]
     fn size_comes_before_content_and_framing_before_size() {
@@ -1527,7 +1529,7 @@ mod tests {
                 len: MAX_DESCRIPTION_LINE + 1
             }
         );
-        // Line 0 malformed, line 1 too long: still L4 (every size before any content).
+        // Line 0 malformed, line 1 too long: still the line limit (every size before any content).
         let mut blob = b"[]\n".to_vec();
         blob.extend_from_slice(&long_bad);
         blob.push(b'\n');
@@ -1652,8 +1654,8 @@ mod tests {
         c
     }
 
-    /// W3: a line of exactly 64 KiB is accepted, one byte more is L4, on the decode; the encoder writes the first
-    /// whole and reports the second as `overLimit: "line"` (How tested 4's boundary).
+    /// a line of exactly 64 KiB is accepted, one byte more is the line limit, on the decode; the encoder writes the first
+    /// whole and reports the second as `overLimit: "line"` (the boundary).
     #[test]
     fn a_line_of_64_kib_is_accepted_and_one_byte_more_is_l4() {
         let at = line_of(MAX_DESCRIPTION_LINE);
@@ -1675,7 +1677,7 @@ mod tests {
         );
     }
 
-    /// W3: 16,384 descriptions are accepted; 16,385 is L3 from the count alone (before the framing, before anything is
+    /// 16,384 descriptions are accepted; 16,385 is the count limit from the count alone (before the framing, before anything is
     /// allocated): with the lines, and with none.
     #[test]
     fn the_count_bound_is_16384_and_one_more_is_l3() {
@@ -1698,7 +1700,7 @@ mod tests {
                 description_count: u64::MAX
             }
         );
-        // overLimit comes first (step 5): a well-formed overLimit meta of any count is L2, its word kept.
+        // overLimit comes first (step 5): a well-formed overLimit meta of any count is the over-limit report, its word kept.
         let m = r#"{"descriptionCount":7,"descriptionsBlob":1,"format":"vst3","outcome":"ok","overLimit":"newerBound","path":"/x/a.vst3"}"#;
         assert_eq!(
             lim(decode_scanned(&raw(m, b""), true)),
@@ -1709,7 +1711,7 @@ mod tests {
         );
     }
 
-    /// W3: a blob of exactly 64 MiB (16,384 lines of 4,095 bytes and a newline) is accepted through the host application's
+    /// a blob of exactly 64 MiB (16,384 lines of 4,095 bytes and a newline) is accepted through the host application's
     /// decoder; the encoder writes it whole.
     #[test]
     fn a_blob_of_exactly_64_mib_is_accepted() {
@@ -1735,7 +1737,7 @@ mod tests {
         }
     }
 
-    /// W8: past the count the encoder sends the form B meta with the true count, `overLimit: "count"` and no blob.
+    /// Past the count the encoder sends the form B meta with the true count, `overLimit: "count"` and no blob.
     #[test]
     fn the_encoder_reports_count_past_16384() {
         let at = scanned(
@@ -1761,7 +1763,7 @@ mod tests {
         );
     }
 
-    /// W8: a line past 64 KiB is `overLimit: "line"`, with the true count (and a failed verdict's outcome kept).
+    /// A line past 64 KiB is `overLimit: "line"`, with the true count (and a failed verdict's outcome kept).
     #[test]
     fn the_encoder_reports_a_line_past_64_kib() {
         let s = scanned(
@@ -1788,7 +1790,7 @@ mod tests {
         );
     }
 
-    /// W8: a blob past 64 MiB (16,384 lines of 4,096 bytes each with its newline is one byte per line over) is
+    /// A blob past 64 MiB (16,384 lines of 4,096 bytes each with its newline is one byte per line over) is
     /// `overLimit: "blob"`.
     #[test]
     fn the_encoder_reports_a_blob_past_64_mib() {
@@ -1808,8 +1810,8 @@ mod tests {
         );
     }
 
-    /// W5's L1: a meta past MAX_META is never a panic; the encoder sends only the 24-byte header with the
-    /// true lengths (How tested 7 for host: 2,000 classes not offered), which the host application's decoder refuses for its size
+    /// The blob limit: a meta past MAX_META is never a panic; the encoder sends only the 24-byte header with the
+    /// true lengths (2,000 classes not offered), which the host application's decoder refuses for its size
     /// alone and names with `oversized_header`. A form B meta past it (a huge `detail`) is the same path.
     #[test]
     fn a_meta_past_64_kib_is_the_header_only_never_a_panic() {
@@ -1826,12 +1828,12 @@ mod tests {
         };
         assert_eq!((meta_len, blob_len), (true_len, 0));
         assert_eq!(encode_scanned(&s, false).bytes(), &header[..]);
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         assert_eq!(
             d.feed(&header, &mut |_| panic!("no frame")),
             Err(ProtoError::MetaTooLong(true_len as u32))
         );
-        let h = d.oversized_header().expect("L1");
+        let h = d.oversized_header().expect("the blob limit");
         assert_eq!(
             (h.kind, h.flags, h.id, h.meta_len, h.blob_len),
             (kind::SCANNED, FF_EVENT, 0, true_len as u32, 0)
@@ -1848,7 +1850,7 @@ mod tests {
         let ScannedFrame::HeaderOnly { header, .. } = encode_scanned(&big, true) else {
             panic!("header only")
         };
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         assert!(d.feed(&header, &mut |_| {}).is_err());
         assert!(d.oversized_header().is_some());
         // And its overLimit form too (count passed AND a meta past the cap).
@@ -1897,12 +1899,12 @@ mod tests {
             header,
             encode_header_only(kind::SCANNED, FF_EVENT, 0, true_len, 0)
         );
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         assert_eq!(
             d.feed(&header, &mut |_| panic!("no frame")),
             Err(ProtoError::MetaTooLong(true_len as u32))
         );
-        let h = d.oversized_header().expect("L1");
+        let h = d.oversized_header().expect("the blob limit");
         assert_eq!(
             (h.kind, h.flags, h.id, h.meta_len, h.blob_len),
             (kind::SCANNED, FF_EVENT, 0, true_len as u32, 0)
@@ -1924,13 +1926,13 @@ mod tests {
         b
     }
 
-    /// W5 step 1 (How tested 3's codec unit test): `oversized_header` names the header for the meta cap alone, the blob
+    /// Decode step 1 (the codec unit test): `oversized_header` names the header for the meta cap alone, the blob
     /// cap alone, and both; None when any other check fails too, for any other refusal, and before a whole header.
     #[test]
     fn the_header_is_l1_for_either_cap_alone_and_never_with_another_fault() {
         let (bm, bb) = (MAX_META as u32 + 1, MAX_BLOB as u32 + 1);
         let read = |b: &[u8]| {
-            let mut d = Decoder::new(Direction::ToCore);
+            let mut d = Decoder::new(Direction::ToHost);
             let r = d.feed(b, &mut |_| panic!("no frame"));
             (r, d.oversized_header(), d.oversized_meta_header())
         };
@@ -1993,7 +1995,7 @@ mod tests {
         let (r, h, _) = read(&head(kind::SCANNED, FF_REPLY, 2, 2, 0, 22));
         assert!(matches!(r, Err(ProtoError::BadFlags { .. })));
         assert_eq!(h, None);
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         let r = d.feed_admitting(
             &encode_header_only(kind::SCANNED, FF_EVENT, 0, 2, 4096),
             &mut |_| false,
@@ -2001,7 +2003,7 @@ mod tests {
         );
         assert!(matches!(r, Err(ProtoError::NotAdmitted { .. })));
         assert_eq!(d.oversized_header(), None);
-        let mut d = Decoder::new(Direction::ToCore);
+        let mut d = Decoder::new(Direction::ToHost);
         assert_eq!(d.oversized_header(), None);
         d.feed(
             &encode_header_only(kind::SCANNED, FF_EVENT, 0, 2, bb as usize)[..10],
@@ -2032,13 +2034,13 @@ mod tests {
             assert_eq!(r(0), 20 + r(F_META_LEN) + r(F_BLOB_LEN), "{m} {b}");
             assert!(r(F_META_LEN) as usize > MAX_META || r(F_BLOB_LEN) as usize > MAX_BLOB);
             assert!(matches!(
-                decode_header(&h, Direction::ToCore),
+                decode_header(&h, Direction::ToHost),
                 Err(ProtoError::MetaTooLong(_) | ProtoError::BlobTooLong(_))
             ));
         }
     }
 
-    /// W4 (How tested 5's codec half): a form B `failed` carries its discovered classes beside the same verdict a line
+    /// A form B `failed` carries its discovered classes beside the same verdict a line
     /// without them gives; form A, and a count of 0, carry none (fail-closed).
     #[test]
     fn a_failed_form_b_carries_its_discovered_classes_and_the_same_verdict() {
@@ -2073,8 +2075,8 @@ mod tests {
 
     // ---- The blob format's label is prose, never on the wire -----------------------------------------------------
 
-    /// The frames T1 and T2 read: the offered `scan`, form B `scanned` with 0, 1 and 3 classes, a form B `failed` with
-    /// its discovered classes, a form B past the count bound, the L1 header-only frame, and a form A `scanned`.
+    /// The frames the two label tests read: the offered `scan`, form B `scanned` with 0, 1 and 3 classes, a form B `failed` with
+    /// its discovered classes, a form B past the count bound, the blob-limit header-only frame, and a form A `scanned`.
     fn label_frames() -> Vec<(&'static str, Vec<u8>)> {
         let scan = Scan::new(ScanFormat::Vst3, "/x/shell.vst3")
             .unwrap()
@@ -2116,7 +2118,8 @@ mod tests {
         out
     }
 
-    /// T1: no frame carries the blob format's label or any product prefix, and form B's meta keys are exactly W3's.
+    /// No frame carries the blob format's label or any product prefix, and form B's meta keys are exactly the
+    /// documented ones.
     /// Mutant `mutant_scan_form_label_on_wire` (a `descriptionsFormat` key) fails here.
     #[test]
     fn the_scan_wire_names_no_format_label() {
@@ -2142,18 +2145,21 @@ mod tests {
             for k in meta.keys() {
                 assert!(
                     w3.contains(&k.as_str()) || w3_optional.contains(&k.as_str()),
-                    "{name}: the key {k} is not W3's"
+                    "{name}: the key {k} is not in the meta examples"
                 );
             }
             for k in w3 {
-                assert!(meta.contains_key(k), "{name}: W3's key {k} is missing");
+                assert!(
+                    meta.contains_key(k),
+                    "{name}: the meta examples' key {k} is missing"
+                );
             }
         }
     }
 
-    /// T2: protocol 4.0's bytes. The frames above, written by the codec at `a9e87fc1` (before the label's rename) and
+    /// Protocol 4.0's bytes. The frames above, written by the codec before the label's rename and
     /// committed beside this file, one `<name> <hex>` line each: today's encoder reproduces them byte for byte, so a
-    /// core and a host on either side of the rename read each other's frames as their own. Mutant
+    /// host and a child on either side of the rename read each other's frames as their own. Mutant
     /// `mutant_scan_form_label_on_wire` fails here.
     #[test]
     fn the_scan_frames_are_protocol_4_0s_bytes() {

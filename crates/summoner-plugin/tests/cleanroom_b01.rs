@@ -34,7 +34,7 @@ fn a_chain_that_runs_into_a_cycle_is_out_of_the_tree() {
 
 #[test]
 fn a_unit_whose_parent_has_no_entry_hangs_from_the_root() {
-    // Root children: p0, G5 (first used by p1), p2; G5 holds p1, p3.
+    // Root children: p0, u5 (first used by p1), p2; u5 holds p1, p3.
     assert_eq!(vst3_unit_order(&[(5, 77)], &[0, 5, 0, 5]), vec![0, 1, 3, 2]);
 }
 
@@ -50,7 +50,7 @@ fn zeroed_unit_entries_and_an_entry_for_the_root_change_nothing() {
 
 #[test]
 fn negative_unit_ids_are_ordinary_units() {
-    // Root: [G-1, p1]; G-1: [G-2, p2]; G-2: [p0].
+    // Root: [u-1, p1]; u-1: [u-2, p2]; u-2: [p0].
     assert_eq!(
         vst3_unit_order(&[(-1, 0), (-2, -1)], &[-2, 0, -1]),
         vec![0, 2, 1]
@@ -59,7 +59,7 @@ fn negative_unit_ids_are_ordinary_units() {
 
 #[test]
 fn siblings_sit_in_the_order_of_their_first_use() {
-    // Root: [G1, p1]; G1: [G2 (p0), G3 (p2), p3].
+    // Root: [u1, p1]; u1: [u2 (p0), u3 (p2), p3].
     assert_eq!(
         vst3_unit_order(&[(1, 0), (2, 1), (3, 1)], &[2, 0, 3, 1]),
         vec![0, 3, 1, 2]

@@ -171,10 +171,10 @@ fn real_plugins_survive_park_unpark_hub_switch_and_depth_changes() {
 
 /// Stability first: the soak of the installed plugins. Every description in `SUMMONER_REAL_DESC`, in ONE chain (in
 /// the file's order) of the shipped child, at real time (64-frame blocks paced to 48 kHz) for `SUMMONER_SOAK_SECS` (default
-/// 60), noise in, a state read of every slot every 5 s. As real_vst3.rs's soak of the pinned copies: the chain never
-/// goes down and is never quarantined; every block is acked within 600 ms; every sample is finite; resident memory
-/// grows at most 16 MiB and the fds at most 4 between the warm-up (10 s) and the end; `leaks` printed, not asserted (a
-/// real plugin's own leaks cannot be told from ours here).
+/// 60), noise in, a state read of every slot every 5 s. As the host application's real-VST3 soak of the pinned copies:
+/// the chain never goes down and is never quarantined; every block is acked within 600 ms; every sample is finite;
+/// resident memory grows at most 16 MiB and the fds at most 4 between the warm-up (10 s) and the end; `leaks` printed,
+/// not asserted (a real plugin's own leaks cannot be told from ours here).
 #[test]
 #[ignore = "real installed plugins, wall-clock: by hand, under fs_usage"]
 fn real_installed_plugins_soak_in_one_chain() {

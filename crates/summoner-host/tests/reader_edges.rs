@@ -66,7 +66,7 @@ impl Child {
         let mut c = Child {
             pid,
             sock: ours,
-            dec: codec::Decoder::new(Direction::ToCore),
+            dec: codec::Decoder::new(Direction::ToHost),
             pending: Vec::new(),
             home,
             _page: page,

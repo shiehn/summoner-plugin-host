@@ -2,17 +2,19 @@
 //! kept in the lab with only counts leaving it. `#[ignore]`d: never part of a
 //! workspace run; run by hand only, by a driver script that sets:
 //!
-//! - `SUMMONER_G1_ROOTS`: the folders to list, `:`-separated (the dry run: lab copies; the real run: the four folders);
-//! - `SUMMONER_G1_PROGRAM`: what the host application's scan supervisor spawns for a VST3 (the sandbox wrapper around
-//!   the shipped
-//!   child);
-//! - `SUMMONER_G1_PROGRAM_AU`: what it spawns for an AU: the shipped child itself, unsandboxed (VST3 is sandboxed,
-//!   AU is not: AudioToolbox refuses in-process AU instantiation under any `sandbox-exec` profile, the dry run);
-//! - `SUMMONER_G1_OUT`: the results directory (under the lab's transcripts; plugin names stay there);
-//! - optional `SUMMONER_G1_FROM` (the first entry to probe, 1-based; default 1) and `SUMMONER_G1_DEADLINE_SECS` (start no probe
-//!   after this many seconds; default 3300): a run longer than one fs_usage recording (3600 s) goes in batches, each
+//! - `SUMMONER_BULK_SCAN_ROOTS`: the folders to list, `:`-separated (the dry run: lab copies; the real run: the four
+//!   folders);
+//! - `SUMMONER_BULK_SCAN_PROGRAM`: what the host application's scan supervisor spawns for a VST3 (the sandbox wrapper
+//!   around the shipped child);
+//! - `SUMMONER_BULK_SCAN_PROGRAM_AU`: what it spawns for an AU: the shipped child itself, unsandboxed (VST3 is
+//!   sandboxed, AU is not: AudioToolbox refuses in-process AU instantiation under any `sandbox-exec` profile, the dry
+//!   run);
+//! - `SUMMONER_BULK_SCAN_OUT`: the results directory (under the lab's transcripts; plugin names stay there);
+//! - optional `SUMMONER_BULK_SCAN_FROM` (the first entry to probe, 1-based; default 1) and
+//!   `SUMMONER_BULK_SCAN_DEADLINE_SECS` (start no probe after this many seconds; default 3300): a run longer than one
+//!   fs_usage recording (3600 s) goes in batches, each
 //!   its own recording (results-<from>.jsonl);
-//! - optional `SUMMONER_G1_ONLY`: a file of bundle paths, one per line: Stage 1 probes only those (a re-probe).
+//! - optional `SUMMONER_BULK_SCAN_ONLY`: a file of bundle paths, one per line: Stage 1 probes only those (a re-probe).
 //!
 //! Stage 0 lists bundles with `readdir` / `lstat` only (plain non-bundle subfolders at most 3 deep; never into a
 //! bundle; a symlink is listed as a link, never followed or probed), reading each executable's Mach-O header for its
@@ -121,14 +123,14 @@ fn child_env() -> Vec<(OsString, OsString)> {
 
 #[test]
 #[ignore]
-fn g1_scan() {
+fn bulk_scan() {
     let (Ok(roots), Ok(program), Ok(program_au), Ok(out)) = (
-        std::env::var("SUMMONER_G1_ROOTS"),
-        std::env::var("SUMMONER_G1_PROGRAM"),
-        std::env::var("SUMMONER_G1_PROGRAM_AU"),
-        std::env::var("SUMMONER_G1_OUT"),
+        std::env::var("SUMMONER_BULK_SCAN_ROOTS"),
+        std::env::var("SUMMONER_BULK_SCAN_PROGRAM"),
+        std::env::var("SUMMONER_BULK_SCAN_PROGRAM_AU"),
+        std::env::var("SUMMONER_BULK_SCAN_OUT"),
     ) else {
-        panic!("run through the gated-scan driver (it sets SUMMONER_G1_*)");
+        panic!("run through the gated-scan driver (it sets SUMMONER_BULK_SCAN_*)");
     };
     let home = std::env::var("HOME").unwrap();
     assert!(
@@ -151,22 +153,22 @@ fn g1_scan() {
         };
         writeln!(lst, "{}\t{:?}\t{a}", e.path.display(), e.format).unwrap();
     }
-    eprintln!("G1 stage 0: {} entries", entries.len());
+    eprintln!("bulk scan stage 0: {} entries", entries.len());
     // Stage 1.
     let mut sup = ScanSupervisor::new(ScanConfig::new(PathBuf::from(&program), child_env()));
     let mut sup_au = ScanSupervisor::new(ScanConfig::new(PathBuf::from(&program_au), child_env()));
-    let from: usize = std::env::var("SUMMONER_G1_FROM")
+    let from: usize = std::env::var("SUMMONER_BULK_SCAN_FROM")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(1)
         .max(1);
     let deadline = std::time::Duration::from_secs(
-        std::env::var("SUMMONER_G1_DEADLINE_SECS")
+        std::env::var("SUMMONER_BULK_SCAN_DEADLINE_SECS")
             .ok()
             .and_then(|v| v.parse().ok())
             .unwrap_or(3300),
     );
-    let only: Option<Vec<String>> = std::env::var("SUMMONER_G1_ONLY").ok().map(|f| {
+    let only: Option<Vec<String>> = std::env::var("SUMMONER_BULK_SCAN_ONLY").ok().map(|f| {
         std::fs::read_to_string(f)
             .unwrap()
             .lines()
@@ -177,7 +179,10 @@ fn g1_scan() {
     let mut res = std::fs::File::create(out.join(format!("results-{from}.jsonl"))).unwrap();
     for (i, e) in entries.iter().enumerate().skip(from - 1) {
         if started.elapsed() > deadline {
-            eprintln!("G1 batch deadline: next SUMMONER_G1_FROM={}", i + 1);
+            eprintln!(
+                "bulk scan batch deadline: next SUMMONER_BULK_SCAN_FROM={}",
+                i + 1
+            );
             break;
         }
         let path = e.path.to_string_lossy().into_owned();
@@ -201,7 +206,7 @@ fn g1_scan() {
                     let t = Instant::now();
                     let au = e.format == Some(ScanFormat::Au);
                     let no_sandbox =
-                        std::env::var("SUMMONER_G1_NO_SANDBOX").is_ok_and(|v| v == "1");
+                        std::env::var("SUMMONER_BULK_SCAN_NO_SANDBOX").is_ok_and(|v| v == "1");
                     line["sandboxed"] = (!au && !no_sandbox).into();
                     let r = if au { &mut sup_au } else { &mut sup }.scan(&scan, &mut NoPedal);
                     line["ms"] = (t.elapsed().as_millis() as u64).into();
@@ -223,6 +228,6 @@ fn g1_scan() {
         }
         writeln!(res, "{line}").unwrap();
         res.flush().unwrap();
-        eprintln!("G1 {}/{}: {}", i + 1, entries.len(), line["end"]);
+        eprintln!("bulk scan {}/{}: {}", i + 1, entries.len(), line["end"]);
     }
 }

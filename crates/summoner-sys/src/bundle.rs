@@ -554,8 +554,8 @@ fn resolve(segs: &[&str], fence: Option<&[&str]>) -> Result<PathBuf, Refusal> {
 }
 
 /// `--plugin-root <LAB>/bin/test-plugins/<sha8>` (test-hooks builds; the root check and the bundle check's lexical
-/// half, with the refusal texts the host application's `t4a_vst3` asserts). A root narrows the development gate, never
-/// widens it: a bundle must lie at exactly `<root>/vst3/<name>.vst3` AND pass [`Bundle::check`] (lstat, the pin's
+/// half, with the refusal texts the host application's VST3 root tests assert). A root narrows the development gate,
+/// never widens it: a bundle must lie at exactly `<root>/vst3/<name>.vst3` AND pass [`Bundle::check`] (lstat, the pin's
 /// manifest). `<LAB>` is the `SUMMONER_DEV_PLUGIN_ROOTS` this crate was built with, never the run-time environment.
 #[derive(Clone, Debug)]
 pub struct PluginRoot {

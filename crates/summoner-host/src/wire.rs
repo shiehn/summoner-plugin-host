@@ -13,13 +13,13 @@ pub type Writer = Arc<Mutex<UnixStream>>;
 /// (`SlotDesc.plugin`: a VST3 class by id, an AU entry by codes, the test double's knobs), the scan reports raw
 /// `ScanClass` facts, and `hello` carries no toolkit name; every 3.x item below is part of 4.0, 3.9 and 3.10's slot
 /// notices included. The host application speaks only 4.x (each side refuses the other major). 3.9 = `SlotInfo.notices`
-/// and `chain.prepared`'s `slotNotices` ([`summoner_proc::Plugin::notices`]: an AU instrument that refused its inputs
-/// names `inputsRefused`); nothing is gated on it (child to host application only). 3.10 adds an optional complete
-/// notice snapshot to fresh-prepare completions, with explicit empty distinct from unknown. host/tests/au.rs exercises
-/// changing acceptance across prepares. 3.8 = `chain.prepareFresh` (kind 25) on a render set answered
+/// and `chain.prepared`'s per-slot notices ([`summoner_proc::Plugin::notices`]: an AU instrument that refused its
+/// inputs names `inputsRefused`); nothing is gated on it (child to host application only). 3.10 adds an optional
+/// complete notice snapshot to fresh-prepare completions, with explicit empty distinct from unknown. host/tests/au.rs
+/// exercises changing acceptance across prepares. 3.8 = `chain.prepareFresh` (kind 25) on a render set answered
 /// `chain.preparedFresh` (kind 61) after its processors were released and made again (`host::prepare_fresh`); the host
 /// application sends it only at 3.8 or later. host/tests/prepare_fresh.rs ties the claim to kind 25. 3.7 =
-/// `param.list`'s `pluginId`, `automatable`, `default`, `value`, `stepCount`, `label` and `order` (the parameter-tree
+/// `param.list`'s plugin id, `automatable`, `default`, `value`, `stepCount`, `label` and `order` (the parameter-tree
 /// order), names cut at 1024 characters and pages within 48 KiB (`host::param_list`), and `param.set` (kind 35)
 /// answered with its read-back (`host::param_set`); the host application reads the fields and sends `param.set` only at
 /// 3.7 or later. host/tests/param_set.rs's `the_hello_claims_3_7_and_param_set_is_answered` ties the claim to kind 35.
@@ -27,7 +27,7 @@ pub type Writer = Arc<Mutex<UnixStream>>;
 /// application's log grammar and echoed on its answer ([`answer_reply`], [`answer_event`]), `HelloReply.wiredBytes` /
 /// `unwiredBytes` and `chain.prepared`'s pair; the host application sends `log.set` and `corr` only at 3.6 or later.
 /// host/tests/reader_edges.rs's `the_hello_claims_3_6_and_log_set_is_answered_inline` ties the claim to `log.set`. 3.5
-/// = `auCodes` + `auVersion` in the scan, the AU entry picked by `auType` / `auSubtype` / `auManufacturer`, and no
+/// = `auCodes` + `auVersion` in the scan, the AU entry picked by its type, subtype and manufacturer codes, and no
 /// `kAudioUnitProperty_OfflineRender` on a render set's AU slot; the host application sends AU slots only at 3.5 or
 /// later. host/tests/au.rs's `the_hello_claims_3_6_and_a_triple_picks_the_colliding_entry` ties the claim to the AU
 /// entry pick.
@@ -143,7 +143,7 @@ pub fn error_meta(code: i32, message: &str) -> Vec<u8> {
     best
 }
 
-// `scanned` is not sent here: since the pin 8cfb12d it is the CORE's encoder's frame (`codec::encode_scanned`: form A
+// `scanned` is not sent here: it is the host's encoder's frame (`codec::encode_scanned`: form A
 // or B, `overLimit`, the header-only path), sent as it is by `scan_mode::send_scanned`.
 
 pub fn error(w: &Writer, kind: u16, id: u64, code: i32, message: &str) {
@@ -264,12 +264,12 @@ mod tests {
         f(&w);
         drop(w);
         let bytes = reader.join().unwrap();
-        let mut d = codec::Decoder::new(Direction::ToCore);
+        let mut d = codec::Decoder::new(Direction::ToHost);
         let mut out = Vec::new();
         d.feed(&bytes, &mut |fr| out.push(fr))
             .expect("every frame decodes");
         for fr in &out {
-            codec::check_to_core(fr).expect("summoner-proto's own check");
+            codec::check_to_host(fr).expect("summoner-proto's own check");
         }
         out
     }

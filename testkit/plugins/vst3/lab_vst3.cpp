@@ -508,11 +508,11 @@ public:
             return kResultFalse;
 #if defined(SUMMONER_LAB_FIXTURE_EDITOR)
         if (bytes.size() > 2 && std::memcmp(bytes.data(), "UI", 2) == 0)
-            return kResultOk;  // the controller's (setComponentState); the core keeps its state
+            return kResultOk;  // the controller's (setComponentState); the DSP core keeps its state
 #endif
 #if defined(SUMMONER_LAB_FIXTURE_CTXMIDI)
         if (bytes.size() == 5 && (std::memcmp(bytes.data(), "REMAP", 5) == 0 || std::memcmp(bytes.data(), "UNMAP", 5) == 0))
-            return kResultOk;  // the controller's (setComponentState); the core keeps its state
+            return kResultOk;  // the controller's (setComponentState); the DSP core keeps its state
         if (bytes.size() > 8 && std::memcmp(bytes.data(), "RESTART=", 8) == 0)
             return kResultOk;  // likewise
         if (bytes.size() > 5 && std::memcmp(bytes.data(), "EDIT=", 5) == 0)

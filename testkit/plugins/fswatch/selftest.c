@@ -143,15 +143,15 @@ int main(int argc, char** argv) {
     Dl_info zi;
     memset(&zi, 0, sizeof(zi));
     const int zok = z != NULL && dladdr(dlsym(z, "zlibVersion"), &zi) != 0 && zi.dli_fname != NULL;
-    const int tfd = open(tabname, O_WRONLY | O_CREAT, 0600);  // F1: a TAB and a LF in names
+    const int tfd = open(tabname, O_WRONLY | O_CREAT, 0600);  // a TAB and a LF in names
     close(tfd);
     const int lfd = open(lfname, O_WRONLY | O_CREAT, 0600);
     close(lfd);
-    const int dfd = open(d, O_RDONLY | O_DIRECTORY);  // F2: an openat against a real dirfd
+    const int dfd = open(d, O_RDONLY | O_DIRECTORY);  // an openat against a real dirfd
     const int rfd = openat(dfd, "rel", O_WRONLY | O_CREAT, 0600);
     close(rfd);
     const int r_ua = unlinkat(dfd, "rel", 0);
-    static char longp[5000];  // F3: a path cut to fit
+    static char longp[5000];  // a path cut to fit
     memset(longp, 'q', sizeof(longp) - 1);
     longp[0] = '/';
     (void)!stat(longp, &st);

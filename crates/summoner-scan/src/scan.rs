@@ -1,26 +1,26 @@
 //! The scan supervisor. One supervisor for both children; one probe at a time (`&mut self`); one
 //! process per bundle.
 //!
-//! **One scan** ([`ScanSupervisor::scan`]), in S1's order:
+//! **One scan** ([`ScanSupervisor::scan`]), in this order:
 //! 1. the dead-man's pedal marks the path `pending` ([`Pedal::pending`]) BEFORE the spawn; a refusal spawns nothing;
-//! 2. the spawn (`runecraft_ipc::process::unix::spawn_stdio_only_in_group`): argv exactly `--scan --parent-pid <the host application's pid>
+//! 2. the spawn (`runecraft_ipc::process::spawn_group`): argv exactly `--scan --parent-pid <the host application's pid>
 //!    --step-ms <n>` and, when a crash-log folder is configured, `--crash-log <dir>` (N3), the
 //!    socketpair's child end on fd 3, the explicit env, `register: None`, its own process group (pgid = pid,
-//!    recorded), its stderr on a pipe; the supervisor closes its copies of the child's ends at once (S1 *The socket
-//!    end*); the budget starts here;
+//!    recorded), its stderr on a pipe; the supervisor closes its copies of the child's ends at once; the budget
+//!    starts here;
 //! 3. the conversation, in this order and no other: `hello {childId, fds: 0}` (id 1; the reply's protocol major is
 //!    checked) → `scan {format, path}` (64, a request, id 2) → its `{}` receipt (a reply, id 2) → `scanned` (65, an
 //!    EVENT, id 0), whose `format` and `path` must echo the request's → `shutdown` (id 3) → its reply → the exit. The
 //!    supervisor sends nothing between the receipt and `scanned`;
-//! 4. the budget (D18's 30 s, [`BUDGET`]), from the spawn to the leader's exit: at it, the we-sent flag is set, then
+//! 4. the budget (30 s, [`BUDGET`]), from the spawn to the leader's exit: at it, the we-sent flag is set, then
 //!    the group is SIGKILLed (re-sent every [`REKILL`] until the leader has exited);
 //! 5. when the leader has exited (seen with `WNOWAIT`, so it stays our unreaped zombie and the group id cannot be
 //!    reused), the group is SIGKILLed once more, so nothing it left behind in its group outlives the scan; then the
-//!    leader is reaped; then *the drain* (branch `scan-drain`, 2026-11-01): before the verdict, the conversation takes
+//!    leader is reaped; then *the drain*: before the verdict, the conversation takes
 //!    what the reader still delivers, to the reader's end (EOF, or why not), within [`DRAIN`]. A dead child's bytes
 //!    stay readable in the socket until EOF, so a line it wrote before it died (a `scanned` before a SIGKILL) is
 //!    judged and kept whichever thread saw the end first. After the exit the conversation sends nothing;
-//! 6. the verdict ([`judge`], the table of S1 as ruled) with its record ([`ScanReport`]: the stderr capture, the crash
+//! 6. the verdict ([`judge`], the verdict table) with its record ([`ScanReport`]: the stderr capture, the crash
 //!    log the child writes in `$HOME/Library/Logs`, named by its pid, if it exists, attached and never parsed), handed to
 //!    the pedal ([`Pedal::settle`]). The supervisor never creates a directory.
 //!
@@ -30,7 +30,7 @@
 //! socket, through the host application's `Decoder`), a wait thread (the leader's exit, `waitid(WNOWAIT)`) and a stderr thread
 //! (the stderr capture). All three are joined before [`ScanSupervisor::scan`] returns.
 //!
-//! **The stderr capture**, ALWAYS on *(O5 + O6)*: read by the bounded reader up to
+//! **The stderr capture**, ALWAYS on: read by the bounded reader up to
 //! [`STDERR_CAP`] bytes, cut with a marker. It carries the step deadline's line and, when the crash log cannot be
 //! opened, the whole crash report, so both are always the LAST bytes the child writes: the capture keeps the first
 //! [`HEAD`] bytes and the latest bytes after them, and cuts the middle.
@@ -59,7 +59,7 @@ use summoner_proto::codec::{
 };
 use summoner_proto::layout::ABI_VERSION;
 
-/// The most bytes of the child's stderr kept, marker included (S1: "bounded at 64 KiB").
+/// The most bytes of the child's stderr kept, marker included (bounded at 64 KiB).
 pub const STDERR_CAP: usize = 64 * 1024;
 /// Of those, the first bytes kept as they came (the child's start-up lines, a plugin's first complaint).
 pub const HEAD: usize = 16 * 1024;
@@ -231,7 +231,7 @@ fn read_bounded(mut src: std::io::PipeReader, reaped: &AtomicBool, grace: Durati
 // The supervisor
 // ---------------------------------------------------------------------------------------------------------------------
 
-/// D18's budget, from the spawn to the leader's exit [P; not measured]. A parameter ([`ScanConfig::budget`]): 30 s in
+/// The budget, from the spawn to the leader's exit (not measured). A parameter ([`ScanConfig::budget`]): 30 s in
 /// production, about 1 s in the tests.
 pub const BUDGET: Duration = Duration::from_secs(30);
 /// How often the group is SIGKILLed again while a killed leader has not yet exited (a process forked during the first
@@ -251,7 +251,7 @@ pub const TREE_POLL: Duration = Duration::from_millis(50);
 /// bound as [`STDERR_GRACE`], the same kind of wait, and run at the same time as it, so a scan's worst case grows by
 /// about one second, not two. A parameter ([`ScanConfig::drain`]).
 pub const DRAIN: Duration = Duration::from_secs(1);
-/// The write timeout on the socket (D6's 2 s stall): a write that stalls is left to the budget.
+/// The write timeout on the socket (the protocol's 2 s stall): a write that stalls is left to the budget.
 pub const SEND_TIMEOUT: Duration = Duration::from_secs(2);
 /// Inbound messages in flight from the reader and the waiter (the conversation is four frames).
 pub const INBOUND_BOUND: usize = 32;
@@ -266,16 +266,16 @@ pub const SCAN_BLOB_BUDGET: u64 = MAX_BLOB as u64;
 pub const CRASH_LOG_CAP: usize = STDERR_CAP;
 
 /// The child's step deadline the host application passes (`--step-ms`: explicit, never the child's
-/// default): 25 000 ms, the plugin-host child's `scan_mode::DEFAULT_STEP_MS` (G1, 2026-11-05: three real VST3s took ~21 s in
-/// discovery). A parameter ([`ScanConfig::step`]).
+/// default): 25 000 ms, the plugin-host child's `scan_mode::DEFAULT_STEP_MS` (three real VST3s took ~21 s in
+/// discovery when it was measured). A parameter ([`ScanConfig::step`]).
 pub const STEP: Duration = Duration::from_millis(25_000);
-/// The child's range for `--step-ms` (the plugin-host child R5: 1..=120 000 ms, else exit 2).
+/// The child's range for `--step-ms` (the plugin-host child's: 1..=120 000 ms, else exit 2).
 pub const STEP_MAX: Duration = Duration::from_millis(120_000);
-/// (R3's "consider"): an AU probe's step deadline, 60 000 ms (the slowest
-/// real AU took 23.4 s against 25 s at G1; large-sampler instantiations are slow, and a timeout is a strike). A
+/// An AU probe's step deadline, 60 000 ms (the slowest
+/// real AU took 23.4 s against 25 s when measured; large-sampler instantiations are slow, and a timeout is a strike). A
 /// parameter ([`ScanConfig::au_step`]).
 pub const STEP_AU: Duration = Duration::from_millis(60_000);
-/// D18's budget for an AU probe, 70 s (VST3 keeps [`BUDGET`]). A parameter ([`ScanConfig::au_budget`]).
+/// The budget for an AU probe, 70 s (VST3 keeps [`BUDGET`]). A parameter ([`ScanConfig::au_budget`]).
 pub const BUDGET_AU: Duration = Duration::from_secs(70);
 const _: () = assert!(STEP_AU.as_millis() <= STEP_MAX.as_millis());
 const _: () = assert!(STEP_AU.as_millis() < BUDGET_AU.as_millis());
@@ -294,13 +294,13 @@ pub const EXIT_PROTOCOL: i32 = 4;
 pub struct ScanConfig {
     /// The scan child (the plugin-host child; the fake host in the tests).
     pub program: PathBuf,
-    /// The child's whole environment, explicit (S1: HOME and CFFIXED_USER_HOME; the lab env in the lab).
+    /// The child's whole environment, explicit (HOME and CFFIXED_USER_HOME included).
     pub env: Vec<(OsString, OsString)>,
     /// N3: the crash log's folder, passed as `--crash-log <dir>` and the one place
     /// a scan child's crash log is read from ([`read_crash_log`]); the `$HOME` derivation is gone. Production sets
     /// the folder its own `--crash-log` guard validated; a lab host application the `Library/Logs` folder it opened in the
     /// isolated home. `None` (the default, tests): no flag, the child keeps its own fallback, and no log is read. A
-    /// folder the child refuses (gone after launch) is its exit 2 before any plugin code: [`ScanEnd::CoreFault`], no
+    /// folder the child refuses (gone after launch) is its exit 2 before any plugin code: [`ScanEnd::HostFault`], no
     /// strike (N4).
     pub crash_log: Option<PathBuf>,
     /// The child's step deadline, passed as `--step-ms` ([`STEP`] in production). It must be 1 ms..=[`STEP_MAX`] and
@@ -445,12 +445,12 @@ impl ScanConfig {
         Ok(())
     }
 
-    /// The scan child's argv (S1; N3) for a VST3 probe: [`ScanConfig::args_for`].
+    /// The scan child's argv (N3) for a VST3 probe: [`ScanConfig::args_for`].
     pub fn args(&self, parent: u32) -> Vec<OsString> {
         self.args_for(parent, summoner_proto::codec::ScanFormat::Vst3)
     }
 
-    /// The scan child's argv (S1; N3): `--scan --parent-pid <pid> --step-ms <n>` (: the step of the
+    /// The scan child's argv (N3): `--scan --parent-pid <pid> --step-ms <n>` (the step of the
     /// probe's format), then `--crash-log <dir>` when a folder is configured.
     pub fn args_for(
         &self,
@@ -485,11 +485,11 @@ impl ScanConfig {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ScanEnd<D = codec::ScanClass> {
-    /// The verdict: the `plugin-scan.json` entry's outcome.
+    /// The verdict: the outcome an application records for the bundle.
     Verdict(codec::ScanVerdict<D>),
     /// Exit 2 or 4: the HOST APPLICATION's fault. No verdict, no strike; an engine-side error,
     /// logged loudly and counted.
-    CoreFault {
+    HostFault {
         /// The child's exit code (2 or 4).
         exit_code: i32,
     },
@@ -533,13 +533,13 @@ impl<D> ScanEnd<D> {
     ) -> ScanEnd<E> {
         match self {
             ScanEnd::Verdict(v) => ScanEnd::Verdict(f(v)),
-            ScanEnd::CoreFault { exit_code } => ScanEnd::CoreFault { exit_code },
+            ScanEnd::HostFault { exit_code } => ScanEnd::HostFault { exit_code },
             ScanEnd::EngineFault { why } => ScanEnd::EngineFault { why },
             ScanEnd::NotRun { why } => ScanEnd::NotRun { why },
         }
     }
 
-    /// The dead-man's pedal's strike (D18: a probe that dies or passes its budget is marked, and skipped by the next
+    /// The dead-man's pedal's strike (a probe that dies or passes its budget is marked, and skipped by the next
     /// scan unless a rescan names it): a `crashed` or `timeout` verdict, or `failed {reason: protocolAfterScan}`;
     /// nothing else.
     pub fn is_strike(&self) -> bool {
@@ -573,8 +573,8 @@ pub struct Fault {
     /// either side of the receipt. None for every other fault.
     pub over_budget: Option<OverBudget>,
     /// The `scanned` line passed one of the engine's limits
-    /// after the header (L2 `overLimit`, L3 the count, L4 a line): the codec's text. The engine's limit, not the
-    /// plugin's: no verdict, no strike. None for every other fault.
+    /// after the header (the child's `overLimit`, the description count, a description line): the codec's text. The
+    /// engine's limit, not the plugin's: no verdict, no strike. None for every other fault.
     pub scanned_limit: Option<String>,
 }
 
@@ -633,9 +633,8 @@ pub const BLOB_OVER_BUDGET: &str = "an engine-side limit: the scan reader's blob
 /// 2026-11-01): what [`ScanSupervisor`]'s accounting counts it by.
 pub const OVERSIZED_SCANNED: &str = "an engine-side limit after the scan's receipt";
 
-/// S1's verdict table with the strike boundary *(
-/// 2026-10-31)*, from what arrived, whether the scan request was sent, and the leader's `waitpid` status (None: the
-/// outer limit ended the scan first):
+/// The verdict table with the strike boundary, from what arrived, whether the scan request was sent, and the leader's
+/// `waitpid` status (None: the outer limit ended the scan first):
 ///
 /// | what happened | end |
 /// |---|---|
@@ -643,17 +642,17 @@ pub const OVERSIZED_SCANNED: &str = "an engine-side limit after the scan's recei
 /// | the `scanned` line refused for its size alone (`MetaTooLong`), after the receipt | [`ScanEnd::EngineFault`] |
 /// | any other protocol fault after the receipt | `failed {reason: protocolAfterScan}`, a strike |
 /// | a protocol fault before the receipt | [`ScanEnd::EngineFault`] |
-/// | half a frame, then the end (EOF mid-frame) | no fault: the rows below, by the end (H-4) |
+/// | half a frame, then the end (EOF mid-frame) | no fault: the rows below, by the end |
 /// | the budget kill (`we_sent`), the scan request sent | `timeout {kind: budget}` |
 /// | the budget kill before the scan request (a hang at `hello`) | [`ScanEnd::EngineFault`] |
-/// | exit 2 or 4 | [`ScanEnd::CoreFault`] (O2) |
+/// | exit 2 or 4 | [`ScanEnd::HostFault`] |
 /// | any other end before the scan request | [`ScanEnd::EngineFault`] (the strike principle) |
 /// | a signal the supervisor did not send | `crashed {signal}` |
 /// | exit 0 after `scanned` | the line's `ok` / `failed` |
-/// | exit 75 | `timeout {kind: step}` (O1) |
+/// | exit 75 | `timeout {kind: step}` |
 /// | exit 0 without `scanned`, 3, or any code the table does not name | `crashed {exitCode}` |
 ///
-/// **The death wins** (O4): `scanned` counts only for a clean exit 0 after it.
+/// **The death wins**: `scanned` counts only for a clean exit 0 after it.
 pub fn judge(
     fault: Option<Fault>,
     scan_sent: bool,
@@ -687,7 +686,7 @@ pub fn judge(
             return ScanEnd::EngineFault {
                 why: format!(
                     "{OVERSIZED_SCANNED}: the scanned line's meta is {len} bytes (MAX_META {MAX_META} bytes), or its \
-                     blob is over MAX_BLOB ({MAX_BLOB} bytes), so the core's decoder refused it for its size alone \
+                     blob is over MAX_BLOB ({MAX_BLOB} bytes), so the host's decoder refused it for its size alone \
                      ({}). The engine's limit, not the plugin's",
                     f.why
                 ),
@@ -741,10 +740,10 @@ pub fn judge(
         // Mutant (c) (never in a normal build): exit 2 falls through to `crashed`, a strike.
         #[cfg(not(mutant_usage_exit_strike))]
         ChildExit::Exited(c @ (EXIT_USAGE | EXIT_PROTOCOL)) => {
-            return ScanEnd::CoreFault { exit_code: c };
+            return ScanEnd::HostFault { exit_code: c };
         }
         #[cfg(mutant_usage_exit_strike)]
-        ChildExit::Exited(c @ EXIT_PROTOCOL) => return ScanEnd::CoreFault { exit_code: c },
+        ChildExit::Exited(c @ EXIT_PROTOCOL) => return ScanEnd::HostFault { exit_code: c },
         _ => {}
     }
     if !scan_sent {
@@ -806,10 +805,10 @@ pub struct ScanReport {
     /// kept in form A's shape: `classes` the blob's on `ok`, `[]` on `failed` (its classes are [`Self::discovered`]).
     pub scanned: Option<Scanned>,
     /// The classes discovery found beside a `failed` verdict: a form B `failed` line's
-    /// blob, in the child's order. Only when that line IS the verdict (a clean exit 0 after it: the death wins, O4);
+    /// blob, in the child's order. Only when that line IS the verdict (a clean exit 0 after it: the death wins);
     /// `[]` otherwise, and always for form A. The pedal records them as the entry's `discovered`.
     pub discovered: Vec<codec::ScanClass>,
-    /// The child's stderr, bounded (always captured, O5 + O6).
+    /// The child's stderr, bounded (always captured).
     pub stderr: Captured,
     /// The child's crash log in `$HOME/Library/Logs` (named by its pid), if the child wrote one: attached, never parsed (the
     /// supervisor knows the path it sent).
@@ -821,8 +820,8 @@ pub struct ScanReport {
     pub sweep: Option<Result<(), GroupKillError>>,
     /// Escapees: descendants seen while the leader ran that left the scan's group (`setsid`, `setpgid`)
     /// and were still alive after the sweep and the reap. Stray processes on the user's machine: logged loudly,
-    /// counted, and NOT killed (they are outside the group; S1 signals only the group). A descendant that leaves and
-    /// outlives its parent between two walks ([`TREE_POLL`]) is not seen.
+    /// counted, and NOT killed (they are outside the group; the supervisor signals only the group). A descendant that
+    /// leaves and outlives its parent between two walks ([`TREE_POLL`]) is not seen.
     pub escapees: Vec<u32>,
     /// When the pedal had marked the path pending, and when the spawn returned.
     pub pending_at: Option<Instant>,
@@ -843,14 +842,14 @@ pub struct ScanReport {
     /// open. The record was judged on what had arrived.
     pub drain_timeout: bool,
     /// The child's socket ended in the middle of a frame (EOF mid-frame): it left half a frame. No fault: the end
-    /// (the death, or the exit) decides *(matching H-4)*.
+    /// (the death, or the exit) decides.
     pub half_frame: bool,
 }
 
-/// The dead-man's pedal and the cache (D11's `plugin-scan.json`, not specified by S1 and not built here): the
+/// The dead-man's pedal and the cache (the application's scan record, not specified or built here): the
 /// supervisor calls [`Pedal::pending`] before every spawn and [`Pedal::settle`] after every scan it started.
 pub trait Pedal {
-    /// Mark the path `pending`, durably, BEFORE the spawn (D18). An error: no spawn ([`ScanEnd::NotRun`]).
+    /// Mark the path `pending`, durably, BEFORE the spawn. An error: no spawn ([`ScanEnd::NotRun`]).
     fn pending(&mut self, scan: &Scan) -> std::io::Result<()>;
     /// Record the end: `report.end.verdict()` when there is one (a strike when [`ScanEnd::is_strike`]); else the
     /// pending mark is withdrawn with no strike.
@@ -874,8 +873,8 @@ pub struct ScanCounters {
     pub budget_kills: AtomicU64,
     /// Protocol faults on either side of the receipt.
     pub protocol_errors: AtomicU64,
-    /// Exits 2 and 4: the engine-side errors of O2.
-    pub core_faults: AtomicU64,
+    /// Exits 2 and 4: the engine-side errors.
+    pub host_faults: AtomicU64,
     /// [`ScanEnd::EngineFault`]s.
     pub engine_faults: AtomicU64,
     /// Of those, the `scanned` lines over [`MAX_META`]: the evidence for the size question,
@@ -1091,12 +1090,12 @@ impl ScanSupervisor {
                     );
                 }
             }
-            ScanEnd::CoreFault { exit_code } => {
-                c.core_faults.fetch_add(1, Ordering::Relaxed);
+            ScanEnd::HostFault { exit_code } => {
+                c.host_faults.fetch_add(1, Ordering::Relaxed);
                 let meaning = if *exit_code == EXIT_USAGE {
                     "a usage error or no fd 3"
                 } else {
-                    "a protocol error in what the core sent"
+                    "a protocol error in what the host sent"
                 };
                 let stderr_tag = self.cfg.names.stderr;
                 runecraft_rt::safe_eprintln!(
@@ -1202,7 +1201,7 @@ impl ScanSupervisor {
             Some(&err_w),
         )
         .map_err(|e| format!("spawn {}: {e}", self.cfg.program.display()))?;
-        // S1 *The socket end*: our copies of the child's ends go at once, so its death reaches the reader as EOF (and
+        // The socket end: our copies of the child's ends go at once, so its death reaches the reader as EOF (and
         // the stderr reader sees EOF when the last writer of the group is gone). The channel end went with the spawn.
         drop(err_w);
         let (mut ours, rsock) = ours
@@ -1287,7 +1286,7 @@ impl ScanSupervisor {
             }
             if !we_sent && conv.fault.is_none() && now >= deadline {
                 tree.walk();
-                // The flag first, then the signal (S1 *The budget*; host's `we_sent`).
+                // The flag first, then the signal (the budget's rule; the host's `we_sent`).
                 we_sent = true;
                 kill(now, &mut first_kill, &mut killed_at);
             }
@@ -1417,7 +1416,7 @@ impl ScanSupervisor {
             exit,
             conv.scanned.as_ref(),
         );
-        // W4: discovery's classes count only beside the line's own `failed` verdict (a clean exit 0 after it; a child
+        // Discovery's classes count only beside the line's own `failed` verdict (a clean exit 0 after it; a child
         // cannot send protocolAfterScan, so a `failed` verdict that is not the supervisor's own is the line's).
         if matches!(&report.end, ScanEnd::Verdict(ScanResult::Failed { failure, .. })
             if *failure != ScanFailure::ProtocolAfterScan)
@@ -1455,7 +1454,7 @@ fn reap_later(leader: runecraft_ipc::process::GroupLeader, names: summoner::supe
     }
 }
 
-/// The host application's side of one conversation (S1's order, and no other).
+/// The host application's side of one conversation (the scan's order, and no other).
 struct Conversation<'a> {
     scan: &'a Scan,
     child_id: &'a str,
@@ -1468,7 +1467,7 @@ struct Conversation<'a> {
     /// The scan request was written: the strike boundary.
     scan_sent: bool,
     scanned: Option<Scanned>,
-    /// A form B `failed` line's classes (W4), beside [`Self::scanned`].
+    /// A form B `failed` line's classes, beside [`Self::scanned`].
     discovered: Vec<codec::ScanClass>,
     fault: Option<Fault>,
     /// The reader's end was EOF mid-frame ([`ScanReport::half_frame`]).
@@ -1549,7 +1548,7 @@ impl Conversation<'_> {
         });
     }
 
-    /// A `scanned` refused after its header: an engine limit (L2-L4) is no verdict and
+    /// A `scanned` refused after its header: an engine limit (the description limits) is no verdict and
     /// no strike; anything else is [`Self::fail`] (a strike after the receipt). A form A meta with a blob keeps the
     /// words the conversation always used for a blob it did not expect.
     fn scanned_fault(&mut self, what: String, e: codec::ScannedFault) {
@@ -1572,8 +1571,8 @@ impl Conversation<'_> {
     /// 2026-11-01)*: the conversation waits for `scanned`, and the decoder refused a `scanned` EVENT (id 0) for its
     /// meta size alone. Anything else, an oversized frame of another kind or flags included, is [`Self::fail`].
     ///
-    /// **Half a frame, then the end** *(matching the live side's H-4)*: an EOF mid-frame is no
-    /// protocol fault but the trace of the end that cut the frame, so the end decides by S1's table (a signal:
+    /// **Half a frame, then the end** *(matching the live side)*: an EOF mid-frame is no
+    /// protocol fault but the trace of the end that cut the frame, so the end decides by the verdict table (a signal:
     /// `crashed {signal}`; an exit: its row), the same whichever thread saw it first. It is kept in the record. Its
     /// mutant (never in a normal build) restores the old mapping, `protocolAfterScan` after the receipt.
     ///
@@ -1614,7 +1613,7 @@ impl Conversation<'_> {
                 h.id
             )
         };
-        // W6: only the `scanned` EVENT (id 0) the conversation waits for may carry a blob (form B's); the reader has
+        // Only the `scanned` EVENT (id 0) the conversation waits for may carry a blob (form B's); the reader has
         // already refused any other blob, and a second one, from its header.
         let scanned_now = self.step == Step::Scanned
             && h.kind == kind::SCANNED
@@ -1623,7 +1622,7 @@ impl Conversation<'_> {
         if !f.blob.is_empty() && !scanned_now {
             return self.fail(format!("{} carries a {}-byte blob", what(), f.blob.len()));
         }
-        if let Err(e) = codec::check_to_core(&f) {
+        if let Err(e) = codec::check_to_host(&f) {
             return self.fail(format!("{}: {e}", what()));
         }
         if h.is_error() {
@@ -1646,7 +1645,7 @@ impl Conversation<'_> {
                 };
                 if m.protocol >> 16 != ABI_VERSION >> 16 {
                     return self.fail(format!(
-                        "protocol {}.{}, this core speaks {}.x",
+                        "protocol {}.{}, this host speaks {}.x",
                         m.protocol >> 16,
                         m.protocol & 0xffff,
                         ABI_VERSION >> 16
@@ -1668,7 +1667,7 @@ impl Conversation<'_> {
                 self.step = Step::Scanned;
             }
             (Step::Scanned, kind::SCANNED, false, true, 0) => {
-                // W5 step 2: the meta, form A or form B; then S1's echo; then steps 3 to 9 on the blob.
+                // The meta, form A or form B; then the echo check; then the blob's checks.
                 let meta = match codec::parse_scanned_meta(&f.meta) {
                     Ok(m) => m,
                     Err(e) => return self.scanned_fault(what(), e),
@@ -1699,7 +1698,8 @@ impl Conversation<'_> {
                         },
                     ),
                 };
-                // W4 through the codec's one function (its mutant `mutant_discovered_dropped` drops them).
+                // Discovery's classes through the codec's one function (its mutant `mutant_discovered_dropped` drops
+                // them).
                 self.discovered = line.into_verdict().1;
                 self.scanned = Some(s);
                 self.step = Step::Shutdown;
@@ -1737,16 +1737,16 @@ fn seam_wait(flag: &AtomicBool) {
 
 /// The reader's blob budget, the decoder's admission gate: it sees each header
 /// before its body is allocated and admits it only if its declared blob keeps the conversation's admitted blob bytes
-/// within the budget. The sum never goes down (a conversation has one legal blob at most, W6), so what it admits is a
+/// within the budget. The sum never goes down (a conversation has one legal blob at most), so what it admits is a
 /// function of the byte stream alone, never of how fast the conversation drains the channel.
 struct BlobGate {
     budget: u64,
     admitted: u64,
     refused: Option<OverBudget>,
-    /// *(W6's count rule)* The blob frames
+    /// *(The blob count rule)* The blob frames
     /// admitted in this conversation (at most one).
     blobs: u32,
-    /// The frame W6's count rule refused: a blob on anything but a `scanned` EVENT with id 0, or a second blob.
+    /// The frame the blob count rule refused: a blob on anything but a `scanned` EVENT with id 0, or a second blob.
     refused_count: Option<Header>,
 }
 
@@ -1755,7 +1755,7 @@ impl BlobGate {
         if h.blob_len == 0 {
             return true;
         }
-        // W6: one blob per conversation, and only on a `scanned` EVENT with id 0. Its mutant (never in a normal
+        // One blob per conversation, and only on a `scanned` EVENT with id 0. Its mutant (never in a normal
         // build): the rule skipped, so only the budget bounds the blobs.
         let legal = h.kind == kind::SCANNED && h.flags == FF_EVENT && h.id == 0 && self.blobs == 0;
         if !legal && !cfg!(mutant_scan_reader_unbounded) {
@@ -1797,7 +1797,7 @@ fn read_frames(
         blobs: 0,
         refused_count: None,
     };
-    let mut dec = codec::Decoder::new(Direction::ToCore);
+    let mut dec = codec::Decoder::new(Direction::ToHost);
     let mut buf = vec![0u8; 64 * 1024];
     let mut fds: Vec<runecraft_ipc::channel::Transferable> = Vec::new();
     let end = loop {
@@ -1833,7 +1833,7 @@ fn read_frames(
         }
         if let Err(e) = r {
             if let Some(h) = gate.refused_count {
-                // W6's count rule: the child's protocol fault (a strike after the receipt), never a limit.
+                // The blob count rule: the child's protocol fault (a strike after the receipt), never a limit.
                 break Err(ReaderFault::other(format!(
                     "a frame the reader refused from its header (one blob per conversation, on the \
                      scanned EVENT with id 0 only): {} (kind {}, flags {}, id {}) declares a {}-byte blob, after {} \
@@ -1859,7 +1859,7 @@ fn read_frames(
                 },
                 None => ReaderFault {
                     why: format!("a frame the decoder refused: {e}"),
-                    // W5 L1: the meta cap, the blob cap, or both (form B's blob may pass MAX_BLOB).
+                    // The size limits: the meta cap, the blob cap, or both (form B's blob may pass MAX_BLOB).
                     oversized: dec.oversized_header(),
                     over_budget: None,
                     half_frame: false,
@@ -1915,7 +1915,7 @@ mod tests {
         })
     }
 
-    /// S1's table as ruled, row by row, with and without an earlier `scanned` (O4: the death wins; only a clean exit
+    /// The verdict table, row by row, with and without an earlier `scanned` (the death wins; only a clean exit
     /// 0 keeps the line), on both sides of the strike boundary. The mutants
     /// `mutant_budget_kill_crashed`, `mutant_usage_exit_strike` and
     /// `mutant_fault_after_receipt_unstruck` fail here.
@@ -1973,7 +1973,7 @@ mod tests {
             for sent in [false, true] {
                 for c in [2, 4] {
                     let e = judge(None, sent, false, ex(ChildExit::Exited(c)), sc);
-                    assert_eq!(e, ScanEnd::CoreFault { exit_code: c });
+                    assert_eq!(e, ScanEnd::HostFault { exit_code: c });
                     assert!(!e.is_strike() && e.verdict().is_none());
                 }
             }
@@ -2110,7 +2110,7 @@ mod tests {
         );
     }
 
-    /// the child's F4 refusal (the plugin-host child faafdac) is `failed {reason: "auCodes"}`.
+    /// the child's refusal of an AU code that is no identity is `failed {reason: "auCodes"}`.
     /// The host application reads it as a plain failure, the untagged `ScanFailure::Other` keeping the child's word: the frame
     /// passes the codec, the verdict is the child's `failed`, and it is never a strike (only `crashed`, `timeout` and
     /// the supervisor's own `protocolAfterScan` are).
@@ -2127,14 +2127,14 @@ mod tests {
             "descriptions": [],
         });
         let mut fs = Vec::new();
-        codec::Decoder::new(Direction::ToCore)
+        codec::Decoder::new(Direction::ToHost)
             .feed(
                 &codec::encode_msg(kind::SCANNED, FF_EVENT, 0, &meta, &[]),
                 &mut |f| fs.push(f),
             )
             .unwrap();
         assert_eq!(fs.len(), 1);
-        codec::check_to_core(&fs[0]).expect("the child's word passes the codec");
+        codec::check_to_host(&fs[0]).expect("the child's word passes the codec");
         let s: Scanned = fs[0].meta_as().unwrap();
         let want = ScanResult::Failed {
             failure: ScanFailure::Other {
@@ -2184,7 +2184,7 @@ mod tests {
     /// The reader's blob budget refuses, from its header, the frame whose blob
     /// would pass it, whatever the consumer does: here one blob of the budget plus one byte. Nothing of it is
     /// allocated (the bytes admitted stay at 0), and the reader ends with the budget's fault. *( part 1: since
-    /// W6's count rule runs first, a conversation holds one blob at most, so the budget is
+    /// The blob count rule runs first, a conversation holds one blob at most, so the budget is
     /// shown on that one blob; the two-blob case is the count rule's, below.)* Its mutant
     /// `mutant_scan_blob_budget_off` fails here.
     #[test]
@@ -2321,7 +2321,7 @@ mod tests {
             msg
         };
         let mut fs = Vec::new();
-        codec::Decoder::new(Direction::ToCore)
+        codec::Decoder::new(Direction::ToHost)
             .feed(
                 &codec::encode_msg(kind::HELLO, FF_REPLY, ID_HELLO, &reply, &[]),
                 &mut |f| fs.push(f),
@@ -2362,7 +2362,7 @@ mod tests {
             vec![d("A"), d("B")],
         );
         let mut fs = Vec::new();
-        codec::Decoder::new(Direction::ToCore)
+        codec::Decoder::new(Direction::ToHost)
             .feed(codec::encode_scanned(&line, true).bytes(), &mut |f| {
                 fs.push(f)
             })
@@ -2373,9 +2373,9 @@ mod tests {
         assert!(conv.scanned.as_ref().is_some_and(|s| s.classes.is_empty()));
     }
 
-    /// Half a frame, then the end *(matching H-4)*: the EOF mid-frame is no fault, on either
-    /// side of the receipt, so S1's table judges the end: a signal is `crashed {signal}`, an exit is its row. A frame
-    /// the decoder refused stays a fault. The mutant `mutant_half_frame_struck` fails here.
+    /// Half a frame, then the end: the EOF mid-frame is no fault, on either
+    /// side of the receipt, so the verdict table judges the end: a signal is `crashed {signal}`, an exit is its row. A
+    /// frame the decoder refused stays a fault. The mutant `mutant_half_frame_struck` fails here.
     #[test]
     fn a_half_frame_is_judged_by_the_end() {
         let scan = Scan::new(summoner_proto::codec::ScanFormat::Vst3, "/x/g.vst3").unwrap();
@@ -2404,7 +2404,7 @@ mod tests {
                     kind: TimeoutKind::Step
                 })
             );
-            assert_eq!(j(ChildExit::Exited(4)), ScanEnd::CoreFault { exit_code: 4 });
+            assert_eq!(j(ChildExit::Exited(4)), ScanEnd::HostFault { exit_code: 4 });
             assert_eq!(j(ChildExit::Exited(3)), crashed(None, Some(3)));
             if sc.is_none() {
                 assert_eq!(j(ChildExit::Exited(0)), crashed(None, Some(0)));

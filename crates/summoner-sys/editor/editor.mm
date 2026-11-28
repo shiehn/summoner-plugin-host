@@ -1,6 +1,6 @@
 // libsummoner_editor.dylib: the plugin editor windows, AppKit on the child's main thread
 // and only there. A dylib of its own, loaded by the live child (dlopen, by its absolute path) on its first
-// editor.open, so the child's binary links no AppKit, CoreGraphics or libobjc (release_build.rs's link guard) and the
+// editor.open, so the child's binary links no AppKit, CoreGraphics or libobjc (the release-build link guard) and the
 // scan mode never touches the WindowServer.
 //
 // Every entry point is called on the main thread (the message thread), and every one runs inside @try / try: pumping

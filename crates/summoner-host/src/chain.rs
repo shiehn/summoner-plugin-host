@@ -561,7 +561,20 @@ fn run_loop(c: &Chain, s: &mut Scratch) -> Vec<u64> {
                 Some(Instant::now() + Duration::from_millis(250)),
             )
         };
-        woke = waited == Waited::Woken;
+        woke = match waited {
+            Waited::Woken => true,
+            Waited::TimedOut => false,
+            // A wait the OS refuses returns at once: back off one millisecond so this loop polls the seq and the hub
+            // instead of spinning (a failure path only; the wake path is unchanged).
+            Waited::Failed(_) => {
+                std::thread::sleep(Duration::from_millis(1));
+                false
+            }
+            _ => {
+                std::thread::sleep(Duration::from_millis(1));
+                false
+            }
+        };
         if woke && r.seq().load(Ordering::Acquire) == seq {
             c.page
                 .word64(P_SPURIOUS_WAKES)

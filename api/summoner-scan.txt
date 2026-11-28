@@ -110,10 +110,10 @@ pub field summoner_scan::scan::ScanConfig::step: core::time::Duration
 pub field summoner_scan::scan::ScanCounters::blob_over_budget: core::sync::atomic::AtomicU64
 pub field summoner_scan::scan::ScanCounters::budget_kills: core::sync::atomic::AtomicU64
 pub field summoner_scan::scan::ScanCounters::child_protocol: core::sync::atomic::AtomicU32
-pub field summoner_scan::scan::ScanCounters::core_faults: core::sync::atomic::AtomicU64
 pub field summoner_scan::scan::ScanCounters::drain_timeouts: core::sync::atomic::AtomicU64
 pub field summoner_scan::scan::ScanCounters::engine_faults: core::sync::atomic::AtomicU64
 pub field summoner_scan::scan::ScanCounters::escapees: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::host_faults: core::sync::atomic::AtomicU64
 pub field summoner_scan::scan::ScanCounters::leftovers: core::sync::atomic::AtomicU64
 pub field summoner_scan::scan::ScanCounters::not_run: core::sync::atomic::AtomicU64
 pub field summoner_scan::scan::ScanCounters::outer_limits: core::sync::atomic::AtomicU64
@@ -123,8 +123,8 @@ pub field summoner_scan::scan::ScanCounters::scans: core::sync::atomic::AtomicU6
 pub field summoner_scan::scan::ScanCounters::stderr_held_open: core::sync::atomic::AtomicU64
 pub field summoner_scan::scan::ScanCounters::strikes: core::sync::atomic::AtomicU64
 pub field summoner_scan::scan::ScanCounters::verdicts: core::sync::atomic::AtomicU64
-pub field summoner_scan::scan::ScanEnd::CoreFault::exit_code: i32
 pub field summoner_scan::scan::ScanEnd::EngineFault::why: alloc::string::String
+pub field summoner_scan::scan::ScanEnd::HostFault::exit_code: i32
 pub field summoner_scan::scan::ScanEnd::NotRun::why: alloc::string::String
 pub field summoner_scan::scan::ScanReport::crash_log: core::option::Option<summoner_scan::scan::Captured>
 pub field summoner_scan::scan::ScanReport::discovered: alloc::vec::Vec<summoner_proto::plugin::ScanClass>
@@ -183,7 +183,7 @@ pub struct summoner_scan::scan::Bounded {private fields}
 pub struct summoner_scan::scan::ScanConfig {private fields}
 pub struct summoner_scan::scan::ScanSupervisor {private fields}
 pub trait summoner_scan::scan::Pedal
-pub variant summoner_scan::scan::ScanEnd::CoreFault {}
 pub variant summoner_scan::scan::ScanEnd::EngineFault {}
+pub variant summoner_scan::scan::ScanEnd::HostFault {}
 pub variant summoner_scan::scan::ScanEnd::NotRun {}
 pub variant summoner_scan::scan::ScanEnd::Verdict(summoner_proto::codec::ScanVerdict<D>)

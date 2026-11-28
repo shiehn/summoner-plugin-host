@@ -2,7 +2,7 @@
 //! `summoner-sys`'s rules (one module per FFI surface; every `unsafe` block with a `// SAFETY:` comment; each new one
 //! reviewed). It exists apart from `summoner-sys` because a `summoner-sys` feature would be unified into every
 //! build of the workspace and so link AppKit into the host child (measured). Only the scan probe
-//! (`summoner-probe-bin`) depends on it; `release_build.rs`'s link guard checks the host child never does.
+//! (`summoner-probe-bin`) depends on it; the release-build link guard checks the host child never does.
 //!
 //! - [`appkit`] (feature `appkit`, enabled by nothing: an NSApplication in the scan child brings
 //!   the WindowServer, LaunchServices and a TCC ListenEvent preflight): the activation policy and the frontmost app.

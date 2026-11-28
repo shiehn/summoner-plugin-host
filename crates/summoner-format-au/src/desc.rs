@@ -38,14 +38,14 @@ fn check_codes_why(codes: [u32; 3]) -> Result<(), String> {
     for (i, v) in codes.iter().enumerate() {
         if *v == 0 {
             return Err(format!(
-                "the {} code is zero (a wildcard is never an identity) (F4)",
+                "the {} code is zero (a wildcard is never an identity)",
                 CODE_NAMES[i]
             ));
         }
         for (k, b) in v.to_be_bytes().iter().enumerate() {
             if !(0x20..=0x7e).contains(b) || matches!(b, b',' | b':' | b'/') {
                 return Err(format!(
-                    "the {} code's byte {k} is outside printable ASCII or is one of ',' ':' '/' (F4)",
+                    "the {} code's byte {k} is outside printable ASCII or is one of ',' ':' '/'",
                     CODE_NAMES[i]
                 ));
             }

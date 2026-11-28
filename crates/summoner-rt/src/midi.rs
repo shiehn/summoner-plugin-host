@@ -24,8 +24,8 @@ pub enum Offered {
     Dropped,
 }
 
-/// D5's carry: the releases offered while a chain's breaker is open, held for the first request after the close
-/// (note-offs per channel and note, CC 64's last value per channel, CC 120 and CC 123 as flags). Bounded by
+/// The breaker's carry: the releases offered while a chain's breaker is open, held for the first request after the
+/// close (note-offs per channel and note, CC 64's last value per channel, CC 120 and CC 123 as flags). Bounded by
 /// [`CARRY_BOUND`]; no allocation.
 #[derive(Clone, Debug)]
 pub struct MidiCarry {
@@ -49,7 +49,7 @@ impl Default for MidiCarry {
     }
 }
 
-/// Whether an event is a release in D5's sense.
+/// Whether an event is a release in the breaker's sense.
 #[inline]
 pub fn is_release(e: Event3) -> bool {
     match e[0] & 0xf0 {

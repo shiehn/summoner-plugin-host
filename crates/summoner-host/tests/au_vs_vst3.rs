@@ -1,6 +1,6 @@
 //! The AU v2 path at partial blocks, other rates and bigger blocks. The lab's unregistered AUs have no second
 //! implementation to compare against; the stand-in: the lab AU gain and the lab VST3 gain run the SAME DSP core, and
-//! the VST3 path is held identical by the host application's VST3 null (null_vst3.rs, at these same shapes). So through
+//! the VST3 path is held identical by the host application's VST3 null test (at these same shapes). So through
 //! this child, with the null harness, the AU gain must render the VST3 gain's exact bits for every shape: if
 //! `AudioUnitRender` with fewer frames than the maximum, another rate, or a 256-frame block were wrong, they would
 //! differ.

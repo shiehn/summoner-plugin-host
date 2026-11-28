@@ -339,7 +339,7 @@ pub fn scan(scan: &Scan, steps: &dyn Step) -> Report {
     };
     // The bundle's verdict names one failure: the first VALIDATION failure outranks the first `auCodes`
     // refusal, wherever each stands. The host application reads `failed {auCodes}` as "every `discovered` class passed
-    // validation" and indexes them as good (its `index::build_entries`), so an earlier refusal must never
+    // validation" and indexes them as good (its scan index), so an earlier refusal must never
     // hide a sibling's failed validation; the refusal still shows in `probe.validation`, by its own word.
     let mut first_invalid = None;
     let mut first_refused = None;

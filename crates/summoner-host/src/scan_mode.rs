@@ -7,7 +7,7 @@
 //! - the wire, over the existing framing: `hello` → its reply (`host: "native"`, the formats; a page descriptor, if
 //!   one is sent, is taken and dropped: a scan child has no chains); `scan` (64, a request kind), decoded only
 //!   through `codec::Scan`'s own check → its receipt REPLY at once (its id), then `scanned` (65, an EVENT kind, id
-//!   0: the codec's decoder accepts it only so), built by the CORE's encoder (`codec::encode_scanned`):
+//!   0: the codec's decoder accepts it only so), built by the host's encoder (`codec::encode_scanned`):
 //!   form B (the classes in the blob, discovery's on a validation `failed`) when the `scan` offered
 //!   `descriptionsBlob: 1`, form A otherwise; past a bound, form B's `overLimit` frame; a meta past MAX_META, its
 //!   header alone, then the host application's EOF awaited for at most the host application's `scan::SEND_TIMEOUT`,
@@ -19,7 +19,7 @@
 //! - the per-step deadline (`--step-ms`, default [`DEFAULT_STEP_MS`], 25 000: real VST3s have taken ~21 s in
 //!   discovery; inside the scan's 30 s budget): a step past it exits **75**, "my own step deadline": the supervisor
 //!   maps it to `Timeout {step}`; the child never SENDS `crashed` or `timeout`;
-//! - no AppKit, no CoreGraphics, no window listing: these no-UI rules are deferred, not yet enforced (release_build's
+//! - no AppKit, no CoreGraphics, no window listing: these no-UI rules are deferred, not yet enforced (the release-build
 //!   link guard holds for this mode too: it is the same binary).
 //!
 //! Exit codes: 0 after `shutdown` (or the host application's EOF), 3 orphaned, 4 a protocol error, 75 a step's
@@ -75,12 +75,12 @@ fn encoder_input(report: &summoner_probe::Report) -> codec::Scanned {
     s
 }
 
-/// The ONE point that sends `scanned`: the CORE's encoder (`codec::encode_scanned`, never host's), form B when the
-/// `scan` offered `descriptionsBlob: 1`, form A (frozen) otherwise. It never panics and never calls `encode_msg` on an
-/// unchecked size: past a bound it gives form B's `overLimit` frame; a meta past MAX_META gives only the 24-byte header
-/// with its true lengths. Every variant is bytes to send as they are. An engine limit is said on stderr BEFORE its
-/// frame goes: the host application's scan supervisor kills the group as soon as it has judged the frame a fault, and
-/// its stderr capture must already hold why.
+/// The ONE point that sends `scanned`: the host's encoder (`codec::encode_scanned`, never this crate's own), form B
+/// when the `scan` offered `descriptionsBlob: 1`, form A (frozen) otherwise. It never panics and never calls
+/// `encode_msg` on an unchecked size: past a bound it gives form B's `overLimit` frame; a meta past MAX_META gives only
+/// the 24-byte header with its true lengths. Every variant is bytes to send as they are. An engine limit is said on
+/// stderr BEFORE its frame goes: the host application's scan supervisor kills the group as soon as it has judged the
+/// frame a fault, and its stderr capture must already hold why.
 fn send_scanned(
     w: &wire::Writer,
     report: &summoner_probe::Report,

@@ -16,18 +16,19 @@
 //! never touches the cell, holds no lock, and passes through. The
 //! main thread locks the cell only in [`OUT`], with `try_lock` too, retrying in its own 1 ms polls: the one wait
 //! that remains is the main thread's, after a forced take, on a chain thread still inside a block it began in
-//! [`HOSTED`] (that block is late anyway; the host application's D5 handles it); no chain thread ever waits.
-//! A chain thread's `try_lock` that misses in [`HOSTED`] (it read `HOSTED`, then
+//! [`HOSTED`] (that block is late anyway; the host application's missed-deadline handling covers it); no chain thread
+//! ever waits. A chain thread's `try_lock` that misses in [`HOSTED`] (it read `HOSTED`, then
 //! the main thread forced the take and took the cell) re-reads the word once and goes on from it: [`OUT`] is the
 //! forced take's fade-in from silence, never a fault. `runecraft_rt::rt_lock`'s AcqRel / Acquire acquisition is what makes
 //! that re-read see the force.
 //!
 //! **The output** of a slot is `x = y·(1 − g(xf)) + b·g(xf)·g(bin)`: `y` the plugin's output, `b` the bypass signal
 //! (an effect's input delayed by its last applied latency L, through [`DelayLine`]; silence for an instrument), `g`
-//! the raised cosine over F = 144 frames ([`FADE`], `declickFrames`), `xf` the crossfade position (0 = all y, F = all
+//! the raised cosine over F = 144 frames ([`FADE`]), `xf` the crossfade position (0 = all y, F = all
 //! b) and `bin` the bypass signal's own fade-in (F, except after a forced take, where it fades in from silence).
-//! Where `xf` is 0 the output is `y` exactly, and where both are F it is `b` exactly (the alignment T17 asserts bit
-//! for bit). Every sample-to-sample step obeys |Δx| ≤ max(|Δy|, |Δb|) + (π / (2F))·max|y − b| (D22's bound).
+//! Where `xf` is 0 the output is `y` exactly, and where both are F it is `b` exactly (the alignment the tests assert
+//! bit for bit). Every sample-to-sample step obeys |Δx| ≤ max(|Δy|, |Δb|) + (π / (2F))·max|y − b| (the handover's
+//! bound).
 //!
 //! N1 in the child: nothing on the chain thread's path here allocates, locks (it `try_lock`s) or makes a syscall.
 //! [`DelayLine::new`] allocates, at `chain.prepare` (or load), on the main thread.
@@ -77,21 +78,23 @@ pub const FADING: u32 = 2;
 pub const OUT: u32 = 3;
 /// The state word: the cycle is done; the chain thread fades the plugin back in.
 pub const RETURNING: u32 = 4;
-/// F: the fade's length in frames (`declickFrames`, 0003 D2; the same 144 as 0007 D2's ramps).
+/// F: the fade's length in frames (the same 144 as the audio data's ramps).
 pub const FADE: u32 = 144;
 /// The delay line's least capacity C, in frames: C = max(L at prepare, 16,384).
 pub const DELAY_MIN_CAPACITY: usize = 16_384;
 /// The main thread's hostile bound on a take (`Cell::take_blocking`'s `give_up` in the children): past it the take is
 /// given up and the main thread serves its ops again. A chain thread that holds the cell this long is inside a block
-/// that never ends, a wedge: the host application's wedge detector (D7, 2 s + 2 s) downs the chain and attributes the slot.
+/// that never ends, a wedge: the host application's wedge detector (2 s + 2 s) downs the chain and attributes the slot.
 pub const TAKE_GIVE_UP: std::time::Duration = std::time::Duration::from_secs(2);
 /// How long a given-up take is re-attempted (non-blocking, once per main-loop turn) before it is abandoned,
-/// from its announce. 5 s: past D7's worst case for a wedged chain (2 s suspect + 2 s verdict + a 250 ms tick =
-/// 4.25 s; T11's bound 4.5 s), so a block that never ends has had the host application's wedge detector kill the child first; a
-/// child still alive here has a slot that would otherwise stay out of its cell silently, and the host application quarantines it.
+/// from its announce. 5 s: past the wedge detector's worst case for a wedged chain (2 s suspect + 2 s verdict + a
+/// 250 ms tick = 4.25 s; its tested bound 4.5 s), so a block that never ends has had the host application's wedge
+/// detector kill the child first; a child still alive here has a slot that would otherwise stay out of its cell
+/// silently, and the host application quarantines it.
 pub const TAKE_HORIZON: std::time::Duration = std::time::Duration::from_secs(5);
-/// The same horizon for a render set (D9: its wedge suspicion is the offline block budget, 30 s): 33 s, past
-/// 30 s + 2 s + a 250 ms tick, so a legitimately slow offline block is never abandoned before D7 could judge it.
+/// The same horizon for a render set (its wedge suspicion is the offline block budget, 30 s): 33 s, past
+/// 30 s + 2 s + a 250 ms tick, so a legitimately slow offline block is never abandoned before the wedge detector
+/// could judge it.
 pub const TAKE_HORIZON_RENDER: std::time::Duration = std::time::Duration::from_secs(33);
 
 /// The horizon for a chain of this role.
@@ -102,7 +105,7 @@ pub fn take_horizon(render: bool) -> std::time::Duration {
         TAKE_HORIZON
     }
 }
-/// The `restartComponent` flag D22 answers (`Vst::RestartFlags::kLatencyChanged`, `ivsteditcontroller.h`).
+/// The `restartComponent` flag the handover answers (`Vst::RestartFlags::kLatencyChanged`, `ivsteditcontroller.h`).
 pub const K_LATENCY_CHANGED: u32 = 1 << 3;
 
 /// The state word's name (`"?"` for a value that is no state), for logs.
@@ -117,7 +120,7 @@ pub fn state_name(w: u32) -> &'static str {
     }
 }
 
-/// The take's bound (D22 (c)): 2 block budgets (2 × B / rate) when B ≥ 144; (⌈144 / B⌉ + 1) block budgets when
+/// The take's bound: 2 block budgets (2 × B / rate) when B ≥ 144; (⌈144 / B⌉ + 1) block budgets when
 /// B < 144, so a fade is never cut.
 pub fn take_bound(max_frames: u32, rate: f64) -> std::time::Duration {
     let b = max_frames.max(1);
@@ -131,14 +134,14 @@ pub fn take_bound(max_frames: u32, rate: f64) -> std::time::Duration {
 /// So at most these blocks end after the count and land in the next event: the one in flight at the give-back, and
 /// the return fade's (`FADE` = 144 frames from the start of the block that reads `RETURNING`: one block when B ≥ 144,
 /// ⌈144 / B⌉ otherwise). 2 at B ≥ 144. A child never reports MORE than the host application counted. The same window binds every
-/// child that runs the cycle (the test double and the plugin host); a child that runs no cycle reports none
-/// (V2). The host application's own count is exact; this bounds only the child's report of it.
+/// child that runs the cycle (the test double and the plugin host); a child that runs no cycle reports none. The host
+/// application's own count is exact; this bounds only the child's report of it.
 pub const fn child_bypass_lag_blocks(block_frames: u32) -> u32 {
     let b = if block_frames == 0 { 1 } else { block_frames };
     1 + if b >= FADE { 1 } else { FADE.div_ceil(b) }
 }
 
-/// The cycle's budget (D22 step 5): 4 block budgets. A longer cycle is a stall.
+/// The cycle's budget: 4 block budgets. A longer cycle is a stall.
 pub fn cycle_budget(max_frames: u32, rate: f64) -> std::time::Duration {
     std::time::Duration::from_secs_f64(f64::from(4 * max_frames.max(1)) / rate.max(1.0))
 }
@@ -727,10 +730,10 @@ impl ChainSide {
 
     /// A `try_lock` missed in `HOSTED`. Only the main thread holds a cell, and
     /// only in `OUT` (after a forced take this thread did not see: it read `HOSTED` before the force). The miss
-    /// happens-after that hold's acquisition (`rt_lock`'s R1: AcqRel / Acquire), so one re-read of the word sees `OUT`
-    /// or later (`RETURNING`), and the block goes on from it: `OUT` is the won force's fade-in from silence, no fault;
-    /// `RETURNING` resumes the plugin. Once per block: the re-dispatch is not `first`, and a miss there, or a re-read
-    /// that is still `HOSTED` (the protocol rules it out), is a fault as before. One Acquire load; no wait.
+    /// happens-after that hold's acquisition (`rt_lock`'s acquisition: AcqRel / Acquire), so one re-read of the word
+    /// sees `OUT` or later (`RETURNING`), and the block goes on from it: `OUT` is the won force's fade-in from silence,
+    /// no fault; `RETURNING` resumes the plugin. Once per block: the re-dispatch is not `first`, and a miss there, or a
+    /// re-read that is still `HOSTED` (the protocol rules it out), is a fault as before. One Acquire load; no wait.
     fn missed<'a, P>(&mut self, cell: &'a Cell<P>, w: u32, first: bool) -> Begin<'a, P> {
         #[cfg(loom)]
         let first = first && cell.mutant != HandoverMutant::NoReread;
@@ -779,10 +782,10 @@ impl ChainSide {
     }
 }
 
-/// The bypass signal of a hosted effect slot (D22): its input, delayed by its last applied latency L. Preallocated
-/// (`channels × (C + maxFrames)` f32, C = max(L at prepare, 16,384)); written on **every** block before the plugin
-/// is called, so it is primed whenever a bypass begins. A latency above C uses a delay of C (counted,
-/// `bypassMisaligned`); the line is resized only at the next prepare, never while in use.
+/// The bypass signal of a hosted effect slot (the latency-change handover): its input, delayed by its last applied
+/// latency L. Preallocated (`channels × (C + maxFrames)` f32, C = max(L at prepare, 16,384)); written on **every**
+/// block before the plugin is called, so it is primed whenever a bypass begins. A latency above C uses a delay of C
+/// (counted, `bypassMisaligned`); the line is resized only at the next prepare, never while in use.
 #[derive(Clone, Debug)]
 pub struct DelayLine {
     buf: Vec<f32>,

@@ -44,7 +44,7 @@ pub struct Shared {
     pub w: Writer,
     page: Mutex<Option<Arc<ChildPage>>>,
     chains: Mutex<BTreeMap<u64, ChainArc>>,
-    /// `state.set`s of the both-absent vst3 blob, the counted no-op (the host application's `stateEmptySets`).
+    /// `state.set`s of the both-absent vst3 blob, the counted no-op (the host application counts them).
     pub empty_sets: AtomicU64,
     /// The editor windows: opened and closed so far, and on screen at the last close (the dylib's
     /// count), for `--counters`.

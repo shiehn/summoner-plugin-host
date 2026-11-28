@@ -1,7 +1,7 @@
 //! The plugin editor windows: `libsummoner_editor.dylib` (editor/editor.mm, AppKit),
 //! loaded with `dlopen` by its absolute build path on first use, never linked. The child's binary therefore links no
-//! AppKit, CoreGraphics or libobjc (release_build.rs's guard), and the scan mode, which never calls [`Editor::load`],
-//! never reaches the WindowServer.
+//! AppKit, CoreGraphics or libobjc (the release-build link guard), and the scan mode, which never calls
+//! [`Editor::load`], never reaches the WindowServer.
 //!
 //! Main thread only: [`Editor`] is neither `Send` nor `Sync`, and every call into the dylib runs on the thread that
 //! loaded it, the child's main (message) thread, where AppKit must live.

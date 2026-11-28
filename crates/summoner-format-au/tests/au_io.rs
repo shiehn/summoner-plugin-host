@@ -77,7 +77,7 @@ fn io_and_render(
         io.inputs,
         "{component}: the wired input lines are the prepared inputs"
     );
-    // The bridge's carrier names the retry (`Plugin::notices`, the slot's `slotNotices` after a prepare).
+    // The bridge's carrier names the retry (`Plugin::notices`, the slot's notices in `chain.prepared` after a prepare).
     let want: Vec<String> = if p.inputs_refused() {
         vec!["inputsRefused".into()]
     } else {

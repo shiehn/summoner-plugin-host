@@ -258,6 +258,8 @@ pub field summoner_rt::render::Fault::Skipped::status: u32
 pub field summoner_rt::render::Fault::Threw::seq: u64
 pub field summoner_rt::render::Fault::Threw::status: u32
 pub field summoner_rt::render::Fault::TimedOut::seq: u64
+pub field summoner_rt::render::Fault::WaitFailed::errno: i32
+pub field summoner_rt::render::Fault::WaitFailed::seq: u64
 pub field summoner_rt::render::RenderBlock::frames: usize
 pub field summoner_rt::render::RenderBlock::input: [&'a [f32]; 2]
 pub field summoner_rt::render::RenderBlock::midi: &'a [(u32, summoner_rt::midi::Event3)]
@@ -274,6 +276,8 @@ pub field summoner_rt::render::RenderError::Threw::seq: u64
 pub field summoner_rt::render::RenderError::Threw::status: u32
 pub field summoner_rt::render::RenderError::TimedOut::budget: core::time::Duration
 pub field summoner_rt::render::RenderError::TimedOut::seq: u64
+pub field summoner_rt::render::RenderError::WaitFailed::errno: i32
+pub field summoner_rt::render::RenderError::WaitFailed::seq: u64
 pub field summoner_rt::render::RenderMemory::free_physical: u64
 pub field summoner_rt::render::RenderMemory::live_chains: u32
 pub field summoner_rt::render::RenderMemory::live_child_rss: u64
@@ -554,6 +558,7 @@ pub variant summoner_rt::render::Fault::Spent
 pub variant summoner_rt::render::Fault::Split
 pub variant summoner_rt::render::Fault::Threw {}
 pub variant summoner_rt::render::Fault::TimedOut {}
+pub variant summoner_rt::render::Fault::WaitFailed {}
 pub variant summoner_rt::render::RenderError::Cancelled {}
 pub variant summoner_rt::render::RenderError::NotARenderSet {}
 pub variant summoner_rt::render::RenderError::Refused(alloc::string::String)
@@ -561,3 +566,4 @@ pub variant summoner_rt::render::RenderError::Skipped {}
 pub variant summoner_rt::render::RenderError::Spent
 pub variant summoner_rt::render::RenderError::Threw {}
 pub variant summoner_rt::render::RenderError::TimedOut {}
+pub variant summoner_rt::render::RenderError::WaitFailed {}

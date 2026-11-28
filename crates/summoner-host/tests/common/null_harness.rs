@@ -1,5 +1,5 @@
 //! The null harness: a scenario rendered by one child through the supervisor and the tests' realtime driver
-//! (`common::drive`) in lockstep, normalised to a trace two runs can be compared by (`vst3_self_null.rs` runs every
+//! (`common::drive`) in lockstep, normalised to a trace two runs can be compared by (the self-null test runs every
 //! scenario twice through this child). Only the shared half lives here: `settle`, `run`, `Scenario`, `fx` and
 //! `note`, which the other tests use too.
 #![allow(dead_code)]
@@ -49,7 +49,7 @@ pub struct Scenario {
     /// is no loop, 120 bpm, 4/4, so every scenario without one renders as before.
     pub clock: ClockDesc,
     /// (block, op) on clock A, applied before that block (the driver's [`Drive::clock_run`] /
-    /// [`Drive::clock_reposition`], as the host application's `Control::clock_run` / `clock_reposition`). Clock A runs
+    /// [`Drive::clock_reposition`], as the host application's clock run and reposition commands). Clock A runs
     /// from frame 0.
     pub clock_ops: Vec<(usize, ClockOp)>,
     /// Wait this long after the chain is ready, before the first block, so what a plugin raised during
@@ -80,7 +80,7 @@ pub struct Scenario {
     /// (`ChainSpec::depth`); 0 is the spec's own (1), as before.
     pub depth: u8,
     /// (block, op) on the chain, before that block's clock ops and changes, in order (the host application's
-    /// park / unpark / hub switch / depth change, as its e2e_audio and e2e_recovery drive them); empty: none.
+    /// park / unpark / hub switch / depth change, as its audio and recovery tests drive them); empty: none.
     pub chain_ops: Vec<(usize, ChainOp)>,
     /// The chain is a render set (`role: render`), driven as the host application's render worker drives one: after
     /// each block the harness wakes the chain's `seq`, then settles on its `ack`. false: a live chain, as before.
@@ -92,8 +92,8 @@ pub struct Scenario {
 pub enum ChainOp {
     /// Take the bridge node out of the graph (the engine stops publishing; its Retire entry fades out).
     Detach,
-    /// A recompile (the Retire entry's release, e2e_audio's `apply(|_| {})`), then `chain.park`, waiting for
-    /// `chain.parked`.
+    /// A recompile (the Retire entry's release, an empty model edit in the host application's audio tests), then
+    /// `chain.park`, waiting for `chain.parked`.
     Park,
     /// `chain.unpark {group}`, waiting for `chain.unparked`; the link then carries the new group (the hub switch).
     Unpark(u8),
@@ -106,7 +106,7 @@ pub enum ChainOp {
 /// One command to clock A ([`Scenario::clock_ops`]).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ClockOp {
-    /// `deck.play` (true) / `deck.stop` (false).
+    /// The transport plays (true) or stops (false).
     Run(bool),
     /// `transport.setPosition`, in frames.
     Reposition(u64),
@@ -289,7 +289,8 @@ pub fn run_judged(child: &Path, s: &Scenario, args: &[&str], judge: impl Fn(&Rig
                     ChainOp::Park => {
                         rig.send(Command::Park { key: KEY });
                         rig.wait(|e| matches!(e, Event::Parked { key: KEY }));
-                        // As e2e_audio: the parked thread has moved to its own seq before the next block.
+                        // As in the host application's audio tests: the parked thread has moved to its own seq before
+                        // the next block.
                         std::thread::sleep(Duration::from_millis(20));
                     }
                     ChainOp::Unpark(group) => {
@@ -410,8 +411,8 @@ pub fn run_judged(child: &Path, s: &Scenario, args: &[&str], judge: impl Fn(&Rig
                     }
                 )
             }) {
-                // The null compares `{id, name}` only: the 3.7 fields (`pluginId`, `automatable`, `default`, `value`,
-                // `stepCount`, `label`, `order`) are compared in tests/param_set.rs.
+                // The null compares `{id, name}` only: the 3.7 fields (the plugin id, `automatable`, `default`,
+                // `value`, `stepCount`, `label`, `order`) are compared in tests/param_set.rs.
                 let params: Vec<(u32, String)> =
                     params.into_iter().map(|p| (p.id, p.name)).collect();
                 trace.events.push(format!("params {ok} {total} {params:?}"));

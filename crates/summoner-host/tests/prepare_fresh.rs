@@ -32,10 +32,13 @@ fn render_block(eng: &mut Drive, link: &summoner_rt::rt::ChainLink) -> Vec<f32> 
             r.ack().load(Ordering::Acquire),
             Some(Instant::now() + Duration::from_secs(2)),
         );
-        assert!(
-            w != Waited::TimedOut && Instant::now() < until,
-            "the render set never acked"
-        );
+        match w {
+            Waited::Woken => {}
+            Waited::TimedOut => panic!("the render set never acked"),
+            Waited::Failed(e) => panic!("the render set's ack wait failed: {e}"),
+            _ => panic!("an unknown wait outcome: {w:?}"),
+        }
+        assert!(Instant::now() < until, "the render set never acked");
     }
     out
 }

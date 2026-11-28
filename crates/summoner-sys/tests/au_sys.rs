@@ -97,7 +97,7 @@ fn scenario(name: &str) {
                 );
             }
             let state = inst.class_info().unwrap();
-            let core = au::plist_data(&state, "summoner-lab-state").expect("the core's bytes");
+            let core = au::plist_data(&state, "summoner-lab-state").expect("the DSP core's bytes");
             assert_eq!(&core[..4], b"SASL");
             assert!(
                 inst.set_class_info(b"not a plist").is_err(),
@@ -333,7 +333,11 @@ fn scenario(name: &str) {
                 .unwrap();
             let before: Vec<u32> = inst.params().iter().map(|p| p.id).collect();
             let n = before.len() as u32;
-            assert_eq!(before, (0..n).collect::<Vec<_>>(), "the core's ids first");
+            assert_eq!(
+                before,
+                (0..n).collect::<Vec<_>>(),
+                "the DSP core's ids first"
+            );
             let mut p = prepared(&mut inst);
             for k in 0..7 {
                 let (r, _, outs) = render(&mut p, 64);
@@ -500,8 +504,8 @@ fn run(name: &str) {
 }
 
 /// Is `CFPropertyListWrite`'s binary plist of the same state the same bytes in two processes? Measured, and the case
-/// recorded (the `Q3: …` line). If not, the fallback must hold: the parsed dictionaries are equal (CFEqual) and the
-/// `summoner-lab-state` bytes are identical, so state comparisons use those instead of the raw plist.
+/// recorded (the `plist bytes: …` line). If not, the fallback must hold: the parsed dictionaries are equal (CFEqual)
+/// and the `summoner-lab-state` bytes are identical, so state comparisons use those instead of the raw plist.
 #[test]
 fn q3_the_class_info_bytes_across_two_processes() {
     if lab_plugins::absent("q3_the_class_info_bytes_across_two_processes") {
@@ -526,12 +530,12 @@ fn q3_the_class_info_bytes_across_two_processes() {
     let (a, b) = (hex("state-bytes"), hex("state-bytes"));
     if a == b {
         println!(
-            "Q3: the binary plist bytes are IDENTICAL across two processes ({} bytes)",
+            "plist bytes: the binary plist bytes are IDENTICAL across two processes ({} bytes)",
             a.len()
         );
     } else {
         println!(
-            "Q3: the bytes DIFFER across processes ({} vs {} bytes): the fallback applies",
+            "plist bytes: the bytes DIFFER across processes ({} vs {} bytes): the fallback applies",
             a.len(),
             b.len()
         );

@@ -691,7 +691,7 @@ fn try_parse_v3(text: &str) -> Result<Vec<Rec>, String> {
     Ok(out)
 }
 
-/// Every record of a v2 log, or why it is not one (FAIL-CLOSED, as the host application's lab_watch is): the FIRST
+/// Every record of a v2 log, or why it is not one (FAIL-CLOSED, as the host application's lab watcher is): the FIRST
 /// line must be a version line; any later `fswatch<TAB>…` line must be one too (another process appending: a v3 or a
 /// malformed header is refused, never skipped); every record is a known call with exactly its field count, known and
 /// unique detail keys, `trunc` only `=1`, an open's hex flags and an fopen's mode present, and only the escapes the
@@ -1060,7 +1060,7 @@ fn on_stop_list(path: &str, write: bool, exempt: bool) -> Option<&'static str> {
     None
 }
 
-/// Every STOP in `recs`, with its reason (the spec's consumer rules; the host application's lab_watch implements the
+/// Every STOP in `recs`, with its reason (the spec's consumer rules; the host application's lab watcher implements the
 /// same). Both versions: (a) a STOP-list attempt, whatever its result (case-folded, with and without its `..`); a write
 /// through `..`; a symlink whose TARGET text names a STOP-list path (judged as a write: a link into the list is a
 /// way to write there). v3 also: a PRE marked trunc=1; a cut chdir / fchdir cwd= (it places nothing after it); a
@@ -1186,7 +1186,7 @@ mod tests {
         parse("stat /Library/Audio/Plug-Ins/VST3\n");
     }
 
-    /// The host application's lab_watch list: each form the recorder never writes is REFUSED, with the rule
+    /// The host application's lab watcher's list: each form the recorder never writes is REFUSED, with the rule
     /// it broke named. One line each, inside an otherwise good log (so it is that line that is refused).
     #[test]
     fn everything_the_recorder_never_writes_is_refused() {

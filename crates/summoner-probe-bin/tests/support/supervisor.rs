@@ -47,7 +47,7 @@ pub struct Outcome {
     pub lookups: String,
 }
 
-/// One `plugin-scan.json` entry.
+/// One pedal file entry.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Entry {
@@ -61,7 +61,7 @@ pub struct Supervisor {
     /// The probe (or, for the leftovers test, a stand-in), and the arguments before the bundle.
     pub program: PathBuf,
     pub pre_args: Vec<String>,
-    /// The test's scratch HOME (plugin-scan.json lives here, and nowhere else).
+    /// The test's scratch HOME (the pedal file lives here, and nowhere else).
     pub home: PathBuf,
     pub budget: Duration,
     /// The probe's `--step-ms` (None: the stand-in takes no such flag).
@@ -412,7 +412,7 @@ fn child_conversation(
         &serde_json::json!({"childId": "scan", "fds": 0}),
     );
     send(&mut w, kind::SCAN, 2, &serde_json::to_value(scan).unwrap());
-    let mut dec = codec::Decoder::new(Direction::ToCore);
+    let mut dec = codec::Decoder::new(Direction::ToHost);
     let mut r = sock;
     // A backstop beside EOF: once the supervisor has seen the leader exit (and dealt with its group), stop reading.
     let _ = r.set_read_timeout(Some(Duration::from_millis(200)));
@@ -440,7 +440,7 @@ fn child_conversation(
             return Vec::new(); // a frame the host application would refuse: no line (a crash, never parsed loosely)
         }
         for f in frames {
-            if codec::check_to_core(&f).is_err() {
+            if codec::check_to_host(&f).is_err() {
                 return Vec::new();
             }
             if f.header.kind == kind::SCANNED && f.header.id == 0 {

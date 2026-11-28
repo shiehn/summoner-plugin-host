@@ -10,7 +10,7 @@ publish.workspace = true
 runecraft-rt.workspace = true
 summoner-plugin.workspace = true
 summoner-proto.workspace = true
-# The prefault helpers (`runecraft_rt::os::prefaulted`, `prefault_spare`): runecraft-rt's.
+# The prefault helpers (`runecraft_rt::os::prefaulted` and its spare-page helper): runecraft-rt's.
 summoner-proc.workspace = true
 summoner-sys = { workspace = true, features = ["vst3"] }
 

@@ -7,7 +7,7 @@
 //!   so it waits for the next loop boundary or transport stop;
 //! - at most one change per chain per 60 s.
 //!
-//! `processHist` only steers this controller: a lying child can make its own chain deeper, nothing else (D2).
+//! `processHist` only steers this controller: a lying child can make its own chain deeper, nothing else.
 #![allow(clippy::disallowed_methods, clippy::disallowed_types)]
 
 use std::collections::VecDeque;
@@ -15,7 +15,7 @@ use std::time::Duration;
 use summoner_proto::layout::HIST_BUCKETS;
 
 #[derive(Clone, Copy, Debug)]
-/// The depth thresholds (D4's accepted values by default).
+/// The depth thresholds (the accepted defaults).
 #[non_exhaustive]
 pub struct DepthPolicy {
     /// Raise when more than `share` of the blocks are at or above this bucket (12: 60 % of the period).
@@ -181,7 +181,7 @@ impl DepthController {
         None
     }
 
-    /// A loop boundary or a transport stop (C10): a pending lowering lands now.
+    /// A loop boundary or a transport stop: a pending lowering lands now.
     pub fn at_boundary(&mut self, now: Duration) -> Option<DepthChange> {
         if self.depth == 2 && self.pending_lower && self.may_change(now) {
             self.change(now, 1);

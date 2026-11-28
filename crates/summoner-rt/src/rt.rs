@@ -1,12 +1,11 @@
 //! The callback's side of a bridged chain: collect, push into the primed FIFO, publish, pop;
 //! the miss and the breaker; the MIDI carry; the parameter changes; the ring of a group. N1: no allocation, lock or
 //! syscall here except [`ring_group`]'s one `os_sync_wake_by_address_all` (the crate's clippy list binds this module;
-//! the graph's T1 / N1 tests run it inside the allocator guard and the interposer).
+//! the graph's N1 tests run it inside the allocator guard and the interposer).
 //!
-//! The node runs at its schedule position, once or twice per callback block (twice across a mid-block switch, ADR
-//! 0003 D6): the first visit decides the block (collect, breaker), every visit stages its share of the input and pops
-//! its share of the output, and the visit that ends the block publishes. So a mid-block switch never splits the
-//! exchange.
+//! The node runs at its schedule position, once or twice per callback block (twice across a mid-block switch): the
+//! first visit decides the block (collect, breaker), every visit stages its share of the input and pops its share of
+//! the output, and the visit that ends the block publishes. So a mid-block switch never splits the exchange.
 
 use crate::midi::{Event3, MidiCarry, Offered};
 use crate::region::{ChildPage, Region};
@@ -23,7 +22,8 @@ use std::sync::atomic::AtomicU64;
 #[derive(Debug, Default)]
 #[non_exhaustive]
 pub struct AudioCounters {
-    /// `bridgeLate`: blocks whose ack was not there at collect (a miss, D5), and blocks waited out while the breaker is open.
+    /// `bridgeLate`: blocks whose ack was not there at collect (a miss), and blocks waited out while the breaker is
+    /// open.
     pub late: AtomicU64,
     /// `bridgeSilenced`: blocks played as a silence ramp (a miss with no dry signal, or a non-finite block).
     pub silenced: AtomicU64,
@@ -44,10 +44,10 @@ pub struct AudioCounters {
     /// `bridgeParamDeferred`: parameter changes deferred to a later block (the plane was full).
     pub param_deferred: AtomicU64,
     /// `bridgeSlotBypassed` (audio telemetry offset 1024): chain-blocks collected with `R_STATUS` bit 3 (a hosted
-    /// slot passed its audio through during a reactivation). Not a miss (D5): the block plays.
+    /// slot passed its audio through during a reactivation). Not a miss: the block plays.
     pub slot_bypassed: AtomicU64,
-    /// Diagnostics (not in 0004): ring syscalls made, and the ring time of the last ring and the worst one, in host
-    /// ticks (`runecraft_ipc::bridge::ticks_to_ns` converts; the callback never converts).
+    /// Diagnostics (not in the telemetry layout): ring syscalls made, and the ring time of the last ring and the worst
+    /// one, in host ticks (`runecraft_ipc::bridge::ticks_to_ns` converts; the callback never converts).
     pub rings: AtomicU64,
     /// Ring time summed over every ring, in host ticks.
     pub ring_ticks_total: AtomicU64,
@@ -56,9 +56,9 @@ pub struct AudioCounters {
     /// The worst ring's time, in host ticks.
     pub ring_ticks_max: AtomicU64,
     /// Diagnostic, not ABI (not in [`AudioCounters::named`], not in
-    /// the 0004 telemetry layout): chasing edges skipped past [`MAX_CHASED_EDGES`] in one node visit (a Bridge's piece,
+    /// the telemetry layout): chasing edges skipped past [`MAX_CHASED_EDGES`] in one node visit (a Bridge's piece,
     /// a Sampler's wrap), cumulative. Those edges still released; they did not chase. Read on control
-    /// (`chaseSkipped` beside the `bridge` counters of the play status).
+    /// (beside the bridge counters of the host application's play status).
     pub chase_skipped: AtomicU64,
 }
 
@@ -96,7 +96,7 @@ impl AudioCounters {
     }
 }
 
-/// What a Bridge node refers to: immutable, shared as an `Arc` from the Schedule (D4, re-read 0003 (d)). Control
+/// What a Bridge node refers to: immutable, shared as an `Arc` from the Schedule. Control
 /// drops it only after the box that held it has retired.
 #[derive(Debug)]
 #[non_exhaustive]
@@ -105,15 +105,15 @@ pub struct ChainLink {
     pub region: Arc<Region>,
     /// The child page (the hub words, the status record).
     pub page: Arc<ChildPage>,
-    /// The ring group (D3), as `chain.load` / `chain.unpark` gave it to the child.
+    /// The ring group, as `chain.load` / `chain.unpark` gave it to the child.
     pub group: u8,
-    /// Pipeline depth d ∈ {1, 2} (D4).
+    /// Pipeline depth d ∈ {1, 2}.
     pub depth: u8,
     /// The master monitor chain: dry on a miss.
     pub monitor: bool,
     /// Σ of the chain's plugin latencies (`chain.loaded`, `latency.changed`).
     pub plugin_latency: u32,
-    /// The plugin parameter id (`slot << 24 | index`, D10) of each model parameter of the node.
+    /// The plugin parameter id (`slot << 24 | index`) of each model parameter of the node.
     pub param_ids: Arc<[u32]>,
     /// A render set's job. `Some` only on a link a render job made ([`ChainLink::for_render`]);
     /// the graph's offline render then exchanges the node's blocks synchronously through it
@@ -146,7 +146,7 @@ impl ChainLink {
         }
     }
 
-    /// The same region, page and parameters, with a render job attached (D9: the render set's own link, made by the
+    /// The same region, page and parameters, with a render job attached (the render set's own link, made by the
     /// job on control).
     #[cfg(not(loom))]
     pub fn for_render(&self, job: Arc<crate::render::RenderJob>) -> ChainLink {
@@ -162,7 +162,7 @@ impl ChainLink {
         }
     }
 
-    /// The latency reported to PDC (D4): plugin latency + d × B. A render set's (D9, synchronous): the plugin latency
+    /// The latency reported to PDC: plugin latency + d × B. A render set's (synchronous): the plugin latency
     /// alone.
     pub fn pdc_latency(&self, max_block: usize) -> u32 {
         #[cfg(not(loom))]
@@ -191,22 +191,22 @@ pub struct Visit {
     pub block_pos: u64,
     /// The clock's loop length (0 = none), for the event lookup, the looping flag and the loop points.
     pub loop_frames: u64,
-    /// Where the clock's wrap lands (`ClockDesc::loop_start`; 0 without a loop
+    /// Where the clock's wrap lands (the clock description's loop start; 0 without a loop
     /// range): the events after a wrap, the request line's loop start.
     pub loop_start: u64,
     /// The device's sample rate (the request line's transport).
     pub sample_rate: f64,
     /// The clock's tempo and time signature (constant per schedule: the graph has no tempo map yet).
     pub tempo: Tempo,
-    /// The clock runs (B11: the request line's bit 0 *playing*; a stopped clock sends no events).
+    /// The clock runs (the request line's bit 0 *playing*; a stopped clock sends no events).
     pub playing: bool,
     /// Release what the chain holds, at this visit's first frame: a stop edge, a reposition of a running clock, or a
-    /// change of the node's clock tag (LOOP-B B3, B6, B11). See [`HeldNotes::release`] (CC 123 only while not
+    /// change of the node's clock tag. See [`HeldNotes::release`] (CC 123 only while not
     /// `playing`).
     pub release: bool,
 }
 
-/// *(rule 6; C2)* The most chasing edges
+/// The most chasing edges
 /// per node visit. A natural wrap past it in the same visit (a range shorter than the block: `setLoopRange` accepts 1
 /// frame) still releases (and the Sampler's loop-end release) but does not chase; the skipped chase is counted
 /// on the node's state ([`ChainState::chase_skipped`]).
@@ -262,7 +262,7 @@ impl Chase<'_> {
     };
 }
 
-/// *(C2; T8)* The chase work of the node's last visit: chasing edges, chased note-ons offered, edges skipped
+/// The chase work of the node's last visit: chasing edges, chased note-ons offered, edges skipped
 /// past [`MAX_CHASED_EDGES`], and the release walks' steps ([`HeldNotes::release`]).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]
@@ -449,7 +449,7 @@ enum Mode {
 }
 
 /// The raised-cosine weight of position `i` of `n` (0 at i = 0, 1 at i = n): the graph crate's `raised_cosine`, the shape
-/// of every 0003 declick. Its first and second differences are bounded (π/2n, π²/2n²), which keeps 0003 T3's
+/// of every declick of the graph. Its first and second differences are bounded (π/2n, π²/2n²), which keeps the graph's
 /// second-difference bound across a fade.
 #[inline]
 fn raised_cosine(i: u32, n: u32) -> f32 {
@@ -459,9 +459,9 @@ fn raised_cosine(i: u32, n: u32) -> f32 {
     0.5 - 0.5 * (std::f32::consts::PI * i as f32 / n as f32).cos()
 }
 
-/// The output envelope, by FIFO read position `p` (D4, D5): a fade-out over `out_len` frames ending at `cut`, then
+/// The output envelope, by FIFO read position `p`: a fade-out over `out_len` frames ending at `cut`, then
 /// `gap` frames of silence (the FIFO holds zeros there), then a fade-in over `in_len` frames. A breaker close is
-/// `cut` = now, `out_len` = 0, `gap` = d × B (the primed FIFO); a depth change (D4) has all three.
+/// `cut` = now, `out_len` = 0, `gap` = d × B (the primed FIFO); a depth change has all three.
 #[derive(Clone, Copy, Debug)]
 struct Env {
     on: bool,
@@ -528,8 +528,8 @@ pub enum Mutant {
     PublishIntoChildSlot,
 }
 
-/// The node's state in the 0003 pool under (chain uuid, `bridge`): breaker, FIFO, pending seqs, depth, carried MIDI.
-/// Built on control ([`ChainState::new`] allocates); the callback only moves data through it.
+/// The node's state in the graph's state pool under (chain uuid, `bridge`): breaker, FIFO, pending seqs, depth, carried
+/// MIDI. Built on control ([`ChainState::new`] allocates); the callback only moves data through it.
 #[derive(Clone, Debug)]
 pub struct ChainState {
     /// The region this state was built for (`Region::instance_id`): a new region is an incompatible change.
@@ -570,16 +570,16 @@ pub struct ChainState {
     ranged_loop: Option<(u64, u64)>,
     /// Reached the exclusive end at the last piece's end; release before the next running piece.
     wrap_pending: bool,
-    /// *(C2)* Natural-wrap chases skipped past [`MAX_CHASED_EDGES`], cumulative (read on control).
+    /// Natural-wrap chases skipped past [`MAX_CHASED_EDGES`], cumulative (read on control).
     chase_skipped: u64,
-    /// *(T8)* The last visit's chase work.
+    /// The last visit's chase work.
     chase_stats: ChaseStats,
     #[cfg(loom)]
     mutant: Mutant,
 }
 
 impl ChainState {
-    /// Control side: the fresh state of a node (D2 install) for the region `instance`, at depth `depth`, with
+    /// Control side: the fresh state of a node (at install) for the region `instance`, at depth `depth`, with
     /// `n_params` model parameters. `max_block` = B, the device's max block.
     #[allow(clippy::disallowed_methods)] // control side: allocates the FIFO
     pub fn new(
@@ -590,7 +590,7 @@ impl ChainState {
         declick: u32,
     ) -> ChainState {
         let depth = depth.clamp(1, 2);
-        // Room for depth 2 whatever the start depth (a depth change is in place, D4): 2 × B primed or in flight, one
+        // Room for depth 2 whatever the start depth (a depth change is in place): 2 × B primed or in flight, one
         // collected block, and one block of slack.
         let cap = 4 * max_block.max(1);
         // No page faults on the realtime path: the callback writes the FIFO first; touch its pages here, on control.
@@ -637,46 +637,46 @@ impl ChainState {
         runecraft_rt::os::faults_storing(&mut self.fifo, 0.0)
     }
 
-    /// The clock tag of a state that has not run yet (LOOP-B B3: it records its first tag and releases nothing).
+    /// The clock tag of a state that has not run yet (it records its first tag and releases nothing).
     pub const FRESH_TAG: u8 = u8::MAX;
 
-    /// LOOP-B B3: the tag the node last ran on ([`Self::FRESH_TAG`] before its first visit).
+    /// The tag the node last ran on ([`Self::FRESH_TAG`] before its first visit).
     #[inline]
     pub fn clock_tag(&self) -> u8 {
         self.clock_tag
     }
 
-    /// The notes the chain holds (LOOP-B B11: what the next release sends a note-off for).
+    /// The notes the chain holds (what the next release sends a note-off for).
     #[inline]
     pub fn held(&self) -> &HeldNotes {
         &self.held
     }
 
-    /// *(C2)* The natural-wrap chases skipped past [`MAX_CHASED_EDGES`] since the state was made.
+    /// The natural-wrap chases skipped past [`MAX_CHASED_EDGES`] since the state was made.
     #[inline]
     pub fn chase_skipped(&self) -> u64 {
         self.chase_skipped
     }
 
-    /// *(T8)* The last visit's chase work.
+    /// The last visit's chase work.
     #[inline]
     pub fn chase_stats(&self) -> ChaseStats {
         self.chase_stats
     }
 
-    /// LOOP-B B3: record the tag the node runs on.
+    /// Record the tag the node runs on.
     #[inline]
     pub fn set_clock_tag(&mut self, tag: u8) {
         self.clock_tag = tag;
     }
 
-    /// The loom model's mutation (T3).
+    /// The loom model's mutation.
     #[cfg(loom)]
     pub fn set_mutant(&mut self, m: Mutant) {
         self.mutant = m;
     }
 
-    /// The `seq` publish edge: Release (D2).
+    /// The `seq` publish edge: Release.
     #[inline(always)]
     fn publish_order(&self) -> Ordering {
         #[cfg(loom)]
@@ -686,7 +686,7 @@ impl ChainState {
         Ordering::Release
     }
 
-    /// The collect edge: `ack` with Acquire (D2).
+    /// The collect edge: `ack` with Acquire.
     #[inline(always)]
     fn collect_order(&self) -> Ordering {
         #[cfg(loom)]
@@ -696,7 +696,7 @@ impl ChainState {
         Ordering::Acquire
     }
 
-    /// The pipeline depth d (D4).
+    /// The pipeline depth d.
     pub fn depth(&self) -> u8 {
         self.depth
     }
@@ -723,9 +723,9 @@ impl ChainState {
 
     /// The chain's node stops running because its part is skipped (gated and held below the
     /// floor for the tail window). From here it neither publishes nor collects, so `seq` stops where it is and, once
-    /// the child has acked what is in flight, `seq == ack`: 0005 D7's wedge detector does not suspect it, and nothing
-    /// decides a miss. The state is put on 0005 D5's **closing** path, with no breaker: the first visit after the part
-    /// runs again (re-entry) discards the stale in-flight output, re-primes the FIFO, sets the request's
+    /// the child has acked what is in flight, `seq == ack`: the supervisor's wedge detector does not suspect it, and
+    /// nothing decides a miss. The state is put on the breaker's **closing** path, with no breaker: the first visit
+    /// after the part runs again (re-entry) discards the stale in-flight output, re-primes the FIFO, sets the request's
     /// discontinuity and fades in over declickFrames, counting nothing (a re-prime, not a miss). A fresh state is
     /// left as it is (its first visit takes over the region the same way). No allocation (N1).
     #[inline]
@@ -748,7 +748,7 @@ impl ChainState {
         self.ramp_pos = 0;
     }
 
-    /// Whether the state waits on 0005 D5's closing path (a suspended chain, or an open breaker; tests).
+    /// Whether the state waits on the breaker's closing path (a suspended chain, or an open breaker; tests).
     pub fn closing(&self) -> bool {
         matches!(self.mode, Mode::Wait { .. })
     }
@@ -773,8 +773,8 @@ impl ChainState {
         };
     }
 
-    /// D4: block `seq` is the host application's again when `ack >= seq` (Acquire: the child's Release of `ack` orders its output
-    /// plane and its echo before this) and its slot echoes `seq`.
+    /// Block `seq` is the host application's again when `ack >= seq` (Acquire: the child's Release of `ack` orders its
+    /// output plane and its echo before this) and its slot echoes `seq`.
     #[inline]
     fn collectable(&self, r: &Region, seq: u64) -> bool {
         r.ack().load(self.collect_order()) >= seq
@@ -803,7 +803,7 @@ impl ChainState {
             }
         }
         if !finite {
-            // A NaN or Inf never reaches a Motion or Ducker state (D2): the block is silence.
+            // A NaN or Inf never reaches a downstream node's state: the block is silence.
             for c in 0..2 {
                 for i in 0..n {
                     self.fifo[c * self.cap + ((w0 + i as u64) % self.cap as u64) as usize] = 0.0;
@@ -812,8 +812,9 @@ impl ChainState {
             bump(&counters.non_finite, 1);
             bump(&counters.silenced, 1);
         }
-        // D22: one Relaxed load after the ack's Acquire. A bypassed block is not a miss: it plays, counted.
-        // `--cfg mutant_bypassed_uncounted` (never in a normal build) drops the count; e2e_latency's T17 fails.
+        // One Relaxed load after the ack's Acquire. A bypassed block is not a miss: it plays, counted.
+        // `--cfg mutant_bypassed_uncounted` (never in a normal build) drops the count; the host application's latency
+        // tests fail.
         if slot.u32(R_STATUS).load(Ordering::Relaxed) & ST_BYPASSED != 0
             && !cfg!(mutant_bypassed_uncounted)
         {
@@ -823,8 +824,8 @@ impl ChainState {
         true
     }
 
-    /// The first visit of a block: the D4 / D5 decision. Returns whether this block publishes. `want` is the link's
-    /// depth (a D4 depth change keeps this state: the change happens here, in place).
+    /// The first visit of a block: the depth and miss decision. Returns whether this block publishes. `want` is the
+    /// link's depth (a depth change keeps this state: the change happens here, in place).
     fn begin(&mut self, r: &Region, counters: &AudioCounters, want: u8) -> bool {
         let want = want.clamp(1, 2);
         if want != self.depth && self.mode != Mode::Run {
@@ -860,7 +861,7 @@ impl ChainState {
                         self.n_inflight -= 1;
                         return true;
                     }
-                    // D5: a miss. Silence (or dry), no publish, the breaker opens; the close primes `want`.
+                    // A miss. Silence (or dry), no publish, the breaker opens; the close primes `want`.
                     let newest = self.inflight[self.n_inflight - 1].0;
                     self.mode = Mode::Wait {
                         until: newest,
@@ -898,9 +899,9 @@ impl ChainState {
         }
     }
 
-    /// D4, in place, after this block's collect at the old depth (a fade-out of the last old-depth
-    /// block, never a hard cut). The FIFO's newest frame is `cut`; the frames before it fade out over `declickFrames`
-    /// (or what of them is still unplayed, at least this block's), then the gap, then a fade-in:
+    /// A depth change, in place, after this block's collect at the old depth (a fade-out of the last old-depth
+    /// block, never a hard cut). The FIFO's newest frame is `cut`; the frames before it fade out over the declick
+    /// length (or what of them is still unplayed, at least this block's), then the gap, then a fade-in:
     /// - a **raise** (1 → 2) inserts B frames of zeros at `cut`: one block of silence, and the extra block of delay;
     /// - a **lowering** (2 → 1) drops the newer of the two blocks in flight (its output is never played; its slot is
     ///   free again once the next collect sees `ack` reach the block after it) and pads the gap to B − its frames.
@@ -965,8 +966,8 @@ impl ChainState {
     /// [`ChainState::visit`] with the node's chase: at an edge, the release first
     /// (`Visit.release`'s at an explicit edge), then the events before `o + d`, then the chased
     /// note-ons at `o + d` (clamped to the piece's last frame) through the one [`ChainState::stage_midi`] path, then the
-    /// rest. One chase per piece (C4): an explicit edge replaces the loop-start list in its piece and consumes the pending
-    /// wrap. At most [`MAX_CHASED_EDGES`] chasing edges per visit (C2). With [`Chase::NONE`], today's visit bit for bit.
+    /// rest. One chase per piece: an explicit edge replaces the loop-start list in its piece and consumes the pending
+    /// wrap. At most [`MAX_CHASED_EDGES`] chasing edges per visit. With [`Chase::NONE`], today's visit bit for bit.
     #[allow(clippy::too_many_arguments)]
     #[inline(never)]
     pub fn visit_chased(
@@ -987,7 +988,7 @@ impl ChainState {
             self.started = true;
             self.block = v.block;
             self.staged_midi = 0;
-            // An oversized block (> maxFrames) is silence (D5), counted like a miss but without a breaker change.
+            // An oversized block (> maxFrames) is silence, counted like a miss but without a breaker change.
             self.publishing = if v.total > geo.max_frames as usize {
                 self.enter_silence();
                 false
@@ -1056,7 +1057,7 @@ impl ChainState {
                     if pos + n as u64 == end {
                         self.release_midi(r, v.offset + offset, false, counters);
                     }
-                    // C4: one chase per piece, queried at the piece's wrapped position (mutation
+                    // One chase per piece, queried at the piece's wrapped position (mutation
                     // `mutant_chase_raw_pos`: the visit's raw position).
                     let p = if cfg!(mutant_chase_raw_pos) {
                         v.pos
@@ -1317,7 +1318,7 @@ impl ChainState {
         let seq = self.next_seq;
         let slot = r.slot(seq);
         let geo = r.geometry();
-        // D10: changed parameters, at most maxParams per block, the rest next block.
+        // Changed parameters, at most maxParams per block, the rest next block.
         let mut np = 0u32;
         let mut deferred = 0u64;
         for (i, (&id, sent)) in link.param_ids.iter().zip(self.sent.iter_mut()).enumerate() {
@@ -1448,13 +1449,13 @@ pub(crate) fn for_each_event_ranged(
     }
 }
 
-/// D3 step 2: after the group's last level has run, `hub[g].store(block, Release)` and one
+/// The ring: after the group's last level has run, `hub[g].store(block, Release)` and one
 /// `os_sync_wake_by_address_all`. `ENOENT` is normal; other errors are counted.
 #[inline]
 pub fn ring_group(page: &ChildPage, group: usize, block: u64, counters: &AudioCounters) {
     let hub = page.hub_waker(group);
     let t0 = crate::sync::host_ticks();
-    // Diagnostic: a Relaxed stamp of the ring for the child's wake-to-run (T6 / T8); not part of the child
+    // Diagnostic: a Relaxed stamp of the ring for the child's wake-to-run timing; not part of the child
     // contract.
     page.word64(P_HUB[group.min(RING_GROUPS - 1)] + P_RING_STAMP)
         .store(t0, Ordering::Relaxed);
@@ -1481,7 +1482,12 @@ pub fn lint_probe_stderr() {
     let w = AtomicU64::new(0);
     let bell =
         runecraft_ipc::bridge::Doorbell::create(runecraft_ipc::bridge::DoorbellKind::One).unwrap();
-    let _ = bell.waker(&w).wait(1, None);
+    match bell.waker(&w).wait(1, None) {
+        runecraft_ipc::bridge::sync::Waited::Woken
+        | runecraft_ipc::bridge::sync::Waited::TimedOut
+        | runecraft_ipc::bridge::sync::Waited::Failed(_) => {}
+        _ => {}
+    }
 }
 
 #[cfg(all(test, not(loom)))]
@@ -1622,7 +1628,7 @@ mod clock_tests {
         h.sent([0x95, 33, 9]);
         assert!(h.admit([0x95, 33, 0]));
         assert!(h.is_empty());
-        // Every event of a release but CC 66 is a release in the carry's sense (D5): carried while the breaker is
+        // Every event of a release but CC 66 is a release in the carry's sense: carried while the breaker is
         // open (the carry drops CC 66, as before).
         let mut h = snapshot;
         h.release(true, |e| assert!(crate::midi::is_release(e) || e[1] == 66));

@@ -18,7 +18,7 @@ struct LabEditorState {
     // sets `wasReset`, as a plugin that resets its patch when its editor opens. Setting a chunk sets `wasReset` back.
     bool quiet = false;
     bool resetOnView = false;
-    // UIRESET2=<ms> (red team S1's test): a second reset step <ms> after attached() (wasReset 2, from a thread of its
+    // UIRESET2=<ms> (a review's test): a second reset step <ms> after attached() (wasReset 2, from a thread of its
     // own, as a plugin that finishes an async preset load), so a restore made before it is undone by it.
     uint32_t reset2Ms = 0;
     std::atomic<uint32_t> wasReset{0};

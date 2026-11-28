@@ -576,8 +576,8 @@ fn param_list(rig: &mut Rig) -> (u32, Vec<(u32, String)>) {
 /// transport (`summoner-lab-hostcb`) gets, every block, the host application's own transport for that block: tempo 120
 /// (the host application's default), all three callbacks answering (flags 7), the sample in the timeline advancing by
 /// one block each block, the beat equal to the host application's arithmetic for that sample (ppq = samples / rate ×
-/// bpm / 60, as `Transport::at`, the VST3 TRANSPORT reporter's check in null_vst3), the time signature 4/4 and the
-/// offset to the next beat 0. Read in the steady state, past the pipeline's delay.
+/// bpm / 60, as `Transport::at`, the VST3 TRANSPORT reporter's check in the host application's VST3 null test), the
+/// time signature 4/4 and the offset to the next beat 0. Read in the steady state, past the pipeline's delay.
 #[test]
 fn an_au_asking_for_host_callbacks_gets_the_cores_transport_m5_au_2() {
     if lab_plugins::absent("an_au_asking_for_host_callbacks_gets_the_cores_transport_m5_au_2") {
@@ -737,8 +737,8 @@ fn the_hello_claims_3_6_and_a_triple_picks_the_colliding_entry() {
 }
 
 /// Bridge protocol 3.9: a music device whose input element refuses the chain's stereo (the retry with no
-/// inputs) is named `inputsRefused` in `chain.prepared`'s `slotNotices`, which the pinned supervisor hands control on
-/// `ChainReady`. Mutation `--cfg mutant_child_no_notice` (the AU names none) fails it.
+/// inputs) is named `inputsRefused` in `chain.prepared`'s per-slot notices, which the pinned supervisor hands control
+/// on `ChainReady`. Mutation `--cfg mutant_child_no_notice` (the AU names none) fails it.
 #[test]
 fn an_instrument_that_refused_its_inputs_is_named_on_chain_ready() {
     if lab_plugins::absent("an_instrument_that_refused_its_inputs_is_named_on_chain_ready") {

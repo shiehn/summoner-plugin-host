@@ -1,6 +1,6 @@
 //! `tools/source-hash.sh` in Rust, byte for byte, for build hosts that cannot run the script (Windows: a `.sh` is not
 //! a Win32 executable). `build.rs` uses it on Windows only; elsewhere it still runs the script, which stays the one
-//! definition (the host application's stale-child guard runs the script through `SUMMONER_HOST_SOURCE_HASH_CMD`).
+//! definition (the host application's stale-child guard runs the script as its configured source-hash command).
 //! `tests/source_hash_rs.rs` holds the two equal on unix.
 //!
 //! The script, step by step, and what mirrors it here:

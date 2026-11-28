@@ -10,7 +10,7 @@
 //!
 //! Safe code only: every `unsafe` lives in the floor crates (`runecraft-rt`, `runecraft-ipc`).
 //! - Errors: [`Error`] (admission refused, a reason), [`render::RenderError`] (a render block failed) and
-//!   [`render::RenderRefused`] (D9's admission numbers): each implements `std::error::Error`.
+//!   [`render::RenderRefused`] (the render admission's numbers): each implements `std::error::Error`.
 #![deny(missing_docs)]
 #![deny(clippy::print_stderr, clippy::print_stdout)]
 #![forbid(unsafe_code)]

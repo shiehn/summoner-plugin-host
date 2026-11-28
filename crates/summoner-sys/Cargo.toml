@@ -10,7 +10,7 @@ publish.workspace = true
 runecraft-rt.workspace = true
 # The names a host and its parent agree on (the crash log, the lab death switch).
 summoner-proto.workspace = true
-# The prefault helpers (`runecraft_rt::os::prefaulted`, `prefault_spare`): runecraft-rt's.
+# The prefault helpers (`runecraft_rt::os::prefaulted` and its spare-page helper): runecraft-rt's.
 libc = "0.2"
 
 [build-dependencies]
@@ -26,7 +26,7 @@ lab-deaths = []
 au = []
 # The plugin editor windows (editor.rs): build.rs compiles editor/editor.mm into its OWN
 # dylib, libsummoner_editor.dylib (AppKit linked into it alone); editor.rs dlopens it by absolute path on first use, so
-# no binary of this repo links AppKit, CoreGraphics or libobjc (release_build.rs's link guard).
+# no binary of this repo links AppKit, CoreGraphics or libobjc (the release-build link guard).
 editor = []
 # The release loading policy: `Bundle::check` runs the release policy instead of the lab gate. OFF by default: every
 # lab build and test keeps the lab gate exactly. Built with SUMMONER_DEV_PLUGIN_ROOTS (every lab build), it is fenced
@@ -35,7 +35,7 @@ release-loading = []
 
 [lints.rust]
 # Mutants: RUSTFLAGS="--cfg mutant_<name>" must turn their named test red.
-unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_scrub_labels_blind)", "cfg(mutant_dev_repo_by_suffix)", "cfg(mutant_vst3_sdk_fail_open)", "cfg(mutant_dev_roots_unfenced)", "cfg(mutant_dev_roots_malformed_accepted)", "cfg(mutant_manifest_strips_cr)", "cfg(mutant_manifest_dup_accepted)", "cfg(mutant_manifest_literal_backslash)", "cfg(mutant_image_system_any_usr)"] }
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_scrub_labels_blind)", "cfg(mutant_scrub_the_core_blind)", "cfg(mutant_scrub_label_blind)", "cfg(mutant_scrub_label_prose_blind)", "cfg(mutant_scrub_hyphen_blind)", "cfg(mutant_scrub_adr_blind)", "cfg(mutant_dev_repo_by_suffix)", "cfg(mutant_vst3_sdk_fail_open)", "cfg(mutant_dev_roots_unfenced)", "cfg(mutant_dev_roots_malformed_accepted)", "cfg(mutant_manifest_strips_cr)", "cfg(mutant_manifest_dup_accepted)", "cfg(mutant_manifest_literal_backslash)", "cfg(mutant_image_system_any_usr)"] }
 
 # The README quick start (the examples/*_quickstart.rs file, shown byte for byte in README.md; tests/readme.rs checks it);
 # `test = true`, so `cargo test` runs it too.

@@ -1,4 +1,4 @@
-//! The cold launch (the host application's live_hello.rs `a_cold_launch_stays_within_500_ms`, to be re-measured with
+//! The cold launch (the host application's hello test of the 500 ms cold-launch budget, to be re-measured with
 //! the signed product child): how long the SIGNED, HARDENED shipped child
 //! (tools/build-shipped.sh's dist/) takes from the start of `posix_spawn` to the verified hello, as the host
 //! application's own supervisor measures it (`hello_launch_ns`). `#[ignore]`d (timing; run in an idle window):
@@ -107,7 +107,7 @@ fn the_signed_shipped_child_launches_within_the_cores_budget() {
     let max = |v: &[Duration]| v.iter().max().copied().unwrap();
     assert!(
         max(&cold) <= Duration::from_millis(500),
-        "over H-1 (b)'s 500 ms: {cold:?}"
+        "over the cold-launch budget of 500 ms: {cold:?}"
     );
     assert!(max(&warm) <= Duration::from_millis(500), "{warm:?}");
 }

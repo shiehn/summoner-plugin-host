@@ -329,7 +329,7 @@ fn prime() {
 /// goes to stderr. Call once, at start, before any thread that hosts a plugin.
 /// `Err` (nothing installed) when `log_dir` does not fit the handler's buffer (longer than 512 bytes: never
 /// truncated), or when this process's log file already exists as anything but a plain regular file with one link (as
-/// the host application's `install_at`). The caller decides: with `--crash-log` a usage
+/// the host application's crash log does). The caller decides: with `--crash-log` a usage
 /// error; without it, [`install_to_stderr`].
 pub fn install(log_dir: &Path) -> Result<(), crate::Error> {
     install_why(log_dir).map_err(crate::Error::from)
@@ -382,10 +382,11 @@ fn arm() {
 }
 
 /// The lab's death switch (feature `lab-deaths`, enabled by the test double alone, so the product child never reads
-/// it: `release_build.rs` checks the name is absent from a build without test-hooks): with `SUMMONER_LAB_DEATH=kill` in the
-/// environment, every lab death (the test double's, the lab plugins') is a SIGKILL, which leaves no crash report in the
-/// user's real `~/Library/Logs/DiagnosticReports`. Tests that only need "the child died" set it; the few that test a
-/// signal's kind or its handler do not. The supervisor maps any death to a crash either way.
+/// it: the release-build link guard checks the name is absent from a build without test-hooks): with
+/// `SUMMONER_LAB_DEATH=kill` in the environment, every lab death (the test double's, the lab plugins') is a SIGKILL,
+/// which leaves no crash report in the user's real `~/Library/Logs/DiagnosticReports`. Tests that only need "the child
+/// died" set it; the few that test a signal's kind or its handler do not. The supervisor maps any death to a crash
+/// either way.
 #[cfg(feature = "lab-deaths")]
 pub fn quiet_deaths() -> bool {
     static Q: std::sync::OnceLock<bool> = std::sync::OnceLock::new();

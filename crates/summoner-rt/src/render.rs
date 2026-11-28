@@ -2,13 +2,13 @@
 //!
 //! A render set is its own `chain.load {role: render}` on its own region, whose header carries `FLAG_RENDER |
 //! FLAG_ACK_WAKE` (the supervisor writes them from the role: `summoner::supervisor::region_flags`; the child refuses a
-//! disagreement, the plugin-host child R1). Its chain thread waits on the region's own `seq`, never a hub, and wakes `ack`
+//! disagreement). Its chain thread waits on the region's own `seq`, never a hub, and wakes `ack`
 //! after every block. The worker here is the other end:
 //!
 //! - **One block per `seq`**: stage the block (input, MIDI, parameters, the request line), publish `seq` (Release),
 //!   `os_sync_wake_by_address_any(&seq)`, then wait on `ack` until the child has acked exactly this `seq` and its slot
 //!   echoes it. There is never more than one block in flight, so the render's chain latency is the plugin latency
-//!   alone (no pipeline depth, no FIFO), as D9 says.
+//!   alone (no pipeline depth, no FIFO).
 //! - **The wait**: in [`RenderConfig::slice`] slices (250 ms), up to the offline block budget
 //!   ([`RenderConfig::block_budget`]: 30 s, 250 ms..=30 s from a setting the application passes
 //!   ([`RenderConfig::with_budget_setting`], [`parse_block_budget`]), whose larger values are clamped to 30 s
@@ -16,10 +16,10 @@
 //!   the publish and at every slice.
 //! - **Any block that times out fails the render, retryable** ([`RenderError::TimedOut`]); a cancel ends it
 //!   ([`RenderError::Cancelled`]). Either leaves a block in flight that this worker no longer owns, so the worker is
-//!   spent: every later call is refused ([`RenderError::Spent`]) and the caller unloads the render set (D9: it is
+//!   spent: every later call is refused ([`RenderError::Spent`]) and the caller unloads the render set (it is
 //!   unloaded after the job anyway). A render never "succeeds" with silence.
 //! - **Untrusted peer**: the output is read only after the Acquire of `ack` and the echo check; a non-finite sample is
-//!   written as 0 and counted in the block's outcome (the live path's rule, D2), never passed on.
+//!   written as 0 and counted in the block's outcome (the live path's rule), never passed on.
 //!
 //! The wedge ping of a render set is the supervisor's (`wedge_detector`: a render set is suspected after
 //! `summoner::supervisor::Config::render_suspect`, which `summoner::supervisor::Config::new` sets to the same budget, so
@@ -33,23 +33,24 @@
 use crate::midi::Event3;
 use crate::region::Region;
 use crate::rt::{ChainLink, Transport};
+use runecraft_ipc::bridge::sync::Waited;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use summoner_proto::layout::*;
 
-/// D9's offline block budget by default: 30 s.
+/// The offline block budget by default: 30 s.
 pub const BLOCK_BUDGET: Duration = Duration::from_secs(30);
 /// The budget's floor and ceiling when the environment sets it (250 ms..=120 s).
 pub const BLOCK_BUDGET_MIN: Duration = Duration::from_millis(250);
 /// The ceiling the host application accepts: 30 s. Today's engine takes up to 120 s, but here the
 /// render set lives in the live child: the supervisor's wedge kill of a render set ([`RENDER_SUSPECT`]) and the
 /// child's reactivation horizon for render sets (`handover::TAKE_HORIZON_RENDER`, 33 s = 30 s + the 2 s verdict + a
-/// tick) are both fixed at D9's 30 s, so a longer block budget would let a legal block be abandoned by the child or
-/// judged a wedge (killing the live chains) before the worker gives up. A value above it is clamped to it. Raising it
-/// needs the child's horizon to move with it (a host-child change).
+/// tick) are both fixed at the render design's 30 s, so a longer block budget would let a legal block be abandoned by
+/// the child or judged a wedge (killing the live chains) before the worker gives up. A value above it is clamped to it.
+/// Raising it needs the child's horizon to move with it (a host-child change).
 pub const BLOCK_BUDGET_MAX: Duration = Duration::from_secs(30);
-/// The supervisor's render-set suspicion (D7's wedge detector for `role: render`): D9's fixed 30 s, never the
+/// The supervisor's render-set suspicion (the wedge detector for `role: render`): a fixed 30 s, never the
 /// environment's (a variable that tunes a render's failure must not tune the kill of the live child).
 /// At least the worker's budget ([`BLOCK_BUDGET_MAX`]), so the worker always fails a slow block (retryable, the set
 /// unloaded) before the supervisor could judge it.
@@ -57,10 +58,10 @@ pub const RENDER_SUSPECT: Duration = Duration::from_secs(30);
 const _: () = assert!(RENDER_SUSPECT.as_millis() >= BLOCK_BUDGET_MAX.as_millis());
 /// The wait slice: the cancel flag is read at least this often.
 pub const SLICE: Duration = Duration::from_millis(250);
-/// D9's fixed render block.
+/// The fixed render block.
 pub const RENDER_MAX_FRAMES: u32 = 512;
 
-/// The region flags of a render set (D9): render, and the ack wake.
+/// The region flags of a render set: render, and the ack wake.
 pub const RENDER_FLAGS: u32 = FLAG_RENDER | FLAG_ACK_WAKE;
 
 /// The offline block budget from a setting in milliseconds (the application's, e.g. an environment variable): unset, empty, a
@@ -213,7 +214,7 @@ pub enum RenderError {
         /// The block's `seq`.
         seq: u64,
     },
-    /// The block was not acked within the budget: the render fails, retryable (D9).
+    /// The block was not acked within the budget: the render fails, retryable.
     TimedOut {
         /// The block's `seq`.
         seq: u64,
@@ -237,10 +238,17 @@ pub enum RenderError {
         /// The response line's status word.
         status: u32,
     },
+    /// The OS refused the wait for the block's ack: the render fails, and this worker's exchange is spent.
+    WaitFailed {
+        /// The block's `seq`.
+        seq: u64,
+        /// The wait call's errno.
+        errno: i32,
+    },
 }
 
 impl RenderError {
-    /// D9: a timed-out block fails the render retryably.
+    /// A timed-out block fails the render retryably.
     pub fn retryable(&self) -> bool {
         matches!(
             self,
@@ -272,6 +280,10 @@ impl std::fmt::Display for RenderError {
             RenderError::Threw { seq, status } => write!(
                 f,
                 "a plugin failed inside render block {seq} (status {status:#x}); the render failed"
+            ),
+            RenderError::WaitFailed { seq, errno } => write!(
+                f,
+                "the wait for render block {seq}'s ack failed (errno {errno}); the render failed"
             ),
             RenderError::Spent => write!(
                 f,
@@ -345,10 +357,18 @@ pub enum Fault {
         /// The response line's status word.
         status: u32,
     },
-    /// The chain has more than two inputs (the worker stages a stereo pair; D9's sets are stereo).
+    /// The chain has more than two inputs (the worker stages a stereo pair; render sets are stereo).
     Inputs {
         /// The chain's input channels.
         ch_in: u32,
+    },
+    /// The OS refused the wait for the block's ack ([`Waited::Failed`]): the block is in flight, the exchange is
+    /// spent.
+    WaitFailed {
+        /// The block's `seq`.
+        seq: u64,
+        /// The wait call's errno.
+        errno: i32,
     },
 }
 
@@ -377,6 +397,7 @@ impl Fault {
             Fault::Inputs { ch_in } => RenderError::Refused(format!(
                 "a render set with {ch_in} inputs (the worker stages at most 2)"
             )),
+            Fault::WaitFailed { seq, errno } => RenderError::WaitFailed { seq, errno },
         }
     }
 
@@ -394,6 +415,7 @@ impl Fault {
             Fault::Skipped { seq, status } => (10, seq << 8 | (status & 0xff) as u64),
             Fault::Threw { seq, status } => (11, seq << 8 | (status & 0xff) as u64),
             Fault::Inputs { ch_in } => (12, ch_in as u64),
+            Fault::WaitFailed { seq, errno } => (13 | (errno as u32) << 8, seq),
         }
     }
 
@@ -421,13 +443,17 @@ impl Fault {
                 status: (v & 0xff) as u32,
             },
             12 => Fault::Inputs { ch_in: v as u32 },
+            c if c & 0xff == 13 => Fault::WaitFailed {
+                seq: v,
+                errno: (c >> 8) as i32,
+            },
             _ => return None,
         })
     }
 }
 
 /// The exchange of one block (the module docs), the one implementation [`RenderWorker`] and [`RenderJob`] share. No
-/// allocation, no lock; it waits on `ack` (the render thread's wait, D9). `next_seq` advances only when the block is
+/// allocation, no lock; it waits on `ack` (the render thread's wait). `next_seq` advances only when the block is
 /// published.
 fn exchange(
     r: &Region,
@@ -522,7 +548,7 @@ fn exchange(
     slot.u64(S_OUTPUT_HOST_TIME)
         .store(t.output_host_time, Ordering::Relaxed);
     slot.u64(S_BLOCK_SEQ).store(seq, Ordering::Relaxed);
-    // The child's render thread waits on seq (D9). An error other than ENOENT is not fatal: the wait below still
+    // The child's render thread waits on seq. An error other than ENOENT is not fatal: the wait below still
     // bounds the block, and the supervisor's ping wakes seq again.
     let _ = r.seq_waker().ring(seq);
     *next_seq = seq + 1;
@@ -541,10 +567,19 @@ fn exchange(
             return Err(Fault::TimedOut { seq });
         }
         let w = cfg.slice.min(left);
-        if r.ack_waker().wait(ack, Some(Instant::now() + w))
-            == runecraft_ipc::bridge::sync::Waited::TimedOut
-        {
-            slices_timed_out += 1;
+        match r.ack_waker().wait(ack, Some(Instant::now() + w)) {
+            Waited::Woken => {}
+            Waited::TimedOut => slices_timed_out += 1,
+            // A wait the OS refuses would return at once every time (a spin to the budget): the block fails now,
+            // and the exchange is spent, as for a timeout (the block is still in flight).
+            Waited::Failed(e) => {
+                return Err(Fault::WaitFailed {
+                    seq,
+                    errno: e.errno(),
+                });
+            }
+            // A wait outcome this worker does not know: treated as a failure, never as a wake.
+            _ => return Err(Fault::WaitFailed { seq, errno: 0 }),
         }
     }
     // A block the child acked without processing it, or in which a plugin threw, is silence: it fails
@@ -583,7 +618,10 @@ fn exchange(
 
 /// Whether a fault leaves a block in flight that the exchange no longer owns (the exchange is then spent).
 fn spends(f: Fault) -> bool {
-    matches!(f, Fault::Cancelled { .. } | Fault::TimedOut { .. })
+    matches!(
+        f,
+        Fault::Cancelled { .. } | Fault::TimedOut { .. } | Fault::WaitFailed { .. }
+    )
 }
 
 /// The render worker of one render set (the module docs). Owned by the render thread; never shared.
@@ -768,13 +806,13 @@ impl RenderJob {
 /// in one synchronous exchange, in place in `io` (an FX chain's summed inputs in, the chain's output out; an
 /// instrument's buffers arrive as silence). The node's MIDI for the block comes from `events` (the clock's, loop-aware,
 /// as the live pipeline reads them; none while the clock is stopped) and its parameters are sent when they change (at
-/// most the region's `maxParams` per block, the rest the next block, as D10's live rule).
+/// most the region's `maxParams` per block, the rest the next block, as the live rule).
 ///
 /// No allocation and no lock (the callback runs inside the allocator guard): the input is copied to the stack (at
-/// most [`RENDER_MAX_FRAMES`], D9's fixed block), MIDI is gathered on the stack. It does wait on the child (D9's
-/// worker): only a render job's link has a job, and only an offline render compiles one. Any fault writes silence
-/// and fails the job ([`RenderJob::fault`]): a render never succeeds with a silenced chain. A visit that is not the
-/// whole block (a schedule switch inside a render) is such a fault. Returns true when the block was exchanged.
+/// most [`RENDER_MAX_FRAMES`], the fixed render block), MIDI is gathered on the stack. It does wait on the child (the
+/// render worker): only a render job's link has a job, and only an offline render compiles one. Any fault writes
+/// silence and fails the job ([`RenderJob::fault`]): a render never succeeds with a silenced chain. A visit that is not
+/// the whole block (a schedule switch inside a render) is such a fault. Returns true when the block was exchanged.
 #[allow(clippy::too_many_arguments)]
 pub fn render_visit(
     job: &RenderJob,
@@ -879,15 +917,15 @@ pub fn render_visit(
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// D9's render-set RAM admission
+// The render-set RAM admission
 // ---------------------------------------------------------------------------------------------------------------------
 
-/// The headroom D9 adds to the estimate: 512 MiB.
+/// The headroom the admission adds to the estimate: 512 MiB.
 pub const RENDER_SET_EXTRA: u64 = 512 << 20;
-/// What D9 keeps free for everything else: 2 GiB.
+/// What the admission keeps free for everything else: 2 GiB.
 pub const RENDER_SET_RESERVE: u64 = 2 << 30;
 
-/// The numbers D9's admission is judged on.
+/// The numbers the admission is judged on.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct RenderMemory {
@@ -899,7 +937,7 @@ pub struct RenderMemory {
     /// Chains the render job would load.
     pub render_chains: u32,
     /// Physical memory the system could give without touching an active page: free, speculative, purgeable and every
-    /// inactive page ([`runecraft_rt::os::available_memory`]) [P: D9's "freePhysical"].
+    /// inactive page ([`runecraft_rt::os::available_memory`]) (the admission's "freePhysical").
     pub free_physical: u64,
 }
 
@@ -922,7 +960,7 @@ impl RenderMemory {
     }
 }
 
-/// D9's refusal, worded for the job's error (the numbers in it).
+/// The admission's refusal, worded for the job's error (the numbers in it).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct RenderRefused {
@@ -969,8 +1007,8 @@ impl std::fmt::Display for RenderRefused {
 
 impl std::error::Error for RenderRefused {}
 
-/// D9: refuse a render set when `liveChildRss × (renderChains / liveChains) + 512 MiB > freePhysical −
-/// 2 GiB`. With no live chain the child's whole RSS is taken per render chain ([P]: the ratio is undefined there; this
+/// Refuse a render set when `liveChildRss × (renderChains / liveChains) + 512 MiB > freePhysical −
+/// 2 GiB`. With no live chain the child's whole RSS is taken per render chain (the ratio is undefined there; this
 /// is the cautious reading). Saturating integer arithmetic (no float rounding, no overflow).
 pub fn admit_render_set(m: RenderMemory) -> Result<(), RenderRefused> {
     let per = m.live_child_rss / u64::from(m.live_chains.max(1));
@@ -1026,7 +1064,7 @@ pub const PRESSURE_WARN: u32 = 2;
 /// The kernel's CRITICAL memory-pressure level (a render set is refused at it).
 pub const PRESSURE_CRITICAL: u32 = 4;
 
-/// D9's admission with the second gate: the formula ([`admit_render_set`]), and a refusal
+/// The admission with the second gate: the formula ([`admit_render_set`]), and a refusal
 /// whenever the kernel reports CRITICAL memory pressure; WARN only logs. An unknown level, or none, is the formula
 /// alone (logged when unknown). Worded as says.
 pub fn admit_render_set_at(
@@ -1046,7 +1084,7 @@ fn admit_at(m: RenderMemory, pressure: Option<u32>) -> Result<RenderMemory, Stri
             );
         }
         Some(PRESSURE_WARN) => runecraft_rt::safe_eprintln!(
-            "summoner-rt: render admission: the system reports memory pressure WARN (admitted on D9's numbers)"
+            "summoner-rt: render admission: the system reports memory pressure WARN (admitted on its memory numbers)"
         ),
         Some(1) | None => {}
         Some(l) => {
@@ -1092,7 +1130,7 @@ mod tests {
 
     #[test]
     fn the_ram_admission_is_d9s_formula() {
-        // The large sampler's case (D9): a 5.3 GB child on a 16 GB machine, one live chain, one render chain.
+        // The large sampler's case: a 5.3 GB child on a 16 GB machine, one live chain, one render chain.
         let m = RenderMemory {
             live_child_rss: 5_300 * MIB,
             live_chains: 1,
@@ -1212,7 +1250,7 @@ mod tests {
             e.as_str().ends_with("free some memory, then render again"),
             "{e}"
         );
-        // S5's old lower bound on the same numbers (23,634 pages, 1.39 GiB) was under the reserve: refused.
+        // The earlier lower bound on the same numbers (23,634 pages, 1.39 GiB) was under the reserve: refused.
         let old = RenderMemory {
             free_physical: (32_816 + 34_398 + 303 + 23_634) * 16_384,
             ..m
@@ -1231,18 +1269,43 @@ mod tests {
     fn the_system_numbers_are_read() {
         // This process stands in for the child: its own RSS is readable, and so is the available memory.
         let m = admit_render_set_now(std::process::id(), 1, 0);
-        match m {
-            Ok(m) => {
-                assert!(m.live_child_rss > 0);
-                assert!(m.free_physical > 0);
+        // The reads exist on macOS and Windows; on Linux they are not yet implemented (see the test below), so the
+        // admission refuses there, worded.
+        #[cfg(not(target_os = "linux"))]
+        {
+            match m {
+                Ok(m) => {
+                    assert!(m.live_child_rss > 0);
+                    assert!(m.free_physical > 0);
+                }
+                // A loaded machine may refuse; the refusal must carry the admission's numbers.
+                Err(e) => assert!(e.as_str().contains("MiB"), "{e}"),
             }
-            // A loaded machine may refuse; the refusal must carry D9's numbers.
-            Err(e) => assert!(e.as_str().contains("MiB"), "{e}"),
+            assert!(runecraft_rt::os::process_memory_of(std::process::id()).is_some());
+            assert!(runecraft_rt::os::available_memory().is_some_and(|b| b > 0));
         }
-        assert!(runecraft_rt::os::process_memory_of(std::process::id()).is_some());
-        assert!(runecraft_rt::os::available_memory().is_some_and(|b| b > 0));
+        #[cfg(target_os = "linux")]
+        {
+            let e = m.unwrap_err();
+            assert!(e.as_str().contains("could not be read"), "{e}");
+        }
         // A pid that is not ours to read (or does not exist) is refused, worded.
         let e = admit_render_set_now(u32::MAX >> 1, 1, 1).unwrap_err();
         assert!(e.as_str().contains("could not be read"), "{e}");
+    }
+
+    /// The documented gap: on Linux a process's memory and the system's available memory are not yet read, so
+    /// every render set is refused there. This test flips (and goes) when the Linux reads land.
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn the_system_numbers_are_not_yet_read_on_linux() {
+        assert!(
+            runecraft_rt::os::process_memory_of(std::process::id()).is_none(),
+            "process_memory_of is implemented on Linux now: update the_system_numbers_are_read"
+        );
+        assert!(
+            runecraft_rt::os::available_memory().is_none(),
+            "available_memory is implemented on Linux now: update the_system_numbers_are_read"
+        );
     }
 }

@@ -738,7 +738,7 @@ fn note_unknown_fields(n: usize) {
         // One write of the whole line to the locked stderr, its error ignored (a diagnostic is never worth a panic).
         use std::io::Write as _;
         let _ = std::io::stderr().lock().write_all(
-            b"summoner-proto: a scan class carried fields this core does not know (a newer plugin host): ignored; \
+            b"summoner-proto: a scan class carried fields this host does not know (a newer plugin child): ignored; \
               counted, said once\n",
         );
     }

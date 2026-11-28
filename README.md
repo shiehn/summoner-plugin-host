@@ -178,7 +178,7 @@ exercise every failure path without installing a single third-party plugin.
 | Crate | What it holds |
 |---|---|
 | [`summoner`](crates/summoner/README.md) | the supervisor: spawn, handshake, the chain catalogue, respawn, quarantine, the wedge detector, the save burst, an injectable clock |
-| [`summoner-proto`](crates/summoner-proto/README.md) | the protocol both processes agree on: the shared-memory layout (with a generated C header), the control-frame codec, plugin references and scan results, the state blob framing |
+| [`summoner-proto`](crates/summoner-proto/README.md) | the protocol both processes agree on: the shared-memory layout (with field tables a C header can be generated from), the control-frame codec, plugin references and scan results, the state blob framing |
 | [`summoner-rt`](crates/summoner-rt/README.md) | the realtime exchange on the host side: the shared-memory views, the per-block exchange, held notes and note chasing, the offline render worker |
 | [`summoner-scan`](crates/summoner-scan/README.md) | the scan supervisor: one probe per process, its own process group, a time budget, a verdict for every plugin |
 | [`summoner-plugin`](crates/summoner-plugin/README.md) | the rules a host applies to every slot: the parameter order and name limits, the latency-change handover |
@@ -267,9 +267,9 @@ replaced by another crate or by your own code.
 
 | Component | Repository | Role | Status |
 |---|---|---|---|
-| [Runecraft](https://signalsandsorcery.com/components/runecraft-audio-core/) | [runecraft-audio-core](https://github.com/shiehn/runecraft-audio-core) | Shared contracts, realtime safety, process isolation and realtime-safe logging: the floor every other component stands on | In preparation |
-| [Orrery](https://signalsandsorcery.com/components/orrery-musical-time/) | [orrery-musical-time](https://github.com/shiehn/orrery-musical-time) | Tempo and meter, transports, bar, beat and sample maths, timed MIDI | In preparation |
-| [Summoner](https://signalsandsorcery.com/components/summoner-plugin-host/) | [summoner-plugin-host](https://github.com/shiehn/summoner-plugin-host) | Out-of-process VST3 and Audio Unit plugin hosting with crash isolation | In preparation |
+| [Runecraft](https://signalsandsorcery.com/components/runecraft-audio-core/) | [runecraft-audio-core](https://github.com/shiehn/runecraft-audio-core) | Shared contracts, realtime safety, process isolation and realtime-safe logging: the floor every other component stands on | Available (0.2, macOS) |
+| [Orrery](https://signalsandsorcery.com/components/orrery-musical-time/) | [orrery-musical-time](https://github.com/shiehn/orrery-musical-time) | Tempo and meter, transports, bar, beat and sample maths, timed MIDI | Available (0.2, macOS) |
+| [Summoner](https://signalsandsorcery.com/components/summoner-plugin-host/) | [summoner-plugin-host](https://github.com/shiehn/summoner-plugin-host) | Out-of-process VST3 and Audio Unit plugin hosting with crash isolation | Available (0.2, macOS) |
 | [Aethergate](https://signalsandsorcery.com/components/aethergate-audio-platform/) | [aethergate-audio-platform](https://github.com/shiehn/aethergate-audio-platform) | Audio devices (cpal, CoreAudio, a fake device for tests) and shared-memory meters | Planned |
 | [Leyline](https://signalsandsorcery.com/components/leyline-audio-graph/) | [leyline-audio-graph](https://github.com/shiehn/leyline-audio-graph) | A realtime audio graph with delay compensation, and a compiler from an edit model to a graph | Planned |
 | [Cantrips](https://signalsandsorcery.com/components/cantrips-audio-dsp/) | [cantrips-audio-dsp](https://github.com/shiehn/cantrips-audio-dsp) | Built-in mixer DSP: sampler, fader, pan, meters, compressor | Planned |

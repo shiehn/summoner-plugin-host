@@ -9,7 +9,7 @@
 //! allowed.
 //!
 //! There is no registry lookup at all (no AU by identifier): no build of this child names `AudioComponentFindNext`,
-//! `AudioComponentCount` or `AudioComponentCopyName` (`no_registry.rs`).
+//! `AudioComponentCount` or `AudioComponentCopyName` (a test of the host application's checks it).
 //!
 //! The types carry the threading, the same shape as for VST3:
 //! - an [`Instance`] (parameters, state, latency, prepare) is `Send` and not `Sync`: the host's message thread;

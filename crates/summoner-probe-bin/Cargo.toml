@@ -9,7 +9,7 @@ publish.workspace = true
 [dependencies]
 summoner-probe.workspace = true
 summoner-sys = { workspace = true, features = ["au", "vst3"] }
-# The probe's UI surfaces: only this package depends on them (release_build.rs's link guard).
+# The probe's UI surfaces: only this package depends on them (the release-build link guard).
 summoner-sys-ui.workspace = true
 serde_json.workspace = true
 

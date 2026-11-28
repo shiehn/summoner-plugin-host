@@ -4,9 +4,9 @@
 //! the telemetry crate's sync and `runecraft_rt::handoff` do.
 //!
 //! Under loom the mapping is not shared memory (no process, no `mmap`): it is one loom atomic per naturally aligned
-//! word of each width. That is exact for every peer that keeps D12's rule, which the host application does by construction (each
-//! field is accessed only at its declared width, so a `u32` word and the `u64` word over the same bytes are never
-//! both used). The doorbell is a no-op there: the model's child observes the hub word itself.
+//! word of each width. That is exact for every peer that keeps the one-width rule, which the host application does by
+//! construction (each field is accessed only at its declared width, so a `u32` word and the `u64` word over the same
+//! bytes are never both used). The doorbell is a no-op there: the model's child observes the hub word itself.
 
 #[cfg(not(loom))]
 pub use std::sync::atomic::{AtomicU32, AtomicU64, Ordering, fence};

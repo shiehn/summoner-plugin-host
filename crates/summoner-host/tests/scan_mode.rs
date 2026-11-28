@@ -1,6 +1,6 @@
 //! `summoner-host --scan` (the scan child): spawned as the host application will spawn it
 //! (`runecraft_ipc::process::unix::spawn_stdio_only`, a socketpair on descriptor 3), driven over the host application's
-//! framing with summoner-proto's codec, every frame back checked with `codec::check_to_core`. The lab's own bundles
+//! framing with summoner-proto's codec, every frame back checked with `codec::check_to_host`. The lab's own bundles
 //! only; the recorders injected (no plugin folder, no WindowServer lookup); SUMMONER_LAB_DEATH=kill except in the one
 //! real-signal breadcrumb case.
 #![forbid(unsafe_code)]
@@ -83,7 +83,7 @@ impl ScanChild {
         ScanChild {
             pid,
             sock: ours,
-            dec: codec::Decoder::new(Direction::ToCore),
+            dec: codec::Decoder::new(Direction::ToHost),
             pending: Vec::new(),
             home,
             look,
@@ -103,7 +103,7 @@ impl ScanChild {
         loop {
             if let Some(i) = self.pending.iter().position(|f| f.header.id == id) {
                 let f = self.pending.remove(i);
-                codec::check_to_core(&f)
+                codec::check_to_host(&f)
                     .unwrap_or_else(|e| panic!("the host application would refuse it: {e}"));
                 return Some(f);
             }
@@ -143,7 +143,7 @@ impl ScanChild {
                 .position(|f| f.header.id == 0 && f.header.kind == k)
             {
                 let f = self.pending.remove(i);
-                codec::check_to_core(&f)
+                codec::check_to_host(&f)
                     .unwrap_or_else(|e| panic!("the host application would refuse it: {e}"));
                 return Some(f);
             }
@@ -428,7 +428,7 @@ fn the_live_child_refuses_a_scan() {
     let mut c = ScanChild {
         pid,
         sock: ours,
-        dec: codec::Decoder::new(Direction::ToCore),
+        dec: codec::Decoder::new(Direction::ToHost),
         pending: Vec::new(),
         home,
         look: PathBuf::new(),
@@ -600,7 +600,7 @@ fn raw_oversized_scan(name: &str, repeat: usize, close: bool) -> Raw {
             Err(e) => panic!("{name}: no EOF from the child: {e}"),
         }
         if header_at.is_none() {
-            let mut d = codec::Decoder::new(Direction::ToCore);
+            let mut d = codec::Decoder::new(Direction::ToHost);
             if d.feed(&bytes, &mut |_| {}).is_err() && d.oversized_meta_header().is_some() {
                 header_at = Some(Instant::now());
                 if close {
@@ -626,7 +626,7 @@ fn assert_header_alone(r: &Raw) {
         runecraft_ipc::process::ChildExit::Exited(0),
         "exit 0, never 101"
     );
-    let mut dec = codec::Decoder::new(Direction::ToCore);
+    let mut dec = codec::Decoder::new(Direction::ToHost);
     let mut frames: Vec<Frame> = Vec::new();
     let res = dec.feed(&r.bytes, &mut |f| frames.push(f));
     let ids: Vec<(u16, u64)> = frames
@@ -639,7 +639,7 @@ fn assert_header_alone(r: &Raw) {
         "the hello reply and the scan's receipt, then nothing whole"
     );
     for f in &frames {
-        codec::check_to_core(f).unwrap();
+        codec::check_to_host(f).unwrap();
     }
     assert!(
         matches!(res, Err(codec::ProtoError::MetaTooLong(n)) if n as usize > codec::MAX_META),
@@ -709,7 +709,7 @@ fn after_a_header_alone_the_cores_eof_ends_the_child_at_once() {
 }
 
 /// Form B (the `scan` offered `descriptionsBlob: 1`) with 0, 1 and many classes, each `scanned` byte-equal
-/// to the CORE's encoder (`codec::encode_scanned_form_b`) on what it carries, and decoded by the host application's
+/// to the host's encoder (`codec::encode_scanned_form_b`) on what it carries, and decoded by the host application's
 /// strict decoder (`codec::decode_scanned`'s checks) as form B. 0: a path that is no lab bundle (`failed notFound`, no
 /// class discovered); 1: the lab gain, VST3 and AU; many: the gain's class 50 times (the repeat hook).
 #[test]
@@ -906,8 +906,8 @@ fn a_validation_failures_discovered_classes_travel_in_form_b_only() {
 
 /// A synthetic 20,000-class report (the gain's class repeated), offered form B, passes the count bound
 /// (`MAX_SCAN_DESCRIPTIONS`, 16,384): summoner-proto's encoder gives the form B meta with the TRUE `descriptionCount`
-/// and `overLimit: "count"`, an empty blob, which summoner-proto's decoder takes as the engine limit L2 (no strike); no
-/// panic, and the conversation goes on to `shutdown` and exit 0.
+/// and `overLimit: "count"`, an empty blob, which summoner-proto's decoder takes as the engine's over-limit report (no
+/// strike); no panic, and the conversation goes on to `shutdown` and exit 0.
 #[test]
 fn a_20000_class_report_offered_gives_over_limit_count_and_no_panic() {
     if lab_plugins::absent("a_20000_class_report_offered_gives_over_limit_count_and_no_panic") {
@@ -950,7 +950,7 @@ fn a_20000_class_report_offered_gives_over_limit_count_and_no_panic() {
     c.recorders_clean();
 }
 
-/// The same, through the CORE's own scan supervisor at the pin: the oversized line is an EngineFault (its why
+/// The same, through the host application's scan supervisor at the pin: the oversized line is an EngineFault (its why
 /// starting OVERSIZED_SCANNED), no verdict, NO STRIKE; counted as one oversized `scanned`, not a protocol error. The
 /// summoner supervisor offers form B on every scan, so 2,000 classes travel in the blob and are a plain `ok` verdict;
 /// the oversized line is the one past the engine's count limit, 20,000 classes, refused by the host application's form
