@@ -222,6 +222,11 @@ exercise every failure path without installing a single third-party plugin.
 | Linux | VST3 | in progress |
 | Any | CLAP | planned |
 
+Plugin hosting runs on macOS today. CI covers more than that: on Linux (x86_64) it builds and tests the crates that
+do not load plugins (summoner-proto, summoner-plugin, summoner-rt, summoner, summoner-scan, summoner-testkit,
+summoner-sys-ui and summoner-proc), and from this release on Windows (x86_64) it compile-checks summoner-proto,
+summoner-rt and summoner-plugin. No tests run on Windows yet.
+
 The helper's realtime threads can join the host application's audio workgroup on macOS, so the system schedules them
 together.
 
@@ -267,9 +272,9 @@ replaced by another crate or by your own code.
 
 | Component | Repository | Role | Status |
 |---|---|---|---|
-| [Runecraft](https://signalsandsorcery.com/components/runecraft-audio-core/) | [runecraft-audio-core](https://github.com/shiehn/runecraft-audio-core) | Shared contracts, realtime safety, process isolation and realtime-safe logging: the floor every other component stands on | Available (0.2, macOS) |
-| [Orrery](https://signalsandsorcery.com/components/orrery-musical-time/) | [orrery-musical-time](https://github.com/shiehn/orrery-musical-time) | Tempo and meter, transports, bar, beat and sample maths, timed MIDI | Available (0.2, macOS) |
-| [Summoner](https://signalsandsorcery.com/components/summoner-plugin-host/) | [summoner-plugin-host](https://github.com/shiehn/summoner-plugin-host) | Out-of-process VST3 and Audio Unit plugin hosting with crash isolation | Available (0.2, macOS) |
+| [Runecraft](https://signalsandsorcery.com/components/runecraft-audio-core/) | [runecraft-audio-core](https://github.com/shiehn/runecraft-audio-core) | Shared contracts, realtime safety, process isolation and realtime-safe logging: the floor every other component stands on | Available (0.3, macOS) |
+| [Orrery](https://signalsandsorcery.com/components/orrery-musical-time/) | [orrery-musical-time](https://github.com/shiehn/orrery-musical-time) | Tempo and meter, transports, bar, beat and sample maths, timed MIDI | Available (0.3, macOS) |
+| [Summoner](https://signalsandsorcery.com/components/summoner-plugin-host/) | [summoner-plugin-host](https://github.com/shiehn/summoner-plugin-host) | Out-of-process VST3 and Audio Unit plugin hosting with crash isolation | Available (0.3, macOS) |
 | [Aethergate](https://signalsandsorcery.com/components/aethergate-audio-platform/) | [aethergate-audio-platform](https://github.com/shiehn/aethergate-audio-platform) | Audio devices (cpal, CoreAudio, a fake device for tests) and shared-memory meters | Planned |
 | [Leyline](https://signalsandsorcery.com/components/leyline-audio-graph/) | [leyline-audio-graph](https://github.com/shiehn/leyline-audio-graph) | A realtime audio graph with delay compensation, and a compiler from an edit model to a graph | Planned |
 | [Cantrips](https://signalsandsorcery.com/components/cantrips-audio-dsp/) | [cantrips-audio-dsp](https://github.com/shiehn/cantrips-audio-dsp) | Built-in mixer DSP: sampler, fader, pan, meters, compressor | Planned |

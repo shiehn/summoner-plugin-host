@@ -1,0 +1,21 @@
+# The cargo-deny policy of the fuzz workspace (fuzz/Cargo.toml): the main deny.toml's policy, plus one licence.
+#
+#   cargo deny --manifest-path fuzz/Cargo.toml --config fuzz/deny.toml check
+#
+# NCSA is a permissive, BSD-style licence compatible with MIT. It is allowed here only because `libfuzzer-sys` is a
+# fuzz-only dependency that never ships with the library; the main deny.toml does not allow it.
+[graph]
+all-features = true
+
+[licenses]
+allow = ["MIT", "Apache-2.0", "Unicode-3.0", "NCSA"]
+confidence-threshold = 0.93
+
+[bans]
+multiple-versions = "warn"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = ["https://github.com/shiehn/orrery-musical-time.git", "https://github.com/shiehn/runecraft-audio-core.git"]
