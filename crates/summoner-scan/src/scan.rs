@@ -190,7 +190,7 @@ impl Bounded {
 /// The stderr thread: read `src` (the pipe's read end) into a [`Bounded::stderr`] until EOF, draining (and counting)
 /// what is past the cap so the child never blocks on a full pipe. Once `reaped` is set, it waits at most
 /// [`STDERR_GRACE`] more for EOF, then returns what it has (`open: true`). Never blocks for longer than one
-/// [`POLL_MS`] slice without looking at `reaped`.
+/// `POLL_MS` slice without looking at `reaped`.
 pub fn spawn_stderr_reader(
     src: std::io::PipeReader,
     reaped: Arc<AtomicBool>,
@@ -260,7 +260,7 @@ pub const INBOUND_BOUND: usize = 32;
 /// header's declared `blobLen` BEFORE its body is allocated. One [`MAX_BLOB`] body: the one blob the protocol will
 /// ever let a scan child send (form B's `scanned`). A parameter ([`ScanConfig::blob_budget`]), so the tests set it
 /// small. With [`INBOUND_BOUND`] metas of at most [`MAX_META`] each, the scan side holds at most 64 MiB + 2 MiB of the
-/// child's frames [C], where it could hold about 2.1 GiB without it.
+/// child's frames, where it could hold about 2.1 GiB without it.
 pub const SCAN_BLOB_BUDGET: u64 = MAX_BLOB as u64;
 /// The most bytes of a crash log attached (the same bound as the stderr capture).
 pub const CRASH_LOG_CAP: usize = STDERR_CAP;

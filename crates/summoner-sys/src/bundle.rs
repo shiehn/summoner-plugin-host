@@ -31,7 +31,7 @@
 //!   and loads ([`foreign_images`]); the missing-executable case stays a STOP there too.
 //!
 //! - **The release policy** (the `release-loading` feature, OFF by default, so every development build keeps the development gate above
-//!   exactly): [`Bundle::check`] runs [`Bundle::check_release`] instead: plain and absolute, the format's
+//!   exactly): [`Bundle::check`] runs `Bundle::check_release` instead: plain and absolute, the format's
 //!   extension, symlinks followed with each hop checked before it is touched, the resolved path a directory; in a build
 //!   made with `SUMMONER_DEV_PLUGIN_ROOTS`, fenced lexically to the development fence and the development gate's walk of the inside. The
 //!   post-load check below is kept. Turning it on for real plugin folders is a separate, deliberate decision.
@@ -135,7 +135,8 @@ impl std::fmt::Display for Refusal {
 /// A bundle path that passed [`Bundle::check`]: the only thing the format loaders accept. It is the **bundle**, never
 /// its executable: the module body resolves the binary inside it (macOS: the CFBundle's executable; Windows:
 /// `<name>.vst3\Contents\<arch>-win\<name>.vst3`, or a legacy single-file `.vst3` DLL, which is its own image).
-/// The type is the release policy's too ([`Bundle::check_release`]), not only the development gate's.
+/// The type is the release policy's too (`Bundle::check_release`, feature `release-loading`), not only the
+/// development gate's.
 #[derive(Clone, Debug)]
 pub struct Bundle {
     path: PathBuf,
@@ -371,7 +372,7 @@ fn verify_pin(pin: &Path, bundle: &Path) -> Result<(), Refusal> {
 
 impl Bundle {
     /// The gate every loader runs before anything of a bundle is opened: the development gate ([`Self::check_dev`]) by
-    /// default, the release policy ([`Self::check_release`]) in a build with the `release-loading` feature.
+    /// default, the release policy (`Self::check_release`) in a build with the `release-loading` feature.
     #[cfg(not(feature = "release-loading"))]
     pub fn check(path: &Path, format: Format) -> Result<Bundle, Refusal> {
         Self::check_dev(path, format)
@@ -814,7 +815,7 @@ impl LoadCheck {
 
     /// After the load: `Err` (and a STOP counted) if none of the loaded images is inside the bundle, or, in a lab
     /// build, if a new image lies outside the bundle and the system's own; in a shipped build such an image is
-    /// reported on stderr and counted, and the load stands ([`report_only`]).
+    /// reported on stderr and counted, and the load stands (`report_only`).
     pub fn finish(self, b: &Bundle) -> Result<(), crate::Error> {
         let why = || -> Result<(), String> {
             match judge(&self.before, &crate::dyld::images(), &b.path, report_only()) {

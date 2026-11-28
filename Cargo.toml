@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/summoner-proto", "crates/summoner-rt", "crates/summoner-plugin", "crates/summoner", "crates/summoner-scan", "crates/summoner-testkit", "crates/summoner-sys", "crates/summoner-sys-ui", "crates/summoner-proc", "crates/summoner-format-vst3", "crates/summoner-format-au", "crates/summoner-probe", "crates/summoner-probe-bin", "crates/summoner-testproc", "crates/summoner-host"]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 rust-version = "1.99.1"
 license = "MIT"
@@ -26,11 +26,11 @@ summoner-probe = { path = "crates/summoner-probe" }
 summoner-probe-bin = { path = "crates/summoner-probe-bin" }
 summoner-testproc = { path = "crates/summoner-testproc" }
 summoner-host = { path = "crates/summoner-host" }
-orrery-time = { git = "https://github.com/shiehn/orrery-musical-time.git", rev = "d6dbdf861689cea1560a0bdc4429fb07d80093c3" }
-runecraft-contracts = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "01a12ed8ce5256d571b3578da6fd217fd85e73a1" }
-runecraft-ipc = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "01a12ed8ce5256d571b3578da6fd217fd85e73a1" }
-runecraft-log = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "01a12ed8ce5256d571b3578da6fd217fd85e73a1" }
-runecraft-rt = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "01a12ed8ce5256d571b3578da6fd217fd85e73a1" }
+orrery-time = { git = "https://github.com/shiehn/orrery-musical-time.git", rev = "d2da1631e182d154c67ee931d6908dac050fd552" }
+runecraft-contracts = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "dbc6948c080576b916ba8488ce7cff615aa46b70" }
+runecraft-ipc = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "dbc6948c080576b916ba8488ce7cff615aa46b70" }
+runecraft-log = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "dbc6948c080576b916ba8488ce7cff615aa46b70" }
+runecraft-rt = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "dbc6948c080576b916ba8488ce7cff615aa46b70" }
 libc = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }

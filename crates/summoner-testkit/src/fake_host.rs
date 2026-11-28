@@ -68,14 +68,14 @@
 //! spawn-lock test), `--tc-us <period>` (chain threads under the time-constraint policy), `--stats <path>` (write every
 //! chain thread's wake-to-run, `key hub ns` per line, against its group's ring stamp, at shutdown), `--turns <path>`
 //! (a test-only record of the main-loop turns, one `begin` and one `end` line per turn with a take to make: see
-//! [`TurnLog`]), and two mutations of the handover: `--mutant-hard-switch` (no fade: a hard
+//! `TurnLog`), and two mutations of the handover: `--mutant-hard-switch` (no fade: a hard
 //! switch into and out of the bypass) and `--mutant-no-delay-line` (the bypass signal is the slot's input undelayed).
 //! The live-hello knobs: `--hello-protocol <u32>` (the `hello` reply's `protocol` in
 //! place of `ABI_VERSION`), `--hello-undecodable` (a reply whose meta does not decode), `--hello-delay-ms <ms>` (the
 //! reply sent that late from its own thread while the reader goes on), `--hello-script <path>` (per-`hello` overrides
-//! a test writes between incarnations: [`HelloScript`]), `--frames <path>` (a test-only record of the frames received
-//! and the hello reply: [`FrameLog`]), and the slot attribute `proto-load="refused|orphan|garbage|fds|midframe"` (a
-//! protocol fault inside `chain.load` of that slot: [`protocol_fault_at_load`]).
+//! a test writes between incarnations: `HelloScript`), `--frames <path>` (a test-only record of the frames received
+//! and the hello reply: `FrameLog`), and the slot attribute `proto-load="refused|orphan|garbage|fds|midframe"` (a
+//! protocol fault inside `chain.load` of that slot: `protocol_fault_at_load`).
 //! The live reader's blob budget adds `--flood <n>:<bytes>`: right after the
 //! `hello` reply (from its own thread, so the reader goes on reading), n `log` EVENTs, each carrying a blob of
 //! `bytes` bytes (the host application ignores a log's blob), n at most 16 and bytes at most `MAX_BLOB`; or, with `bytes` 0,

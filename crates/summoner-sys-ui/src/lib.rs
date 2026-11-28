@@ -4,11 +4,11 @@
 //! build of the workspace and so link AppKit into the host child (measured). Only the scan probe
 //! (`summoner-probe-bin`) depends on it; the release-build link guard checks the host child never does.
 //!
-//! - [`appkit`] (feature `appkit`, enabled by nothing: an NSApplication in the scan child brings
+//! - `appkit` (feature `appkit`, enabled by nothing: an NSApplication in the scan child brings
 //!   the WindowServer, LaunchServices and a TCC ListenEvent preflight): the activation policy and the frontmost app.
-//! - [`nsapp`] (feature `nsapp`, DRAFT): the activation-policy reader, the policy of an NSApplication a plugin made,
+//! - `nsapp` (feature `nsapp`, DRAFT): the activation-policy reader, the policy of an NSApplication a plugin made,
 //!   found with `dlsym` (never created, AppKit never linked).
-//! - [`windows`] (feature `windows`, enabled by nothing: listing windows alone brings the WindowServer's
+//! - `windows` (feature `windows`, enabled by nothing: listing windows alone brings the WindowServer's
 //!   TCC ListenEvent and ScreenCapture preflights): the windows a process owns, owner pid / layer / bounds only.
 //!
 //! macOS only.

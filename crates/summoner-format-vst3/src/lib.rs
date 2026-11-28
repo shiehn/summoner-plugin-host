@@ -69,7 +69,7 @@ const MAX_EDITS: usize = 256;
 /// and no re-activation (so a test can see the latency move without a cycle). Never set in a product child.
 static LATENCY_NO_CYCLE: AtomicBool = AtomicBool::new(false);
 
-/// Sets [`LATENCY_NO_CYCLE`] (the host's test hooks, once, at start).
+/// Sets `LATENCY_NO_CYCLE` (the host's test hooks, once, at start).
 pub fn set_latency_no_cycle(on: bool) {
     LATENCY_NO_CYCLE.store(on, Ordering::Relaxed);
 }

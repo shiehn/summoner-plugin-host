@@ -82,7 +82,8 @@ pub mod kind {
     pub const STATE_GET: u16 = 32;
     /// `param.list` (MainThread): one page of a slot's parameters.
     pub const PARAM_LIST: u16 = 33;
-    /// Protocol 3.2 (additive): enable or disable one slot of a live chain; answered once applied ([`SlotEnabledReply`]).
+    /// Protocol 3.2 (additive): enable or disable one slot of a live chain; answered once applied
+    /// ([`SlotEnabledReply`](super::SlotEnabledReply)).
     pub const SLOT_SET_ENABLED: u16 = 34;
     /// Protocol 3.7 (additive): set one plugin parameter of a live slot by its
     /// own id, normalized; answered once set on the message thread ([`super::ParamSetReply`], with its read-back).
@@ -1770,7 +1771,7 @@ pub struct ParamEntry {
     /// VST3 `ParameterInfo::units`; AU the custom unit's name (`kAudioUnitParameterUnit_CustomUnit`), `%`, `s`, `Hz`,
     /// `dB`, `ms`, else empty.
     pub label: String,
-    /// The position in the flattened parameter tree ([`crate::params`]), `u32::MAX` when not in it.
+    /// The position in the flattened parameter tree (`summoner_plugin::params`), `u32::MAX` when not in it.
     pub order: u32,
 }
 
@@ -2235,7 +2236,7 @@ pub enum ScannedOutcome {
     },
 }
 
-/// `scanned` (scan child -> supervisor). Decoded only through [`ScannedUnchecked`]'s check: a line naming the supervisor's
+/// `scanned` (scan child -> supervisor). Decoded only through its unchecked twin's check: a line naming the supervisor's
 /// own reason (`protocolAfterScan`) is refused, as a child's `crashed` or `timeout` is.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase", try_from = "ScannedUnchecked")]

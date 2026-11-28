@@ -1,0 +1,37 @@
+# The protocol fuzz targets (cargo-fuzz). Their own workspace, so nightly and libFuzzer stay out of the main build.
+#
+#   cargo +nightly fuzz run bridge_frame -O -- -max_total_time=60
+#   cargo +nightly fuzz run state_blob -O -- -max_total_time=60
+[package]
+name = "summoner-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+license = "MIT"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+summoner-proto = { path = "../crates/summoner-proto" }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[workspace]
+members = ["."]
+
+# The control-frame codec: the streaming decoder, the admission gate, the typed metas and `scanned` form B.
+[[bin]]
+name = "bridge_frame"
+path = "fuzz_targets/bridge_frame.rs"
+test = false
+doc = false
+bench = false
+
+# The plugin state blob: one parser, one canonical form.
+[[bin]]
+name = "state_blob"
+path = "fuzz_targets/state_blob.rs"
+test = false
+doc = false
+bench = false

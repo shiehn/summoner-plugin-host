@@ -28,6 +28,7 @@ jobs:
       - run: tools/build-plugins.sh --fetch
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo clippy --workspace --all-targets --locked --features summoner-host/test-hooks,summoner-proc/test-hooks -- -D warnings
+      - run: RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked
       - run: cd "$RUNNER_TEMP" && cargo install --locked cargo-deny@0.22.2
       - run: cargo deny check
       - run: SUMMONER_REQUIRE_LAB_PLUGINS=1 cargo test --workspace --locked --no-fail-fast --features summoner-host/test-hooks,summoner-proc/test-hooks -- --test-threads 2
@@ -39,4 +40,5 @@ jobs:
         with:
           persist-credentials: false
       - run: cargo check -p summoner-proto -p summoner-plugin -p summoner-rt -p summoner -p summoner-scan -p summoner-testkit -p summoner-sys-ui -p summoner-proc --all-targets --locked
+      - run: RUSTDOCFLAGS="-D warnings" cargo doc -p summoner-proto -p summoner-plugin -p summoner-rt -p summoner -p summoner-scan -p summoner-testkit -p summoner-sys-ui -p summoner-proc --no-deps --locked
       - run: cargo test -p summoner-proto -p summoner-plugin -p summoner-rt -p summoner -p summoner-scan -p summoner-testkit -p summoner-sys-ui -p summoner-proc --locked --no-fail-fast -- --test-threads 2

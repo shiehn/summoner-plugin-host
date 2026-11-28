@@ -1267,45 +1267,21 @@ mod tests {
 
     #[test]
     fn the_system_numbers_are_read() {
-        // This process stands in for the child: its own RSS is readable, and so is the available memory.
+        // This process stands in for the child: its own RSS is readable, and so is the available memory (macOS,
+        // Linux and Windows all read them).
         let m = admit_render_set_now(std::process::id(), 1, 0);
-        // The reads exist on macOS and Windows; on Linux they are not yet implemented (see the test below), so the
-        // admission refuses there, worded.
-        #[cfg(not(target_os = "linux"))]
-        {
-            match m {
-                Ok(m) => {
-                    assert!(m.live_child_rss > 0);
-                    assert!(m.free_physical > 0);
-                }
-                // A loaded machine may refuse; the refusal must carry the admission's numbers.
-                Err(e) => assert!(e.as_str().contains("MiB"), "{e}"),
+        match m {
+            Ok(m) => {
+                assert!(m.live_child_rss > 0);
+                assert!(m.free_physical > 0);
             }
-            assert!(runecraft_rt::os::process_memory_of(std::process::id()).is_some());
-            assert!(runecraft_rt::os::available_memory().is_some_and(|b| b > 0));
+            // A loaded machine may refuse; the refusal must carry the admission's numbers.
+            Err(e) => assert!(e.as_str().contains("MiB"), "{e}"),
         }
-        #[cfg(target_os = "linux")]
-        {
-            let e = m.unwrap_err();
-            assert!(e.as_str().contains("could not be read"), "{e}");
-        }
+        assert!(runecraft_rt::os::process_memory_of(std::process::id()).is_some());
+        assert!(runecraft_rt::os::available_memory().is_some_and(|b| b > 0));
         // A pid that is not ours to read (or does not exist) is refused, worded.
         let e = admit_render_set_now(u32::MAX >> 1, 1, 1).unwrap_err();
         assert!(e.as_str().contains("could not be read"), "{e}");
-    }
-
-    /// The documented gap: on Linux a process's memory and the system's available memory are not yet read, so
-    /// every render set is refused there. This test flips (and goes) when the Linux reads land.
-    #[cfg(target_os = "linux")]
-    #[test]
-    fn the_system_numbers_are_not_yet_read_on_linux() {
-        assert!(
-            runecraft_rt::os::process_memory_of(std::process::id()).is_none(),
-            "process_memory_of is implemented on Linux now: update the_system_numbers_are_read"
-        );
-        assert!(
-            runecraft_rt::os::available_memory().is_none(),
-            "available_memory is implemented on Linux now: update the_system_numbers_are_read"
-        );
     }
 }

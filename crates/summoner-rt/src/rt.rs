@@ -965,7 +965,7 @@ impl ChainState {
 
     /// [`ChainState::visit`] with the node's chase: at an edge, the release first
     /// (`Visit.release`'s at an explicit edge), then the events before `o + d`, then the chased
-    /// note-ons at `o + d` (clamped to the piece's last frame) through the one [`ChainState::stage_midi`] path, then the
+    /// note-ons at `o + d` (clamped to the piece's last frame) through the one `ChainState::stage_midi` path, then the
     /// rest. One chase per piece: an explicit edge replaces the loop-start list in its piece and consumes the pending
     /// wrap. At most [`MAX_CHASED_EDGES`] chasing edges per visit. With [`Chase::NONE`], today's visit bit for bit.
     #[allow(clippy::too_many_arguments)]

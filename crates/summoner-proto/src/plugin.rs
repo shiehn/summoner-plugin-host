@@ -8,7 +8,9 @@
 //! - an Audio Unit's codes are `<type>-<subtype>-<manufacturer>`, each code a `u32` as 8 lowercase hex digits
 //!   ([`check_au_codes`]); in a [`PluginRef`] each code is also non-zero and four printable ASCII bytes, none of
 //!   `,` `:` `/` ([`check_au_code_values`]);
-//! - a path is absolute, and an unknown field is refused.
+//! - a path is absolute;
+//! - an unknown field is refused in a [`PluginRef`], and tolerated in a [`ScanClass`] (a newer child's additive fact:
+//!   dropped and noted, [`unknown_scan_class_fields`]).
 //!
 //! Control-path values (decoded on the reader and supervisor threads, never on the audio thread), so they allocate,
 //! as the rest of the codec does.
@@ -78,7 +80,8 @@ pub enum PluginFormat {
 /// Only a host built for tests loads one; any other host refuses it.
 ///
 /// Its fields are private: a ref is made only through its checks, by decoding or by [`PluginRef::vst3`] /
-/// [`PluginRef::au`] (and the test double's [`PluginRef::fake`]), and read through its accessors.
+/// [`PluginRef::au`] (and the test double's `PluginRef::fake`, with the `test-double` feature), and read through its
+/// accessors.
 ///
 /// ```compile_fail
 /// let _ = summoner_proto::plugin::PluginRef::Vst3 { path: "x".into(), class_id: "y".into(), name: "z".into() };
@@ -128,7 +131,7 @@ enum RefKind {
 ///
 /// Decoding a `{"format":"fake",…}` ref builds one in every build, so a host that is not built for tests still decodes
 /// the frame and refuses only that slot. Rust code builds one only with the `test-double` feature
-/// ([`PluginRef::fake`]); the field is private, so no other path exists.
+/// (`PluginRef::fake`); the field is private, so no other path exists.
 ///
 /// ```compile_fail
 /// let _ = summoner_proto::plugin::FakeRef { knobs: Default::default() };

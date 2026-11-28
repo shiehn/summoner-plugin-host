@@ -207,9 +207,10 @@ pub enum LineFault {
     /// which never quotes more than that of the line).
     Description(String),
     /// It parses, but is not the codec's canonical bytes for what it decodes to:
-    /// whitespace, a key out of the codec's order, an absent defaulted field, an explicit `null`, an unknown key, an
-    /// escape the encoder does not write, `-0`. `at` is the line's byte offset where the re-encode first differs (at
-    /// the start of the differing piece of the re-encode).
+    /// whitespace, a key out of the codec's order, an absent defaulted field, an explicit `null`, an escape the
+    /// encoder does not write, `-0` (checked on a line of known fields only: a line with an unknown key skips it).
+    /// `at` is the line's byte offset where the re-encode first differs (at the start of the differing piece of the
+    /// re-encode).
     NonCanonical {
         /// The byte offset in the line where the re-encode first differs.
         at: usize,
@@ -551,15 +552,16 @@ pub fn decode_scanned(f: &Frame, offered: bool) -> Result<ScannedLine, ScannedFa
 /// byte 0x0A; exactly `description_count` 0x0A bytes (a strike);
 /// 8. every line's length, its newline excluded, at most [`MAX_DESCRIPTION_LINE`] (the line limit), before any line is parsed: a
 /// long line is the limit even if it would not parse;
-/// 9. every line's content: first byte `{`, UTF-8, a [`ScanClass`] (its decode checks it), and its canonical bytes (a
-/// strike naming the line).
+/// 9. every line's content: first byte `{`, UTF-8, a [`ScanClass`] (its decode checks it), and, for a line of known
+/// fields only, its canonical bytes (a strike naming the line).
 ///
 /// The lines are parsed in place (slices of `blob`); the descriptions are the only allocation, bounded by the count.
-/// **Canonical lines only** (replacing the original format's "the receiver does not check canonicality"):
-/// each parsed line re-encodes, through the encoder's own serialisation, to exactly its bytes, compared as it is
-/// written with no allocation, or it is [`LineFault::NonCanonical`]. So an unknown key (a newer child's additive
-/// field) is refused in form B: a new description field needs a new form B version (the offer), never a silent
-/// addition. Form A keeps the protocol's additive rule.
+/// **Canonical lines** (replacing the original format's "the receiver does not check canonicality"): a line of
+/// known fields re-encodes, through the encoder's own serialisation, to exactly its bytes, compared as it is
+/// written with no allocation, or it is [`LineFault::NonCanonical`]. A line with an unknown key (a newer child's
+/// additive field) is accepted as form A accepts one, the protocol's additive rule: the field is dropped and noted,
+/// and the canonical-bytes check is skipped for that line (it cannot re-encode to bytes holding a field the codec
+/// does not know), so its known fields may come reordered or spaced. Duplicate known keys are still refused.
 pub fn decode_descriptions_blob(
     blob: &[u8],
     description_count: u64,

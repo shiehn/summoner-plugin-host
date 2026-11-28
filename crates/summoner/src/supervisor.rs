@@ -96,10 +96,10 @@ fn clamp_entry(p: codec::ParamEntry, v37: bool) -> codec::ParamEntry {
     }
 }
 /// Reader -> supervisor frames, and blob bytes, in flight. The frame bound is each reader's own (
-/// 2026-11-01), enforced with the byte budget by [`BlobGate`]: every frame counts, a meta-only one included.
+/// 2026-11-01), enforced with the byte budget by `BlobGate`: every frame counts, a meta-only one included.
 pub const READER_FRAMES: usize = 256;
 /// 256 MiB: the blob bytes the readers may hold between the socket and the supervisor, the frame the decoder is
-/// filling included ([`BlobGate`]). Every frame's blob fits it (the codec's cap is 64 MiB), so a frame within the caps
+/// filling included (`BlobGate`). Every frame's blob fits it (the codec's cap is 64 MiB), so a frame within the caps
 /// always admits once the supervisor has taken the frames before it.
 pub const READER_BLOB_BYTES: usize = 256 * 1024 * 1024;
 const _: () = assert!(codec::MAX_BLOB <= READER_BLOB_BYTES);
@@ -873,7 +873,7 @@ pub enum DownReason {
 
 impl DownReason {
     /// The reason word of `event.pluginHostRestarted {reason}` (`crash|wedge`). A send stall is a wedged
-    /// child (the bounds table). `protocol` and `incompatible` are [P] names, beside `crash` and `wedge`, for
+    /// child (the bounds table). `protocol` and `incompatible` are names, beside `crash` and `wedge`, for
     /// acceptance.
     pub fn wire_word(self) -> &'static str {
         match self {
@@ -1889,7 +1889,7 @@ impl Bridge {
     }
 
     /// [`Bridge::send`] for a command sent on a request's behalf: `corr` (the request's correlation id) travels with
-    /// it, and the frames it sends carry it to a verified child. Only a valid one ([`corr_ok`]); an invalid one is
+    /// it, and the frames it sends carry it to a verified child. Only a valid one (`corr_ok`); an invalid one is
     /// dropped.
     #[allow(clippy::result_large_err)]
     pub fn send_corr(&self, c: Command, corr: Option<String>) -> Result<(), Busy> {

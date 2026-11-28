@@ -797,7 +797,7 @@ pub const CHILD_PAGE_FIELDS: &[Field] = &[
         "DIAGNOSTIC ONLY, NOT part of the child contract: host ticks of the group's last ring, a Relaxed store by the callback (the wake-to-run measure); a child must not depend on it",
     ),
     f("reserved_hub3", 400, Reserved64, 14, ""),
-    f("reserved_core", 512, Reserved64, 64, ""),
+    f("reserved_host", 512, Reserved64, 64, ""),
     f(
         "op",
         P_OP,

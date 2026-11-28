@@ -502,7 +502,7 @@ pub struct Buses {
     pub events: bool,
 }
 
-/// The block for [`Instance::process`]: the main buses' channels, the parameter points, the notes, the transport.
+/// The block for [`Processor::process`]: the main buses' channels, the parameter points, the notes, the transport.
 pub struct Block<'a> {
     /// The main input bus's channels (may be empty).
     pub inputs: &'a [*const f32],

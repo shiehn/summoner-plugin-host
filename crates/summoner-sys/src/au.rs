@@ -39,7 +39,7 @@
 //! **HostCallbacks:** `kAudioUnitProperty_HostCallbacks` is set at instantiation with three procs (BeatAndTempo,
 //! MusicalTimeLocation, TransportState; `transportStateProc2` NULL), each answering from the block's transport, with
 //! fixed fallbacks, always `noErr`. The render thread publishes
-//! each block's transport into the instance's [`HostCtx`] with a seqlock before `AudioUnitRender`
+//! each block's transport into the instance's `HostCtx` with a seqlock before `AudioUnitRender`
 //! ([`Processor::publish_transport`]): atomics only, no allocation, no lock. A callback on the render thread reads the
 //! current block's; one on another thread reads a consistent snapshot in at most four tries.
 use crate::bundle::{Bundle, Format, LoadCheck};
@@ -961,7 +961,7 @@ unsafe extern "C" fn host_transport_state(
 /// can follow a dispose).
 static HOST_CALLBACKS_CLEAR_FAILURES: AtomicU32 = AtomicU32::new(0);
 
-/// See [`HOST_CALLBACKS_CLEAR_FAILURES`].
+/// See `HOST_CALLBACKS_CLEAR_FAILURES`.
 pub fn host_callbacks_clear_failures() -> u32 {
     HOST_CALLBACKS_CLEAR_FAILURES.load(Ordering::Relaxed)
 }
@@ -1623,7 +1623,7 @@ impl Processor {
     }
 
     /// The block's transport for the HostCallbacks, published before [`Processor::render`] (the render thread, the
-    /// one writer: `&mut self`). Atomics only, no allocation, no lock ([`HostCtx`]'s seqlock).
+    /// one writer: `&mut self`). Atomics only, no allocation, no lock (`HostCtx`'s seqlock).
     pub fn publish_transport(&mut self, t: &HostTransport) {
         self.raw.host.publish(t);
     }

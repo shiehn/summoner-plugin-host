@@ -2,6 +2,31 @@
 
 Summoner is pre-1.0: a minor release may change the public API. Each such change is listed here.
 
+## 0.3.0
+
+### Changed (breaking, for C users of a header generated from the field tables)
+
+- `summoner_proto::layout::CHILD_PAGE_FIELDS`: the child page's reserved block at +512 (64 `u64` words) is named
+  `reserved_host` (it was `reserved_core`). A rename only: its offset, its size, the page's layout and the wire bytes
+  are unchanged, and no Rust item changed. C code that names the field must use the new name.
+
+### Added
+
+- `fuzz/`: a cargo-fuzz harness with two targets, `bridge_frame` (the frame codec, the admission gate, the typed
+  metas and the scan's form B) and `state_blob` (the stored state-blob parser). It needs a nightly toolchain and
+  `cargo-fuzz`; it is not a workspace member.
+
+### Changed
+
+- Documentation: `summoner_proto::codec::form_b` now says what the decoder does with a form B line holding an unknown
+  key: it is accepted (the field dropped and noted, the protocol's additive rule) and only such a line skips the
+  canonical-bytes check. The old text said it was refused. No behaviour change.
+
+### Fixed
+
+- `summoner-rt`: a render set's RAM admission works on Linux: it reads the child's resident size and the available
+  memory there (Runecraft 0.3's Linux bodies), where every render set used to be refused.
+
 ## 0.2.0
 
 ### Changed (breaking)

@@ -17,3 +17,8 @@ target/
 .vscode/
 # added by export
 target.noindex/
+# added by export
+fuzz/target/
+fuzz/corpus/
+fuzz/artifacts/
+fuzz/coverage/
