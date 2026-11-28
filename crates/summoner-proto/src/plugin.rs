@@ -861,6 +861,8 @@ impl TryFrom<ScanClassUnchecked> for ScanClass {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[allow(unused_imports)]
+    use crate::test_paths::{j, p, po};
 
     /// The bundle-path rule's verdicts are today's on unix (a leading `/`, no NUL, no `.` / `..`
     /// segment, split lexically: an inner `.` is refused, which `Path::components` would have dropped), and a caller's
@@ -903,8 +905,8 @@ mod tests {
     #[test]
     fn refs_round_trip_byte_for_byte() {
         for s in [
-            format!(r#"{{"format":"vst3","path":"/x/a.vst3","classId":"{CID}","name":"A"}}"#),
-            r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c6761-5361534c","name":"A"}"#
+            po(format!(r#"{{"format":"vst3","path":"/x/a.vst3","classId":"{CID}","name":"A"}}"#)),
+            j(r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c6761-5361534c","name":"A"}"#)
                 .to_string(),
             r#"{"format":"fake","fake":{"gain":"0.5","name":"f","synth":1}}"#.to_string(),
         ] {
@@ -948,21 +950,21 @@ mod tests {
     fn bad_refs_are_refused() {
         let long = "a".repeat(MAX_PLUGIN_REF_BYTES);
         for (why, s) in [
-            ("unknown field", format!(r#"{{"format":"vst3","path":"/x/a.vst3","classId":"{CID}","name":"A","uid":1}}"#)),
-            ("uppercase class id", format!(r#"{{"format":"vst3","path":"/x/a.vst3","classId":"{}","name":"A"}}"#, CID.to_uppercase())),
-            ("short class id", r#"{"format":"vst3","path":"/x/a.vst3","classId":"5341","name":"A"}"#.into()),
-            ("codes on vst3", format!(r#"{{"format":"vst3","path":"/x/a.vst3","classId":"{CID}","auCodes":"61756678-534c6761-5361534c","name":"A"}}"#)),
-            ("no class id", r#"{"format":"vst3","path":"/x/a.vst3","name":"A"}"#.into()),
+            ("unknown field", po(format!(r#"{{"format":"vst3","path":"/x/a.vst3","classId":"{CID}","name":"A","uid":1}}"#))),
+            ("uppercase class id", po(format!(r#"{{"format":"vst3","path":"/x/a.vst3","classId":"{}","name":"A"}}"#, CID.to_uppercase()))),
+            ("short class id", j(r#"{"format":"vst3","path":"/x/a.vst3","classId":"5341","name":"A"}"#).into()),
+            ("codes on vst3", po(format!(r#"{{"format":"vst3","path":"/x/a.vst3","classId":"{CID}","auCodes":"61756678-534c6761-5361534c","name":"A"}}"#))),
+            ("no class id", j(r#"{"format":"vst3","path":"/x/a.vst3","name":"A"}"#).into()),
             ("relative path", format!(r#"{{"format":"vst3","path":"x/a.vst3","classId":"{CID}","name":"A"}}"#)),
-            ("wrong bundle", format!(r#"{{"format":"vst3","path":"/x/a.component","classId":"{CID}","name":"A"}}"#)),
-            ("bad codes", r#"{"format":"au","path":"/x/a.component","auCodes":"61756678534c67615361534c","name":"A"}"#.into()),
-            ("zero code", r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-00000000-5361534c","name":"A"}"#.into()),
-            ("colon in a code", r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c3a61-5361534c","name":"A"}"#.into()),
-            ("no name", r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c6761-5361534c"}"#.into()),
-            ("path on fake", r#"{"format":"fake","path":"/x/a.vst3","fake":{}}"#.into()),
+            ("wrong bundle", po(format!(r#"{{"format":"vst3","path":"/x/a.component","classId":"{CID}","name":"A"}}"#))),
+            ("bad codes", j(r#"{"format":"au","path":"/x/a.component","auCodes":"61756678534c67615361534c","name":"A"}"#).into()),
+            ("zero code", j(r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-00000000-5361534c","name":"A"}"#).into()),
+            ("colon in a code", j(r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c3a61-5361534c","name":"A"}"#).into()),
+            ("no name", j(r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c6761-5361534c"}"#).into()),
+            ("path on fake", j(r#"{"format":"fake","path":"/x/a.vst3","fake":{}}"#).into()),
             ("nested fake knob", r#"{"format":"fake","fake":{"a":[1]}}"#.into()),
-            ("other format", r#"{"format":"clap","path":"/x/a.clap","name":"A"}"#.into()),
-            ("over the cap", format!(r#"{{"format":"vst3","path":"/x/{long}.vst3","classId":"{CID}","name":"A"}}"#)),
+            ("other format", j(r#"{"format":"clap","path":"/x/a.clap","name":"A"}"#).into()),
+            ("over the cap", po(format!(r#"{{"format":"vst3","path":"/x/{long}.vst3","classId":"{CID}","name":"A"}}"#))),
             ("a fake over its cap", format!(r#"{{"format":"fake","fake":{{"x":"{}"}}}}"#, "a".repeat(MAX_FAKE_REF_BYTES))),
         ] {
             assert!(de(&s).is_err(), "{why}: {s}");
@@ -973,50 +975,58 @@ mod tests {
     /// input a decoded ref refuses is refused by `vst3` / `au` too.
     #[test]
     fn a_constructed_ref_passes_the_decoders_checks() {
-        let v = PluginRef::vst3("/x/a.vst3", CID, "A").unwrap();
+        let v = PluginRef::vst3(p("/x/a.vst3"), CID, "A").unwrap();
         assert_eq!(
             serde_json::to_string(&v).unwrap(),
-            format!(r#"{{"format":"vst3","path":"/x/a.vst3","classId":"{CID}","name":"A"}}"#)
+            po(format!(
+                r#"{{"format":"vst3","path":"/x/a.vst3","classId":"{CID}","name":"A"}}"#
+            ))
         );
         assert_eq!(v, de(&serde_json::to_string(&v).unwrap()).unwrap());
         assert_eq!(
             (v.class_id(), v.au_codes(), v.name()),
             (Some(CID), None, "A")
         );
-        let a = PluginRef::au("/x/a.component", "61756678-534c6761-5361534c", "B").unwrap();
+        let a = PluginRef::au(p("/x/a.component"), "61756678-534c6761-5361534c", "B").unwrap();
         assert_eq!(a.au_codes(), Some("61756678-534c6761-5361534c"));
         assert_eq!(a.format(), Some(PluginFormat::Au));
         for (why, r) in [
             (
                 "uppercase class id",
-                PluginRef::vst3("/x/a.vst3", CID.to_uppercase(), "A"),
+                PluginRef::vst3(p("/x/a.vst3"), CID.to_uppercase(), "A"),
             ),
-            ("short class id", PluginRef::vst3("/x/a.vst3", "5341", "A")),
+            (
+                "short class id",
+                PluginRef::vst3(p("/x/a.vst3"), "5341", "A"),
+            ),
             ("relative path", PluginRef::vst3("x/a.vst3", CID, "A")),
-            ("wrong bundle", PluginRef::vst3("/x/a.component", CID, "A")),
+            (
+                "wrong bundle",
+                PluginRef::vst3(p("/x/a.component"), CID, "A"),
+            ),
             (
                 "over the cap",
                 PluginRef::vst3(
-                    format!("/x/{}.vst3", "a".repeat(MAX_PLUGIN_REF_BYTES)),
+                    po(format!("/x/{}.vst3", "a".repeat(MAX_PLUGIN_REF_BYTES))),
                     CID,
                     "A",
                 ),
             ),
             (
                 "bad codes",
-                PluginRef::au("/x/a.component", "61756678534c67615361534c", "A"),
+                PluginRef::au(p("/x/a.component"), "61756678534c67615361534c", "A"),
             ),
             (
                 "zero code",
-                PluginRef::au("/x/a.component", "61756678-00000000-5361534c", "A"),
+                PluginRef::au(p("/x/a.component"), "61756678-00000000-5361534c", "A"),
             ),
             (
                 "colon in a code",
-                PluginRef::au("/x/a.component", "61756678-534c3a61-5361534c", "A"),
+                PluginRef::au(p("/x/a.component"), "61756678-534c3a61-5361534c", "A"),
             ),
             (
                 "wrong au bundle",
-                PluginRef::au("/x/a.vst3", "61756678-534c6761-5361534c", "A"),
+                PluginRef::au(p("/x/a.vst3"), "61756678-534c6761-5361534c", "A"),
             ),
         ] {
             assert!(matches!(r, Err(ProtoError::BadMeta(_))), "{why}: {r:?}");
@@ -1030,14 +1040,14 @@ mod tests {
     /// with an unknown field (serde's own "duplicate field" error with `flatten` too, measured: no code of ours to mutate).
     #[test]
     fn form_b_keeps_the_canonical_class_and_refuses_duplicate_keys() {
-        let canonical = format!(
+        let canonical = po(format!(
             r#"{{"format":"vst3","path":"/x/a.vst3","bundleMtimeMs":0,"source":"factory","classId":"{CID}","category":"Audio Module Class","name":"A","categories":["Fx"],"vendor":"V","version":"1","sdkVersion":"s","instantiated":true,"inputs":2,"outputs":2}}"#
-        );
+        ));
         let known: ScanClass = serde_json::from_str(&canonical).unwrap();
         // Reordered keys, spaces, and an unknown field.
-        let messy = format!(
+        let messy = po(format!(
             r#"{{ "name" : "A", "format":"vst3", "newer": [1], "path":"/x/a.vst3","classId":"{CID}","category":"Audio Module Class","categories":["Fx"],"vendor":"V","version":"1","sdkVersion":"s","source":"factory","instantiated":true,"outputs":2,"inputs":2,"bundleMtimeMs":0 }}"#
-        );
+        ));
         let blob = format!("{messy}\n");
         let kept = crate::codec::decode_descriptions_blob(blob.as_bytes(), 1).expect("accepted");
         assert_eq!(kept, vec![known.clone()]);
@@ -1082,9 +1092,9 @@ mod tests {
     /// and a form B line too. The mutant `mutant_scan_class_unknown_refused` fails here.
     #[test]
     fn a_scan_class_with_an_unknown_field_is_accepted() {
-        let known = format!(
+        let known = po(format!(
             r#"{{"format":"vst3","path":"/x/a.vst3","bundleMtimeMs":0,"source":"factory","classId":"{CID}","category":"Audio Module Class","name":"A","categories":["Fx"],"vendor":"V","version":"1","sdkVersion":"s","instantiated":true,"inputs":2,"outputs":2}}"#
-        );
+        ));
         let newer = known.replacen('}', r#","newerFact":{"x":[1,2]},"also":"y"}"#, 1);
         let before = unknown_scan_class_fields();
         let a: ScanClass = serde_json::from_str(&known).unwrap();
@@ -1096,11 +1106,14 @@ mod tests {
             "never written back"
         );
         assert!(unknown_scan_class_fields() >= before + 2, "counted");
-        let au = r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c6761-5361534c","componentName":"M: N","auVersion":1,"extra":1}"#;
+        let au = j(
+            r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c6761-5361534c","componentName":"M: N","auVersion":1,"extra":1}"#,
+        );
         assert!(serde_json::from_str::<ScanClass>(au).is_ok());
         // Form A: a whole `scanned` line.
-        let line =
-            format!(r#"{{"format":"vst3","path":"/x/a.vst3","outcome":"ok","classes":[{newer}]}}"#);
+        let line = po(format!(
+            r#"{{"format":"vst3","path":"/x/a.vst3","outcome":"ok","classes":[{newer}]}}"#
+        ));
         let s: crate::codec::Scanned = serde_json::from_str(&line).unwrap();
         assert_eq!(s.classes, vec![a.clone()]);
         // Form B: a blob line.
@@ -1116,22 +1129,28 @@ mod tests {
     #[test]
     fn scan_classes_round_trip_and_refuse() {
         for s in [
-            format!(
+            po(format!(
                 r#"{{"format":"vst3","path":"/x/a.vst3","bundleMtimeMs":5,"source":"factory","classId":"{CID}","category":"Audio Module Class","name":" A ","categories":["Fx","Delay"],"vendor":"V","classVendor":"W","version":"1","sdkVersion":"VST 3.8.0","instantiated":true,"inputs":2,"outputs":2}}"#
-            ),
-            format!(
+            )),
+            po(format!(
                 r#"{{"format":"vst3","path":"/x/a.vst3","bundleMtimeMs":0,"source":"moduleinfo","classId":"{CID}","category":"Audio Module Class","name":"A","categories":[],"vendor":"V","version":"1","sdkVersion":"s"}}"#
-            ),
-            r#"{"format":"au","path":"/x/a.component","bundleMtimeMs":0,"entry":0,"auCodes":"61756678-534c6761-5361534c","componentName":"M: N","auVersion":65536,"inputs":2,"outputs":2}"#.into(),
-            r#"{"format":"au","path":"/x/a.component","bundleMtimeMs":0,"entry":1,"auCodes":"61756678-534c3a61-5361534c","componentName":"M: N","refused":"why"}"#.into(),
+            )),
+            j(r#"{"format":"au","path":"/x/a.component","bundleMtimeMs":0,"entry":0,"auCodes":"61756678-534c6761-5361534c","componentName":"M: N","auVersion":65536,"inputs":2,"outputs":2}"#).into(),
+            j(r#"{"format":"au","path":"/x/a.component","bundleMtimeMs":0,"entry":1,"auCodes":"61756678-534c3a61-5361534c","componentName":"M: N","refused":"why"}"#).into(),
         ] {
             let c: ScanClass = serde_json::from_str(&s).unwrap();
             assert_eq!(serde_json::to_string(&c).unwrap(), s);
         }
         for s in [
-            r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c6761-5361534c","componentName":"M: N"}"#,
-            r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c6761-5361534c","componentName":"M: N","auVersion":1,"name":"x"}"#,
-            r#"{"format":"vst3","path":"/x/a.vst3","classId":"zz","category":"c","name":"A","categories":[],"vendor":"V","version":"1","sdkVersion":"s"}"#,
+            j(
+                r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c6761-5361534c","componentName":"M: N"}"#,
+            ),
+            j(
+                r#"{"format":"au","path":"/x/a.component","auCodes":"61756678-534c6761-5361534c","componentName":"M: N","auVersion":1,"name":"x"}"#,
+            ),
+            j(
+                r#"{"format":"vst3","path":"/x/a.vst3","classId":"zz","category":"c","name":"A","categories":[],"vendor":"V","version":"1","sdkVersion":"s"}"#,
+            ),
         ] {
             assert!(serde_json::from_str::<ScanClass>(s).is_err(), "{s}");
         }

@@ -9,7 +9,6 @@
 //! `chain.loaded` and `latency.changed`.
 //!
 //! The block's buffers, MIDI list and stats are allocated at load, never in the loop.
-use runecraft_ipc::bridge::FanOutEndpoint;
 use runecraft_ipc::bridge::sync::Waited;
 use std::panic::AssertUnwindSafe;
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
@@ -107,6 +106,12 @@ impl Fader {
 pub static TEST_SLOT_ENABLED: std::sync::OnceLock<Vec<(u32, bool, u64)>> =
     std::sync::OnceLock::new();
 
+/// `--test-hold-after-return` (test-hooks): the block that ends a handover's return (`RETURNING -> HOSTED`) waits, up
+/// to 300 ms, for the slot's word to leave `HOSTED`, so a re-announce the message thread makes at once lands before
+/// the chain's next block (a second handover with no plugin-only block between the two), deterministically.
+#[cfg(feature = "test-hooks")]
+pub static TEST_HOLD_AFTER_RETURN: AtomicBool = AtomicBool::new(false);
+
 /// A re-activation's take in progress: when it was announced, and whether it was forced.
 #[derive(Clone, Copy, Debug)]
 pub struct PendingTake {
@@ -140,6 +145,9 @@ impl std::ops::Deref for ChainArc {
     }
 }
 
+/// [`Procs::byp_latency`]'s value when no handover is in progress on the slot.
+pub const NO_LATCH: u32 = u32::MAX;
+
 /// The chain's prepared gate and what each prepare builds, behind the lock the message thread holds to prepare or
 /// release the chain (the chain thread try-locks it: held, the block is SKIPPED).
 ///
@@ -156,6 +164,11 @@ pub struct Procs {
     pub lines: runecraft_rt::arena::ArenaSlice<Option<handover::DelayLine>>,
     /// The chain thread's side of each slot's handover, reset at every prepare.
     pub sides: runecraft_rt::arena::ArenaSlice<handover::ChainSide>,
+    /// Each slot's bypass latency for the handover in progress ([`NO_LATCH`] when none): the slot's latency at the
+    /// handover's first block, held through the drain, the time out and the return fade, so the bypass signal never
+    /// moves while it is heard (a re-activation stores the new latency before the give-back). Cleared once the mix is
+    /// the plugin's alone. Made at prepare (message thread), one per slot.
+    pub byp_latency: runecraft_rt::arena::ArenaSlice<u32>,
     /// Each slot's [`Dsp::io`], read once at prepare (message thread), never per block (an unhosted slot's
     /// is [`Io::STEREO`], unused: it is never called).
     pub ios: runecraft_rt::arena::ArenaSlice<Io>,
@@ -167,9 +180,10 @@ pub struct Chain {
     pub rate: f64,
     pub region: Region,
     pub page: Arc<ChildPage>,
-    /// This chain's waiter endpoint of its ring group's hub (`chain.load`'s `fanSlot` on Windows; slot 0, the shared
-    /// word, on unix).
-    fan: FanOutEndpoint,
+    /// This chain's waiter endpoint on each ring group's hub, one waiter slot in all of them (the load's waiter slot
+    /// on Windows, its event shared by every group; slot 0, the shared word, on unix). The thread waits on the
+    /// endpoint of the group it reads, so an unpark into another group needs nothing new.
+    fans: summoner_rt::HubEndpoints,
     /// The slots' records in the wired arena (the chain thread reads each slot's atomics and plugin every block).
     pub slots: runecraft_rt::arena::ArenaSlice<SlotEntry>,
     pub procs: runecraft_rt::rt_lock::WiredLock<Procs>,
@@ -233,7 +247,7 @@ impl Chain {
         stats: bool,
         noalloc_blocks: u32,
         render: bool,
-        fan: FanOutEndpoint,
+        fans: summoner_rt::HubEndpoints,
     ) -> Chain {
         let c = Chain {
             key,
@@ -241,7 +255,7 @@ impl Chain {
             rate,
             region,
             page,
-            fan,
+            fans,
             slots: {
                 let n = slots.len();
                 let mut it = slots.into_iter();
@@ -256,6 +270,7 @@ impl Chain {
                 sides: runecraft_rt::arena::ArenaSlice::from_fn(RT_OWNER, 0, |_| {
                     handover::ChainSide::default()
                 }),
+                byp_latency: runecraft_rt::arena::ArenaSlice::from_fn(RT_OWNER, 0, |_| NO_LATCH),
                 ios: runecraft_rt::arena::ArenaSlice::from_fn(RT_OWNER, 0, |_| Io::STEREO),
             }),
             cells: Mutex::new(None),
@@ -555,11 +570,17 @@ fn run_loop(c: &Chain, s: &mut Scratch) -> Vec<u64> {
             r.seq_waker()
                 .wait(seq, Some(Instant::now() + Duration::from_millis(250)))
         } else {
-            c.fan.wait(
-                c.page.hub(g),
-                h,
-                Some(Instant::now() + Duration::from_millis(250)),
-            )
+            match c.fans.get(g) {
+                Some(fan) => fan.wait(
+                    c.page.hub(g),
+                    h,
+                    Some(Instant::now() + Duration::from_millis(250)),
+                ),
+                // (Never: the page's endpoints cover every group and `g` is clamped; the seq's own wait instead.)
+                None => r
+                    .seq_waker()
+                    .wait(seq, Some(Instant::now() + Duration::from_millis(250))),
+            }
         };
         woke = match waited {
             Waited::Woken => true,
@@ -749,8 +770,13 @@ fn process_block(c: &Chain, s: &mut Scratch, n: u64) {
         // FZ around the block, restored after it.
         let _fz = runecraft_rt::fpu::FzScope::enter();
         let pr = &mut **procs.as_mut().expect("held: run");
-        let (cells, lines, sides, ios) =
-            (pr.cells.as_deref(), &mut pr.lines, &mut pr.sides, &pr.ios);
+        let (cells, lines, sides, byp_latency, ios) = (
+            pr.cells.as_deref(),
+            &mut pr.lines,
+            &mut pr.sides,
+            &mut pr.byp_latency,
+            &pr.ios,
+        );
         #[cfg(feature = "test-hooks")]
         {
             if let Some(t) = TEST_SLOT_ENABLED.get() {
@@ -783,6 +809,26 @@ fn process_block(c: &Chain, s: &mut Scratch, n: u64) {
             } else {
                 (begun.mix, false)
             };
+            // The bypass signal's latency: the slot's own while the mix is the plugin's alone (the fader's bypass);
+            // during a handover the one its first block saw, held to the end of the return fade.
+            let byp_l = match byp_latency.get_mut(k) {
+                Some(held) if !fading => {
+                    if *held == NO_LATCH {
+                        *held = plugin.latency();
+                    }
+                    *held
+                }
+                Some(held) => {
+                    *held = NO_LATCH;
+                    plugin.latency()
+                }
+                None => plugin.latency(),
+            };
+            // A handover on a slot the fader holds away from the plugin (disabled, or caught mid-fade): the handover's
+            // plugin side is the fader's still mix of the plugin's output with the bypass signal at the slot's live
+            // latency (what the slot outputs once the handover is over), so the return fades into that, never into the
+            // plugin's output alone with the fader's bypass cutting in after it.
+            let composite = !fading && fader.xf > 0;
             // Disabled and faded out: the plugin is not called at latency 0; above 0 it is called and its output
             // discarded.
             let call = !(fading && !enabled && fader.xf == handover::FADE && plugin.latency() == 0);
@@ -808,16 +854,17 @@ fn process_block(c: &Chain, s: &mut Scratch, n: u64) {
                         line.write(ch, &b[..frames]);
                     }
                     if uses_bypass {
-                        let l = plugin.latency() as usize;
+                        // (A composite block reads the live latency first, for the fader's mix after the call,
+                        // and the held one after that.)
+                        let l = if composite { plugin.latency() } else { byp_l } as usize;
                         let mut aligned = true;
                         for (ch, b) in s.byp.iter_mut().enumerate() {
                             aligned &= line.read(ch, l, &mut b[..frames]);
                         }
-                        if !aligned && begun.mix.bypassed() {
+                        if !aligned && begun.mix.bypassed() && !composite {
                             entry.misaligned.fetch_add(1, Ordering::Relaxed);
                         }
                     }
-                    line.advance(frames);
                 }
                 None if uses_bypass => {
                     for b in s.byp.iter_mut() {
@@ -868,17 +915,54 @@ fn process_block(c: &Chain, s: &mut Scratch, n: u64) {
                 }
                 r.in_slot().store(0, Ordering::Release);
             }
+            if composite {
+                let still = handover::Mix::new(fader.xf, handover::FADE, 0, false);
+                for (out, b) in s.bufs.iter_mut().zip(s.byp.iter()) {
+                    still.apply(&c.fade, &mut out[..frames], &b[..frames]);
+                }
+                if let Some(line) = lines.get(k).and_then(Option::as_ref) {
+                    let mut aligned = true;
+                    for (ch, b) in s.byp.iter_mut().enumerate() {
+                        aligned &= line.read(ch, byp_l as usize, &mut b[..frames]);
+                    }
+                    if !aligned && begun.mix.bypassed() {
+                        entry.misaligned.fetch_add(1, Ordering::Relaxed);
+                    }
+                }
+            }
             for (out, b) in s.bufs.iter_mut().zip(s.byp.iter()) {
                 mix.apply(&c.fade, &mut out[..frames], &b[..frames]);
+            }
+            // The line moves on after the block's last read.
+            if let Some(line) = lines.get_mut(k).and_then(Option::as_mut) {
+                line.advance(frames);
             }
             if fading {
                 s.faders[k].advance(mix, frames);
             }
+            // This block ends the handover when `end` below makes its RETURNING -> HOSTED step (its condition: a
+            // RETURNING block, not a fault, whose envelope reaches the plugin at the block's end). The latch is
+            // cleared then, not at the next plugin-only block: a second handover the message thread announces at once
+            // starts from the latency the first one left.
+            let done =
+                !begun.fault && begun.word == handover::RETURNING && begun.mix.at(frames).0 == 0;
             // The processor is released before the chain thread's CAS (FADING -> OUT, RETURNING -> HOSTED).
             if sides[k].end(cell, frames, begun) {
                 status |= ST_BYPASSED;
                 entry.bypassed.fetch_add(1, Ordering::Relaxed);
                 entry.bypassed_total.fetch_add(1, Ordering::Relaxed);
+            }
+            if done {
+                if let Some(held) = byp_latency.get_mut(k) {
+                    *held = NO_LATCH;
+                }
+                #[cfg(feature = "test-hooks")]
+                if TEST_HOLD_AFTER_RETURN.load(Ordering::Relaxed) {
+                    let until = Instant::now() + Duration::from_millis(300);
+                    while cell.state() == handover::HOSTED && Instant::now() < until {
+                        std::thread::sleep(Duration::from_millis(1));
+                    }
+                }
             }
         }
         if status & ST_THREW != 0 {

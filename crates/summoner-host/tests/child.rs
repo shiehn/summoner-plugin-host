@@ -339,10 +339,24 @@ fn latency_later_run(recorded: bool) -> usize {
     // the slot.reactivated that must come before the latency.changed.
     let mut reactivated: Option<(u32, u32, bool, bool)> = None;
     let mut k = 0;
+    // The handover's take bound at this geometry: a take is forced only when no block began on the chain thread for
+    // that long after the drain was announced. The longest span this driver saw from one block's send to the NEXT
+    // block's completion, up to the slot.reactivated, is the evidence for that (a block's begin lies between its
+    // send and its completion, so a window of the bound with no begin needs such a span at least as long).
+    let bound = summoner_plugin::handover::take_bound(B as u32, SR);
+    let mut prev_send: Option<Instant> = None;
+    let mut longest_span = Duration::ZERO;
     while changed.is_none_or(|c| k < c + 200) {
+        let sent = Instant::now();
         y.extend(eng.block());
         x.extend(reference.block());
         settle();
+        if let (None, Some(p)) = (reactivated, prev_send) {
+            longest_span = longest_span.max(p.elapsed());
+        }
+        prev_send = Some(sent);
+        // The pace stays a fixed sleep after each block, the cadence the shape below was made at: a deadline pace at
+        // real time was measured to put one block at delay 4096 inside the transition, in about 1 run in 10.
         std::thread::sleep(Duration::from_micros(1333));
         while let Ok(e) = rx.try_recv() {
             match e {
@@ -381,6 +395,36 @@ fn latency_later_run(recorded: bool) -> usize {
     }
     drop(bridge);
 
+    let (latency, bypassed_blocks, forced, abandoned) = reactivated.expect("slot.reactivated");
+    assert_eq!(
+        latency, 4096,
+        "slot.reactivated: the latency after the cycle"
+    );
+    assert!(
+        !abandoned,
+        "the handover is never abandoned: {reactivated:?}"
+    );
+    // The clean handover is the normal case: no forced take, and the slot passed its bypass signal. A forced take
+    // (the handover's deadline path: no block began on the chain thread within the take bound, ~5.3 ms at B = 64)
+    // is legitimate only when this driver itself left such a gap, as a loaded machine's scheduler can; it is
+    // accepted then and only then, and a forced take has no bypassed block. Without the gap a forced take is a
+    // fault and fails here. Either way the latency and the event order (above) and the output's shape (below) hold.
+    let deadline_path = longest_span >= bound;
+    println!(
+        "handover: forced {forced}, longest driver span {longest_span:?} (take bound {bound:?}), bypassed {bypassed_blocks}"
+    );
+    if forced {
+        assert!(
+            deadline_path,
+            "a forced take with no driver gap past the take bound: {reactivated:?} (longest span {longest_span:?}, bound {bound:?})"
+        );
+    } else {
+        assert!(
+            bypassed_blocks > 0,
+            "slot.reactivated: the slot passed its bypass signal (ST_BYPASSED): {reactivated:?} (latency, bypassed, forced, abandoned)"
+        );
+    }
+
     // The pipeline delay P: the bridge's depth, found on the first blocks (delay 0 at the plugin).
     let p = (0..4 * B)
         .find(|p| (4 * B..8 * B).all(|t| y[t] == x[t - p]))
@@ -414,22 +458,6 @@ fn latency_later_run(recorded: bool) -> usize {
         (4096 / B..=4096 / B + 16).contains(&transition),
         "a transition of {transition} blocks: {class}"
     );
-    let (latency, bypassed_blocks, forced, abandoned) = reactivated.expect("slot.reactivated");
-    assert_eq!(
-        latency, 4096,
-        "slot.reactivated: the latency after the cycle"
-    );
-    // The whole event in each message: a forced take (blocks spaced past the handover's take bound, ~5.3 ms at B = 64,
-    // as a loaded machine's sleep can space them) has no bypassed block, so both lines name what happened.
-    assert!(
-        bypassed_blocks > 0,
-        "slot.reactivated: the slot passed its bypass signal (ST_BYPASSED): {reactivated:?} (latency, bypassed, forced, abandoned)"
-    );
-    assert!(
-        !forced && !abandoned,
-        "a clean handover: no forced take, not abandoned: {reactivated:?}"
-    );
-
     let until = Instant::now() + Duration::from_secs(5);
     let text = loop {
         match std::fs::read_to_string(&counters) {
@@ -462,6 +490,315 @@ fn latency_later_run(recorded: bool) -> usize {
         }
     }
     transition
+}
+
+/// The plugin's own latency change through the re-activation handover, on a sine (where a jump in the bypass
+/// signal's delay is a step in the output, unlike on noise): every sample-to-sample step of the transition, from the
+/// drain to the plugin's own fresh delay line starting at delay 4096, stays within the handover's bound
+/// `max|Δb| + (π / (2F))·max|y − b|` (`summoner_plugin::handover`). The bypass signal keeps the latency the processor
+/// ran with for the whole handover (drain, out and return): before, the chain thread read the slot's latency every
+/// block, so the cycle's new latency (stored before the give-back) moved the bypass signal by 4096 frames at the
+/// return fade's first frame, where its gain is 1: a step of nearly the sine's whole swing, every cycle.
+///
+/// Mutation: the bypass signal read at the slot's current latency again: the step is past the bound.
+#[test]
+fn a_latency_change_handover_has_no_step_past_the_fade_bound() {
+    if lab_plugins::absent("a_latency_change_handover_has_no_step_past_the_fade_bound") {
+        return;
+    }
+    handover_steps(&[], false);
+}
+
+/// The test above on a slot disabled (`--test-slot-enabled 0:off@10`, the fader's fade over long before the cycle):
+/// the slot's output is its bypass signal before and after the cycle, at delay 0 and then 4096, and the handover in
+/// between must stay within the same bound, up to and including the first frame at delay 4096 (here the bypass
+/// signal's, not a plugin's fresh delay line). Before the fix the return faded to the plugin's fresh (silent) output
+/// and the fader's bypass then cut in at once: a step of up to the signal's whole swing.
+#[test]
+fn a_latency_change_handover_on_a_disabled_slot_has_no_step_past_the_fade_bound() {
+    if lab_plugins::absent(
+        "a_latency_change_handover_on_a_disabled_slot_has_no_step_past_the_fade_bound",
+    ) {
+        return;
+    }
+    handover_steps(&["--test-slot-enabled", "0:off@10"], true);
+}
+
+/// One run of the two tests above with `args` for the child; asserts the bound. `disabled`: the first frame at delay
+/// 4096 is the bypass signal's, so its step is the handover's too.
+fn handover_steps(args: &[&str], disabled: bool) {
+    use crate::common::drive::{Bridged, Drive, Input};
+    const B: usize = 64;
+    const A: f32 = 0.5;
+    // 100 Hz: 4096 frames are 8.53 periods, so the two delays differ by about half a period.
+    let w = 2.0 * std::f64::consts::PI * 100.0 / SR;
+    let frames = 48_000 * 3;
+    let sine: std::sync::Arc<[f32]> = (0..frames)
+        .map(|t| A * (w * t as f64).sin() as f32)
+        .collect();
+    let bundle = lab_plugins::dir().join("vst3/summoner-lab-hostile.vst3");
+    let mut cfg = Config::new(child_bin(), SR, crate::common::state_hasher());
+    cfg.args = args.iter().map(Into::into).collect();
+    let (bridge, rx) = start(cfg);
+    let mut seen = Vec::new();
+    let xml = vst3_ref(&bundle, &hostile_cid(), "Summoner Lab Hostile");
+    let key = 12;
+    let mut sp = spec(&[&xml]);
+    sp.geometry = Geometry {
+        ch_in: 2,
+        ..Geometry::stereo(B as u32)
+    };
+    bridge
+        .send(Command::Load {
+            key,
+            spec: sp,
+            states: vec![],
+        })
+        .map_err(|_| "busy")
+        .unwrap();
+    let Event::ChainReady { link, .. } = wait_for(
+        &rx,
+        &mut seen,
+        |e| matches!(e, Event::ChainReady { key: k, .. } if *k == key),
+    ) else {
+        unreachable!()
+    };
+    let mut eng = Drive::new(
+        Input::Once(sine.clone()),
+        vec![Bridged {
+            params: vec![1.0],
+            ..Bridged::fx(&link)
+        }],
+        B,
+    );
+    bridge
+        .send(Command::SetState {
+            key,
+            state: vst3_state(0, 1, b"LATER=150:4096"),
+        })
+        .map_err(|_| "busy")
+        .unwrap();
+    let settle = || {
+        let until = Instant::now() + Duration::from_secs(5);
+        let reg = &link.region;
+        while reg.ack().load(std::sync::atomic::Ordering::Acquire)
+            < reg.seq().load(std::sync::atomic::Ordering::Acquire)
+        {
+            assert!(Instant::now() < until, "the chain never acked");
+            std::thread::yield_now();
+        }
+    };
+    let mut y = Vec::new();
+    let mut reactivated: Option<(u32, bool)> = None;
+    let mut done: Option<usize> = None;
+    let mut k = 0;
+    while done.is_none_or(|d| k < d + 200) {
+        y.extend(eng.block());
+        settle();
+        std::thread::sleep(Duration::from_micros(1333));
+        while let Ok(e) = rx.try_recv() {
+            if let Event::SlotReactivated {
+                key: kk,
+                slot: 0,
+                latency,
+                forced_take,
+                ..
+            } = e
+                && kk == key
+            {
+                reactivated = Some((latency, forced_take));
+                done = Some(k);
+            }
+        }
+        k += 1;
+        assert!(k < frames / B - 1, "no slot.reactivated in 3 s");
+    }
+    drop(bridge);
+    let (latency, forced) = reactivated.expect("slot.reactivated");
+    assert_eq!(latency, 4096);
+    let x = |t: usize, d: usize| if t >= d { sine[t - d] } else { 0.0 };
+    // The pipeline delay P on the early blocks (delay 0 at the plugin).
+    let p = (0..4 * B)
+        .find(|p| (4 * B..8 * B).all(|t| y[t] == x(t, *p)))
+        .expect("the early blocks are the input at a fixed pipeline delay");
+    // The transition: from the first sample that is not delay 0 to the plugin's own delay line, delay 4096 from there
+    // to the end.
+    // (The fader's fade between two equal signals rounds: a deviation below 1e-6 is no transition.)
+    let first = (0..y.len())
+        .find(|&t| (y[t] - x(t, p)).abs() > 1e-6)
+        .expect("the output leaves delay 0");
+    let onset = (first..y.len())
+        .find(|&t| (t..y.len()).all(|u| y[u] == x(u, p + 4096)))
+        .expect("the output ends at delay 4096");
+    // The steps inside it (the onset's own step, silence to the plugin's fresh output, is the plugin's, not the
+    // handover's), and the bound: the bypass signal's own largest step plus the crossfade's term on the largest
+    // |y − b| (y and b each within ±A).
+    let end = if disabled { onset + 1 } else { onset };
+    let (at, step) = (first.max(1)..end)
+        .map(|t| (t, (y[t] - y[t - 1]).abs()))
+        .fold((0, 0.0f32), |m, s| if s.1 > m.1 { s } else { m });
+    let db = A * w as f32;
+    let bound =
+        db + std::f32::consts::PI / (2.0 * summoner_plugin::handover::FADE as f32) * (2.0 * A);
+    println!(
+        "handover steps: largest {step} at frame {at} ({} after the transition's start, onset at {}), bound {bound}, \
+         forced {forced}",
+        at - first,
+        onset - first
+    );
+    assert!(
+        step <= bound,
+        "a step of {step} at frame {at} inside the handover (bound {bound}): the bypass signal jumped"
+    );
+}
+
+/// Two latency changes back to back: the plugin's latency goes 0 -> 4096 (the first handover) and, while that handover's
+/// processor is out (`--test-cycle-hold-ms 150`: a known window), 4096 -> 2048; the message thread re-announces at the
+/// first handover's end, and `--test-hold-after-return` makes the chain's next block see that announce, so the second
+/// handover starts with no plugin-only block between the two. The second handover's bypass signal must play at the
+/// latency the first one left (4096, what the host application's compensation already is), never at the first
+/// handover's stale 0: every block is the input at delay 0 until the first handover leaves it, then never again; the
+/// second handover's time out is at delay 4096; the plugin's own delay line ends it at 2048.
+///
+/// Mutation: the latch not cleared at the first handover's end: the second handover's time out plays at delay 0.
+#[test]
+fn back_to_back_latency_handovers_each_play_their_own_starting_latency() {
+    if lab_plugins::absent("back_to_back_latency_handovers_each_play_their_own_starting_latency") {
+        return;
+    }
+    use crate::common::drive::{Bridged, Drive, Input};
+    const B: usize = 64;
+    let w = 2.0 * std::f64::consts::PI * 100.0 / SR;
+    let frames = 48_000 * 3;
+    let sine: std::sync::Arc<[f32]> = (0..frames)
+        .map(|t| 0.5 * (w * t as f64).sin() as f32)
+        .collect();
+    let bundle = lab_plugins::dir().join("vst3/summoner-lab-hostile.vst3");
+    let mut cfg = Config::new(child_bin(), SR, crate::common::state_hasher());
+    cfg.args = vec![
+        "--test-cycle-hold-ms".into(),
+        "150".into(),
+        "--test-hold-after-return".into(),
+    ];
+    let (bridge, rx) = start(cfg);
+    let mut seen = Vec::new();
+    let xml = vst3_ref(&bundle, &hostile_cid(), "Summoner Lab Hostile");
+    let key = 13;
+    let mut sp = spec(&[&xml]);
+    sp.geometry = Geometry {
+        ch_in: 2,
+        ..Geometry::stereo(B as u32)
+    };
+    bridge
+        .send(Command::Load {
+            key,
+            spec: sp,
+            states: vec![],
+        })
+        .map_err(|_| "busy")
+        .unwrap();
+    let Event::ChainReady { link, .. } = wait_for(
+        &rx,
+        &mut seen,
+        |e| matches!(e, Event::ChainReady { key: k, .. } if *k == key),
+    ) else {
+        unreachable!()
+    };
+    let mut eng = Drive::new(
+        Input::Once(sine.clone()),
+        vec![Bridged {
+            params: vec![1.0],
+            ..Bridged::fx(&link)
+        }],
+        B,
+    );
+    // 0 -> 4096 at 150 ms (its restart at 170 ms, the cycle then, held out until about 320 ms); 4096 -> 2048 at
+    // 250 ms (its restart at 270 ms, inside that hold).
+    for (generation, text) in [(1, &b"LATER=150:4096"[..]), (2, &b"LATER=250:2048"[..])] {
+        bridge
+            .send(Command::SetState {
+                key,
+                state: vst3_state(0, generation, text),
+            })
+            .map_err(|_| "busy")
+            .unwrap();
+    }
+    let settle = || {
+        let until = Instant::now() + Duration::from_secs(5);
+        let reg = &link.region;
+        while reg.ack().load(std::sync::atomic::Ordering::Acquire)
+            < reg.seq().load(std::sync::atomic::Ordering::Acquire)
+        {
+            assert!(Instant::now() < until, "the chain never acked");
+            std::thread::yield_now();
+        }
+    };
+    let mut y = Vec::new();
+    let mut reactivated: Vec<u32> = Vec::new();
+    let mut done: Option<usize> = None;
+    let mut k = 0;
+    while done.is_none_or(|d| k < d + 200) {
+        y.extend(eng.block());
+        settle();
+        std::thread::sleep(Duration::from_micros(1333));
+        while let Ok(e) = rx.try_recv() {
+            if let Event::SlotReactivated {
+                key: kk,
+                slot: 0,
+                latency,
+                ..
+            } = e
+                && kk == key
+            {
+                reactivated.push(latency);
+                if reactivated.len() == 2 {
+                    done = Some(k);
+                }
+            }
+        }
+        k += 1;
+        assert!(
+            k < frames / B - 1,
+            "two slot.reactivated not seen in 3 s: {reactivated:?}"
+        );
+    }
+    drop(bridge);
+    assert_eq!(reactivated, [4096, 2048], "the two cycles' latencies");
+    let x = |t: usize, d: usize| if t >= d { sine[t - d] } else { 0.0 };
+    let p = (0..4 * B)
+        .find(|p| (4 * B..8 * B).all(|t| y[t] == x(t, *p)))
+        .expect("the early blocks are the input at a fixed pipeline delay");
+    // Each block: 'a' delay 0, 'b' delay 4096, 'c' delay 2048, '-' anything else (within 1e-6: a crossfade between
+    // two equal signals rounds).
+    let class: String = (8..y.len() / B)
+        .map(|blk| {
+            let ts = blk * B..(blk + 1) * B;
+            let at = |d: usize| ts.clone().all(|t| (y[t] - x(t, p + d)).abs() <= 1e-6);
+            if at(0) {
+                'a'
+            } else if at(4096) {
+                'b'
+            } else if at(2048) {
+                'c'
+            } else {
+                '-'
+            }
+        })
+        .collect();
+    println!("back to back: {class}");
+    // The second handover's time out (its pure bypass blocks, after the first handover's return) at delay 4096, and
+    // nothing at delay 0 once it began.
+    assert!(
+        class.matches('b').count() >= 20,
+        "the second handover played its bypass at the first one's stale latency, not at 4096: {class}"
+    );
+    let first_b = class.find('b').unwrap_or(class.len());
+    assert!(
+        !class[first_b..].contains('a'),
+        "delay 0 again after the second handover began: {class}"
+    );
+    let tail = class.len() - class.trim_end_matches('c').len();
+    assert!(tail >= 100, "the plugin at delay 2048 to the end: {class}");
 }
 
 /// The re-activation cycle, through the test double's `REACTIVATE[=<ms>]` (a plugin

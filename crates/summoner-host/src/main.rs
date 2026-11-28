@@ -120,6 +120,12 @@ pub struct Opts {
     /// `chain.load`'s `enabled` and `slot.setEnabled` (protocol 3.2) at the pin.
     #[cfg(feature = "test-hooks")]
     pub slot_enabled: Vec<(u32, bool, u64)>,
+    /// `--test-cycle-hold-ms <ms>` (test-hooks): a re-activation keeps the processor out this much longer.
+    #[cfg(feature = "test-hooks")]
+    pub cycle_hold_ms: u64,
+    /// `--test-hold-after-return` (test-hooks): the block ending a return waits for a re-announce (up to 300 ms).
+    #[cfg(feature = "test-hooks")]
+    pub hold_after_return: bool,
 }
 
 /// `--test-slot-enabled`'s value; a malformed one is a usage error.
@@ -216,6 +222,14 @@ fn parse_args(args: &[String]) -> Opts {
             "--test-click-title-bar" => o.click_title_bar = true,
             #[cfg(feature = "test-hooks")]
             "--test-no-activate" => o.no_activate = true,
+            #[cfg(feature = "test-hooks")]
+            "--test-cycle-hold-ms" => {
+                o.cycle_hold_ms = next()
+                    .parse()
+                    .unwrap_or_else(|_| usage("--test-cycle-hold-ms <ms>"))
+            }
+            #[cfg(feature = "test-hooks")]
+            "--test-hold-after-return" => o.hold_after_return = true,
             #[cfg(feature = "test-hooks")]
             "--test-click" => {
                 o.click_ms = Some(
@@ -410,6 +424,12 @@ fn main() {
     #[cfg(feature = "test-hooks")]
     if !opts.slot_enabled.is_empty() {
         let _ = chain::TEST_SLOT_ENABLED.set(opts.slot_enabled.clone());
+    }
+    #[cfg(feature = "test-hooks")]
+    {
+        host::TEST_CYCLE_HOLD_MS.store(opts.cycle_hold_ms, std::sync::atomic::Ordering::Relaxed);
+        chain::TEST_HOLD_AFTER_RETURN
+            .store(opts.hold_after_return, std::sync::atomic::Ordering::Relaxed);
     }
     let Some(fd) = runecraft_ipc::process::unix::take_fd3() else {
         eprintln!("summoner-host: no descriptor 3 (run me through the bridge)");

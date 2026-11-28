@@ -21,3 +21,5 @@ pub mod layout;
 pub mod log_vocab;
 pub mod plugin;
 pub mod state_blob;
+#[cfg(test)]
+mod test_paths;

@@ -4,6 +4,8 @@
 
 use crate::sync::{AtomicU32, AtomicU64, Doorbell, DoorbellKind, Mapping, Ordering, Waker};
 #[cfg(not(loom))]
+use runecraft_ipc::bridge::{FanOutEndpoint, HubSet, TooManyWaiters};
+#[cfg(not(loom))]
 use runecraft_ipc::channel::Transferable;
 use std::io;
 use summoner_proto::layout::*;
@@ -370,6 +372,36 @@ impl StatusRecord {
     }
 }
 
+/// A chain thread's waiter endpoints on the child page's hubs, one per ring group, all in the chain's one waiter
+/// slot ([`ChildPage::receive_hub_endpoints`]). The thread waits on the endpoint of the group it reads.
+#[cfg(not(loom))]
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct HubEndpoints {
+    eps: [FanOutEndpoint; RING_GROUPS],
+}
+
+#[cfg(not(loom))]
+impl HubEndpoints {
+    /// Ring group `group`'s endpoint; `None` past the last group.
+    #[inline]
+    pub fn get(&self, group: usize) -> Option<&FanOutEndpoint> {
+        self.eps.get(group)
+    }
+
+    /// The ring groups covered (every group of the page).
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.eps.len()
+    }
+
+    /// Never: a page has at least one ring group (for `len`'s convention).
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.eps.is_empty()
+    }
+}
+
 impl ChildPage {
     /// The loom model's child page: the hub lines and the status record and counters (no mapping).
     #[cfg(loom)]
@@ -386,18 +418,58 @@ impl ChildPage {
     /// The host application side: create a zero-filled child page and the object `hello` gives the child.
     pub fn create() -> io::Result<(ChildPage, Transferable)> {
         let (map, fd) = Mapping::create(CHILD_PAGE_BYTES)?;
-        let hubs = hub_bells(|| Doorbell::create(DoorbellKind::FanOut))?;
+        // The ring groups' hubs as one set (on unix plain FanOut doorbells and no object, as before; on Windows one
+        // section of every group's registration mask, sent once beside the page).
+        let (set, _set_objs) = HubSet::create(RING_GROUPS as u8)?;
+        let mut g = 0u8;
+        let hubs = hub_bells(|| {
+            g += 1;
+            set.doorbell(g - 1)
+        })?;
         Ok((ChildPage { map, hubs }, fd))
     }
 
-    /// The objects the child's [`ChildPage::open`] needs beside the page: its hub doorbells' (none on unix).
+    /// The objects the child's [`ChildPage::open`] needs beside the page: its hub set's (none on unix; on Windows
+    /// the set's one section, which any group's hub doorbell gives).
     #[cfg(not(loom))]
     pub fn bell_transferables(&self) -> io::Result<Vec<Transferable>> {
-        let mut v = Vec::new();
-        for h in &self.hubs {
-            v.extend(h.transferables()?);
-        }
-        Ok(v)
+        self.hubs[0].transferables()
+    }
+
+    /// The host application side: the objects a chain's load message carries for waiter `slot` on the page's hubs
+    /// (none on unix; on Windows the slot's event, which every ring group of the page shares). A waiter's slot is the
+    /// page's, not a group's: one slot per chain thread, the same in every group it waits in. A slot past
+    /// [`FAN_SLOTS`](runecraft_ipc::bridge::FAN_SLOTS) is [`TooManyWaiters`].
+    #[cfg(not(loom))]
+    pub fn hub_waiter_objects(&self, slot: u8) -> Result<Vec<Transferable>, TooManyWaiters> {
+        self.hubs[0].endpoint(slot).map(|(_, objs)| objs)
+    }
+
+    /// The child side: waiter `slot`'s endpoint on every ring group's hub, taking the slot's objects from the front
+    /// of `objs` (none on unix; on Windows the slot's event, from the chain's load message, shared by every group). A
+    /// slot past [`FAN_SLOTS`](runecraft_ipc::bridge::FAN_SLOTS) or a missing or mistyped object is `InvalidData`.
+    #[cfg(not(loom))]
+    pub fn receive_hub_endpoints(
+        &self,
+        slot: u8,
+        objs: &mut Vec<Transferable>,
+    ) -> io::Result<HubEndpoints> {
+        // The objects go to the first group's hub (on Windows it holds the event in the page's slot table); every
+        // other group's endpoint then joins the same slot with nothing new to receive.
+        let mut first = Some(self.hubs[0].receive_endpoint(slot, objs)?);
+        let mut make = |g: usize| -> io::Result<FanOutEndpoint> {
+            if let Some(e) = first.take() {
+                return Ok(e);
+            }
+            self.hubs[g]
+                .endpoint(slot)
+                .map(|(e, _same_event)| e)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        };
+        // (One per group, as `hub_bells`: the array's length is RING_GROUPS, checked by its type.)
+        Ok(HubEndpoints {
+            eps: [make(0)?, make(1)?, make(2)?, make(3)?],
+        })
     }
 
     /// Wire this process's view of the child page in place (`mlock`), counted; idempotent. The
@@ -416,10 +488,14 @@ impl ChildPage {
     #[cfg(not(loom))]
     /// The child side: map a received child page; `bells` are its hub doorbells' objects (none on unix).
     pub fn open(page: Transferable, bells: &mut Vec<Transferable>) -> io::Result<ChildPage> {
-        Ok(ChildPage {
-            map: Mapping::from_transferable(page, CHILD_PAGE_BYTES)?,
-            hubs: hub_bells(|| Doorbell::from_transferables(DoorbellKind::FanOut, bells))?,
-        })
+        let map = Mapping::from_transferable(page, CHILD_PAGE_BYTES)?;
+        let set = HubSet::from_transferables(RING_GROUPS as u8, bells)?;
+        let mut g = 0u8;
+        let hubs = hub_bells(|| {
+            g += 1;
+            set.doorbell(g - 1)
+        })?;
+        Ok(ChildPage { map, hubs })
     }
 
     #[inline]

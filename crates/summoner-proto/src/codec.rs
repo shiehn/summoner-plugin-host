@@ -2550,6 +2550,8 @@ pub fn check_to_host(f: &Frame) -> Result<(), ProtoError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[allow(unused_imports)]
+    use crate::test_paths::{j, p, po};
 
     /// The two frames that carry a handle (a descriptor) to the child keep their bytes: `hello` with the child page and
     /// `chain.load` with its region, header and meta, as the supervisor encodes them (FF_FDS set, `fds: 1`).
@@ -2698,7 +2700,7 @@ mod tests {
     /// The lab gain's class as a 4.0 scan reports it.
     fn desc() -> ScanClass {
         ScanClass::Vst3(crate::plugin::Vst3Class {
-            path: "/x/gain.vst3".into(),
+            path: p("/x/gain.vst3").into(),
             source: Some(crate::plugin::ScanSource::Factory),
             class_id: "5341534c4c4142010000005000000000".into(),
             category: "Audio Module Class".into(),
@@ -2946,14 +2948,14 @@ mod tests {
 
     #[test]
     fn scan_and_scanned_have_their_wire_shapes() {
-        let scan = Scan::new(ScanFormat::Vst3, "/x/gain.vst3").unwrap();
+        let scan = Scan::new(ScanFormat::Vst3, p("/x/gain.vst3")).unwrap();
         assert_eq!(
             serde_json::to_value(&scan).unwrap(),
-            serde_json::json!({"format": "vst3", "path": "/x/gain.vst3"})
+            serde_json::json!({"format": "vst3", "path": p("/x/gain.vst3")})
         );
         let ok = Scanned {
             format: ScanFormat::Au,
-            path: "/x/gain.component".into(),
+            path: p("/x/gain.component").into(),
             outcome: ScannedOutcome::Ok,
             classes: vec![desc()],
         };
@@ -2964,10 +2966,10 @@ mod tests {
             v["classes"][0]["classId"],
             "5341534c4c4142010000005000000000"
         );
-        assert_eq!(v["classes"][0]["path"], "/x/gain.vst3");
+        assert_eq!(v["classes"][0]["path"], p("/x/gain.vst3"));
         assert_eq!(serde_json::from_value::<Scanned>(v).unwrap(), ok);
         let failed: Scanned = serde_json::from_value(serde_json::json!({
-            "format": "vst3", "path": "/x/h.vst3", "outcome": "failed", "reason": "ui", "detail": "a licence dialog"
+            "format": "vst3", "path": p("/x/h.vst3"), "outcome": "failed", "reason": "ui", "detail": "a licence dialog"
         }))
         .unwrap();
         assert_eq!(
@@ -2984,7 +2986,7 @@ mod tests {
     fn a_child_cannot_report_crashed_or_timeout() {
         for outcome in ["crashed", "timeout", "bogus"] {
             let r = serde_json::from_value::<Scanned>(serde_json::json!({
-                "format": "vst3", "path": "/x/h.vst3", "outcome": outcome
+                "format": "vst3", "path": p("/x/h.vst3"), "outcome": outcome
             }));
             assert!(r.is_err(), "{outcome}: only the supervisor decides it");
         }
@@ -3016,13 +3018,13 @@ mod tests {
         let results = [
             ScanResult::from_scanned(Scanned {
                 format: ScanFormat::Vst3,
-                path: "/x/g.vst3".into(),
+                path: p("/x/g.vst3").into(),
                 outcome: ScannedOutcome::Ok,
                 classes: vec![desc()],
             }),
             ScanResult::from_scanned(Scanned {
                 format: ScanFormat::Vst3,
-                path: "/x/h.vst3".into(),
+                path: p("/x/h.vst3").into(),
                 outcome: ScannedOutcome::Failed {
                     failure: ScanFailure::State,
                     detail: "not a framed state blob".into(),
@@ -3110,7 +3112,7 @@ mod tests {
     fn a_scanned_event_decodes_and_is_validated_by_its_kind() {
         let good = Scanned {
             format: ScanFormat::Vst3,
-            path: "/x/g.vst3".into(),
+            path: p("/x/g.vst3").into(),
             outcome: ScannedOutcome::Ok,
             classes: vec![desc()],
         };
@@ -3148,7 +3150,7 @@ mod tests {
     fn a_scanned_reply_is_refused_by_the_decoder() {
         let meta = serde_json::to_vec(&Scanned {
             format: ScanFormat::Vst3,
-            path: "/x/g.vst3".into(),
+            path: p("/x/g.vst3").into(),
             outcome: ScannedOutcome::Ok,
             classes: vec![],
         })
@@ -3195,7 +3197,7 @@ mod tests {
     /// `Scan`'s own check; its receipt is a REPLY carrying the request's id, through the host application's.
     #[test]
     fn a_scan_request_decodes_and_its_receipt_is_a_reply() {
-        let scan = Scan::new(ScanFormat::Au, "/x/plugins/au/gain.component").unwrap();
+        let scan = Scan::new(ScanFormat::Au, p("/x/plugins/au/gain.component")).unwrap();
         let bytes = encode_msg(kind::SCAN, 0, 2, &scan, &[]);
         for chunk in [1, 7, 24, 4096] {
             let fs = decode_all(&bytes, Direction::ToChild, chunk).unwrap();
@@ -3232,7 +3234,7 @@ mod tests {
     #[test]
     fn a_scan_not_framed_as_a_request_is_refused_by_the_decoder() {
         let meta =
-            serde_json::to_vec(&Scan::new(ScanFormat::Vst3, "/x/gain.vst3").unwrap()).unwrap();
+            serde_json::to_vec(&Scan::new(ScanFormat::Vst3, p("/x/gain.vst3")).unwrap()).unwrap();
         let refused = |flags: u16, id: u64, dir: Direction| {
             decode_all(&encode(kind::SCAN, flags, id, &meta, &[]), dir, 64).unwrap_err()
         };
@@ -3261,19 +3263,19 @@ mod tests {
     /// search directory or the wrong bundle type is refused, both when built and when decoded.
     #[test]
     fn a_scan_is_only_ever_an_absolute_bundle_path() {
-        assert!(Scan::new(ScanFormat::Vst3, "/x/plugins/vst3/gain.vst3").is_ok());
-        assert!(Scan::new(ScanFormat::Au, "/x/plugins/au/gain.component").is_ok());
+        assert!(Scan::new(ScanFormat::Vst3, p("/x/plugins/vst3/gain.vst3")).is_ok());
+        assert!(Scan::new(ScanFormat::Au, p("/x/plugins/au/gain.component")).is_ok());
         for (format, path) in [
             (ScanFormat::Au, "aufx SLgn SaSL"),
             (ScanFormat::Au, "aufx:SLgn:SaSL"),
-            (ScanFormat::Au, "/x/plugins/au/gain.vst3"),
-            (ScanFormat::Vst3, "/x/plugins/au/gain.component"),
+            (ScanFormat::Au, p("/x/plugins/au/gain.vst3")),
+            (ScanFormat::Vst3, p("/x/plugins/au/gain.component")),
             (ScanFormat::Vst3, "gain.vst3"),
-            (ScanFormat::Vst3, "/x/plugins/vst3"),
-            (ScanFormat::Vst3, "/x/plugins/vst3/"),
-            (ScanFormat::Vst3, "/x/plugins/vst3/gain.vst3/"),
-            (ScanFormat::Vst3, "/x/plugins/../vst3/gain.vst3"),
-            (ScanFormat::Vst3, "/x/./gain.vst3"),
+            (ScanFormat::Vst3, p("/x/plugins/vst3")),
+            (ScanFormat::Vst3, p("/x/plugins/vst3/")),
+            (ScanFormat::Vst3, p("/x/plugins/vst3/gain.vst3/")),
+            (ScanFormat::Vst3, p("/x/plugins/../vst3/gain.vst3")),
+            (ScanFormat::Vst3, p("/x/./gain.vst3")),
             (ScanFormat::Vst3, "/.vst3"),
             (ScanFormat::Au, ""),
         ] {
@@ -3286,7 +3288,7 @@ mod tests {
                 serde_json::from_value::<Scan>(serde_json::json!({"format": fmt, "path": path}));
             assert!(r.is_err(), "{format:?} {path:?}: decoded");
         }
-        let nul = format!("/x/a{}b.vst3", '\0');
+        let nul = po(format!("/x/a{}b.vst3", '\0'));
         assert!(Scan::new(ScanFormat::Vst3, nul).is_err());
     }
     /// `protocolAfterScan` is a reason of the supervisor's record, round-trips
@@ -3304,7 +3306,7 @@ mod tests {
         );
         assert_eq!(serde_json::from_value::<ScanResult>(v).unwrap(), r);
         let line = serde_json::json!({
-            "format": "vst3", "path": "/x/h.vst3", "outcome": "failed", "reason": "protocolAfterScan"
+            "format": "vst3", "path": p("/x/h.vst3"), "outcome": "failed", "reason": "protocolAfterScan"
         });
         assert!(serde_json::from_value::<Scanned>(line.clone()).is_err());
         let f = &decode_all(
@@ -3440,7 +3442,7 @@ mod tests {
     #[test]
     fn arch_is_a_known_failure_reason() {
         let s: Scanned = serde_json::from_value(serde_json::json!({
-            "format": "vst3", "path": "/x/old.vst3", "outcome": "failed", "reason": "arch", "detail": "x86_64 only"
+            "format": "vst3", "path": p("/x/old.vst3"), "outcome": "failed", "reason": "arch", "detail": "x86_64 only"
         }))
         .unwrap();
         assert_eq!(
@@ -3972,10 +3974,12 @@ mod tests {
                 kind::LOG => corr_round_trip(&Log::default()),
                 kind::WORKGROUP_ATTACHED => corr_round_trip(&WorkgroupAttached::default()),
                 kind::SLOT_REACTIVATED => corr_round_trip(&SlotReactivated::default()),
-                kind::SCAN => corr_round_trip(&Scan::new(ScanFormat::Vst3, "/lab/a.vst3").unwrap()),
+                kind::SCAN => {
+                    corr_round_trip(&Scan::new(ScanFormat::Vst3, p("/lab/a.vst3")).unwrap())
+                }
                 kind::SCANNED => {
                     // Decoded through its check (`ScannedUnchecked`): the key is ignored there too.
-                    let line = br#"{"format":"vst3","path":"/lab/a.vst3","outcome":"ok","descriptions":[]}"#;
+                    let line = j(r#"{"format":"vst3","path":"/lab/a.vst3","outcome":"ok","descriptions":[]}"#).as_bytes();
                     let plain: Scanned = parse_meta(line).unwrap();
                     let mut m = line.to_vec();
                     with_corr(&mut m, "r:7").unwrap();

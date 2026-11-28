@@ -284,6 +284,11 @@ fn reactivation(sh: &Shared, c: &Chain, k: usize, turn: &mut handover::Turn) -> 
     }
 }
 
+/// `--test-cycle-hold-ms <ms>` (test-hooks): a re-activation keeps the processor out this long after its cycle, before
+/// the give-back.
+#[cfg(feature = "test-hooks")]
+pub static TEST_CYCLE_HOLD_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
 /// The cycle with the processor taken (no lock held but the cell's, which the chain thread only `try_lock`s), then
 /// the give-back and `slot.reactivated`.
 fn cycle(
@@ -307,6 +312,15 @@ fn cycle(
         None => Err("not prepared".into()),
     };
     let took = t0.elapsed();
+    // `--test-cycle-hold-ms` (test-hooks): the processor stays out this much longer, after its re-activation (a wide,
+    // known window for a second latency change during the time out).
+    #[cfg(feature = "test-hooks")]
+    {
+        let ms = TEST_CYCLE_HOLD_MS.load(Ordering::Relaxed);
+        if ms > 0 {
+            std::thread::sleep(Duration::from_millis(ms));
+        }
+    }
     cell.give_back(guard);
     s.reactivations.fetch_add(1, Ordering::Relaxed);
     if took > handover::cycle_budget(c.geo.max_frames, c.rate) {
@@ -1063,19 +1077,16 @@ fn load(sh: &Shared, m: codec::ChainLoad, fd: OwnedFd, instance_given: bool) {
     if geo.validate().is_err() || m.rate.is_nan() || m.rate <= 0.0 {
         return fail_load(sh, key, "chain.load names an invalid geometry");
     }
-    // The region, then its doorbells' objects and this chain's FanOut endpoint (on unix the frame carries the one
-    // descriptor and no `fanSlot`: slot 0, the shared hub word).
+    // The region, then its doorbells' objects, then this chain's waiter event (on unix the frame carries the one
+    // descriptor and no waiter slot: no objects, slot 0, the shared hub word).
     let mut bells = Vec::new();
-    let fan = match runecraft_ipc::bridge::FanOutEndpoint::from_transferables(
-        m.fan_slot.unwrap_or(0),
-        &mut bells,
-    ) {
-        Ok(f) => f,
-        Err(e) => return fail_load(sh, key, &format!("fan-out endpoint: {e}")),
-    };
     let region = match Region::open(crate::reader::received(fd), &mut bells, geo, key) {
         Ok(r) => r,
         Err(e) => return fail_load(sh, key, &format!("region: {e}")),
+    };
+    let fans = match page.receive_hub_endpoints(m.fan_slot.unwrap_or(0), &mut bells) {
+        Ok(f) => f,
+        Err(e) => return fail_load(sh, key, &format!("fan-out endpoint: {e}")),
     };
     // (The descriptor closed once mapped, inside `Region::open`, where the explicit drop of before was.)
     // This process's view of the region wired in place, counted (each side wires its own mapping).
@@ -1198,7 +1209,7 @@ fn load(sh: &Shared, m: codec::ChainLoad, fd: OwnedFd, instance_given: bool) {
         sh.opts.stats.is_some(),
         sh.opts.noalloc_blocks,
         render,
-        fan,
+        fans,
     ));
     c.reported_latency.store(latency, Ordering::Relaxed);
     {
@@ -1311,6 +1322,9 @@ fn release(sh: &Shared, c: &ChainArc) -> Option<Vec<u64>> {
     p.sides = runecraft_rt::arena::ArenaSlice::from_fn(crate::chain::RT_OWNER, 0, |_| {
         handover::ChainSide::default()
     });
+    p.byp_latency = runecraft_rt::arena::ArenaSlice::from_fn(crate::chain::RT_OWNER, 0, |_| {
+        crate::chain::NO_LATCH
+    });
     p.ios = runecraft_rt::arena::ArenaSlice::from_fn(crate::chain::RT_OWNER, 0, |_| {
         summoner_proc::Io::STEREO
     });
@@ -1365,6 +1379,10 @@ fn rebuild(sh: &Shared, key: u64, c: &ChainArc) {
         runecraft_rt::arena::ArenaSlice::from_fn(crate::chain::RT_OWNER, c.slots.len(), |_| {
             handover::ChainSide::default()
         });
+    p.byp_latency =
+        runecraft_rt::arena::ArenaSlice::from_fn(crate::chain::RT_OWNER, c.slots.len(), |_| {
+            crate::chain::NO_LATCH
+        });
     p.lines = {
         let n = lines.len();
         let mut it = lines.into_iter();
@@ -1373,7 +1391,7 @@ fn rebuild(sh: &Shared, key: u64, c: &ChainArc) {
         })
     };
     p.ios = runecraft_rt::arena::ArenaSlice::from_slice(crate::chain::RT_OWNER, &ios);
-    // The inventory (debug builds): the three tables the chain thread reads per block, checked as `Chain::start`
+    // The inventory (debug builds): the tables the chain thread reads per block, checked as `Chain::start`
     // checks its working set.
     #[cfg(debug_assertions)]
     {
@@ -1381,6 +1399,10 @@ fn rebuild(sh: &Shared, key: u64, c: &ChainArc) {
         for (ptr, len) in [
             (cells.as_ptr().cast::<u8>(), std::mem::size_of_val(&*cells)),
             (p.sides.as_ptr().cast(), std::mem::size_of_val(&*p.sides)),
+            (
+                p.byp_latency.as_ptr().cast(),
+                std::mem::size_of_val(&*p.byp_latency),
+            ),
             (p.lines.as_ptr().cast(), std::mem::size_of_val(&*p.lines)),
             (p.ios.as_ptr().cast(), std::mem::size_of_val(&*p.ios)),
         ] {

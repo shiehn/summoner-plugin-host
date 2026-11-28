@@ -23,6 +23,8 @@ pub mod render;
 pub mod rt;
 pub mod sync;
 
+#[cfg(not(loom))]
+pub use region::HubEndpoints;
 pub use region::{ChildPage, Region};
 #[cfg(loom)]
 pub use rt::Mutant;

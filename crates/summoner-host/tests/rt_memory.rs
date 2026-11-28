@@ -121,10 +121,10 @@ fn a_loaded_chains_working_set_is_wired_arena_memory() {
     );
     // Every block the chain thread reads, one by one, in a wired arena block. At the chain's start: the 2 + 2 channel
     // buffers, their two tables, the MIDI buffer, the faders (`--stats` off: no stats buffer), the chain record, its
-    // slots' records, its procs gate (a `WiredLock`). At its prepare: the handover cells, the sides, the delay lines'
-    // table, the slots' buses.
+    // slots' records, its procs gate (a `WiredLock`). At its prepare: the handover cells, the sides, the bypass
+    // latencies, the delay lines' table, the slots' buses.
     assert!(
-        text.contains("chain 71 rt_scratch checked 15 unwired 0"),
+        text.contains("chain 71 rt_scratch checked 16 unwired 0"),
         "{text}"
     );
 }

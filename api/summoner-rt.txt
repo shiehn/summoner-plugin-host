@@ -9,6 +9,8 @@
 #[non_exhaustive] pub struct summoner_rt::ChainLink
 #[non_exhaustive] pub struct summoner_rt::ChaseNote
 #[non_exhaustive] pub struct summoner_rt::ChaseStats
+#[non_exhaustive] pub struct summoner_rt::HubEndpoints {private fields}
+#[non_exhaustive] pub struct summoner_rt::region::HubEndpoints {private fields}
 #[non_exhaustive] pub struct summoner_rt::region::StatusRecord
 #[non_exhaustive] pub struct summoner_rt::render::BlockOutcome
 #[non_exhaustive] pub struct summoner_rt::render::RenderBlock<'a>
@@ -83,6 +85,7 @@ impl core::fmt::Debug for summoner_rt::Error
 impl core::fmt::Debug for summoner_rt::midi::MidiCarry
 impl core::fmt::Debug for summoner_rt::midi::Offered
 impl core::fmt::Debug for summoner_rt::region::ChildPage
+impl core::fmt::Debug for summoner_rt::region::HubEndpoints
 impl core::fmt::Debug for summoner_rt::region::Region
 impl core::fmt::Debug for summoner_rt::region::StatusRecord
 impl core::fmt::Debug for summoner_rt::render::BlockOutcome
@@ -116,6 +119,7 @@ impl core::marker::Send for summoner_rt::Error
 impl core::marker::Send for summoner_rt::midi::MidiCarry
 impl core::marker::Send for summoner_rt::midi::Offered
 impl core::marker::Send for summoner_rt::region::ChildPage
+impl core::marker::Send for summoner_rt::region::HubEndpoints
 impl core::marker::Send for summoner_rt::region::Region
 impl core::marker::Send for summoner_rt::region::StatusRecord
 impl core::marker::Send for summoner_rt::render::BlockOutcome
@@ -137,6 +141,7 @@ impl core::marker::Sync for summoner_rt::Error
 impl core::marker::Sync for summoner_rt::midi::MidiCarry
 impl core::marker::Sync for summoner_rt::midi::Offered
 impl core::marker::Sync for summoner_rt::region::ChildPage
+impl core::marker::Sync for summoner_rt::region::HubEndpoints
 impl core::marker::Sync for summoner_rt::region::Region
 impl core::marker::Sync for summoner_rt::region::StatusRecord
 impl core::marker::Sync for summoner_rt::render::BlockOutcome
@@ -357,9 +362,11 @@ pub fn summoner_rt::ChildPage::bell_transferables(&self) -> core::io::error::Res
 pub fn summoner_rt::ChildPage::clear_status(&self)
 pub fn summoner_rt::ChildPage::create() -> core::io::error::Result<(summoner_rt::region::ChildPage, runecraft_ipc::channel::Transferable)>
 pub fn summoner_rt::ChildPage::hub(&self, group: usize) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::ChildPage::hub_waiter_objects(&self, slot: u8) -> core::result::Result<alloc::vec::Vec<runecraft_ipc::channel::Transferable>, runecraft_ipc::bridge::TooManyWaiters>
 pub fn summoner_rt::ChildPage::hub_waker(&self, group: usize) -> runecraft_ipc::bridge::Waker<'_>
 pub fn summoner_rt::ChildPage::open(page: runecraft_ipc::channel::Transferable, bells: &mut alloc::vec::Vec<runecraft_ipc::channel::Transferable>) -> core::io::error::Result<summoner_rt::region::ChildPage>
 pub fn summoner_rt::ChildPage::read_status(&self) -> summoner_rt::region::StatusRecord
+pub fn summoner_rt::ChildPage::receive_hub_endpoints(&self, slot: u8, objs: &mut alloc::vec::Vec<runecraft_ipc::channel::Transferable>) -> core::io::error::Result<summoner_rt::region::HubEndpoints>
 pub fn summoner_rt::ChildPage::wire(&self) -> core::result::Result<u64, runecraft_rt::os::LockError>
 pub fn summoner_rt::ChildPage::wired_bytes(&self) -> u64
 pub fn summoner_rt::ChildPage::word32(&self, off: usize) -> &core::sync::atomic::AtomicU32
@@ -372,6 +379,9 @@ pub fn summoner_rt::HeldNotes::is_held(&self, channel: u8, note: u8) -> bool
 pub fn summoner_rt::HeldNotes::is_pedal_down(&self, channel: u8) -> bool
 pub fn summoner_rt::HeldNotes::release(&mut self, stopped: bool, emit: impl core::ops::function::FnMut([u8; 3])) -> u32
 pub fn summoner_rt::HeldNotes::sent(&mut self, event: [u8; 3])
+pub fn summoner_rt::HubEndpoints::get(&self, group: usize) -> core::option::Option<&runecraft_ipc::bridge::FanOutEndpoint>
+pub fn summoner_rt::HubEndpoints::is_empty(&self) -> bool
+pub fn summoner_rt::HubEndpoints::len(&self) -> usize
 pub fn summoner_rt::Region::ack(&self) -> &core::sync::atomic::AtomicU64
 pub fn summoner_rt::Region::ack_waker(&self) -> runecraft_ipc::bridge::Waker<'_>
 pub fn summoner_rt::Region::bell_transferables(&self) -> core::io::error::Result<alloc::vec::Vec<runecraft_ipc::channel::Transferable>>
@@ -402,14 +412,19 @@ pub fn summoner_rt::region::ChildPage::bell_transferables(&self) -> core::io::er
 pub fn summoner_rt::region::ChildPage::clear_status(&self)
 pub fn summoner_rt::region::ChildPage::create() -> core::io::error::Result<(summoner_rt::region::ChildPage, runecraft_ipc::channel::Transferable)>
 pub fn summoner_rt::region::ChildPage::hub(&self, group: usize) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::region::ChildPage::hub_waiter_objects(&self, slot: u8) -> core::result::Result<alloc::vec::Vec<runecraft_ipc::channel::Transferable>, runecraft_ipc::bridge::TooManyWaiters>
 pub fn summoner_rt::region::ChildPage::hub_waker(&self, group: usize) -> runecraft_ipc::bridge::Waker<'_>
 pub fn summoner_rt::region::ChildPage::open(page: runecraft_ipc::channel::Transferable, bells: &mut alloc::vec::Vec<runecraft_ipc::channel::Transferable>) -> core::io::error::Result<summoner_rt::region::ChildPage>
 pub fn summoner_rt::region::ChildPage::read_status(&self) -> summoner_rt::region::StatusRecord
+pub fn summoner_rt::region::ChildPage::receive_hub_endpoints(&self, slot: u8, objs: &mut alloc::vec::Vec<runecraft_ipc::channel::Transferable>) -> core::io::error::Result<summoner_rt::region::HubEndpoints>
 pub fn summoner_rt::region::ChildPage::wire(&self) -> core::result::Result<u64, runecraft_rt::os::LockError>
 pub fn summoner_rt::region::ChildPage::wired_bytes(&self) -> u64
 pub fn summoner_rt::region::ChildPage::word32(&self, off: usize) -> &core::sync::atomic::AtomicU32
 pub fn summoner_rt::region::ChildPage::word64(&self, off: usize) -> &core::sync::atomic::AtomicU64
 pub fn summoner_rt::region::ChildPage::write_status(&self, op: u32, chain_key: u64, slot: u32, name: &str, ticks: u64)
+pub fn summoner_rt::region::HubEndpoints::get(&self, group: usize) -> core::option::Option<&runecraft_ipc::bridge::FanOutEndpoint>
+pub fn summoner_rt::region::HubEndpoints::is_empty(&self) -> bool
+pub fn summoner_rt::region::HubEndpoints::len(&self) -> usize
 pub fn summoner_rt::region::Region::ack(&self) -> &core::sync::atomic::AtomicU64
 pub fn summoner_rt::region::Region::ack_waker(&self) -> runecraft_ipc::bridge::Waker<'_>
 pub fn summoner_rt::region::Region::bell_transferables(&self) -> core::io::error::Result<alloc::vec::Vec<runecraft_ipc::channel::Transferable>>
@@ -524,6 +539,7 @@ pub use summoner_rt::ChaseQuery = rt::ChaseQuery
 pub use summoner_rt::ChaseStats = rt::ChaseStats
 pub use summoner_rt::ChildPage = region::ChildPage
 pub use summoner_rt::HeldNotes = rt::HeldNotes
+pub use summoner_rt::HubEndpoints = region::HubEndpoints
 pub use summoner_rt::MAX_CHASED_EDGES = rt::MAX_CHASED_EDGES
 pub use summoner_rt::MidiEvent = rt::MidiEvent
 pub use summoner_rt::Region = region::Region

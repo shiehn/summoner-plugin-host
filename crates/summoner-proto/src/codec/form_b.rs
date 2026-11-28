@@ -905,6 +905,8 @@ mod tests {
     use super::*;
     use crate::codec::{Decoder, Direction, FF_REPLY, Header, ProtoError, Scan, decode_header};
     use crate::layout::{F_BLOB_LEN, F_META_LEN};
+    #[allow(unused_imports)]
+    use crate::test_paths::{j, p, po};
 
     /// The three meta examples, byte for byte (the text's keys are sorted, which is how the encoder writes them).
     const EX1: &str = r#"{"descriptionCount":1000,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"<abs bundle path>"}"#;
@@ -914,7 +916,7 @@ mod tests {
     /// The fake's synthetic class `fake-scan-class-<i>` as a 4.0 scan reports it (raw facts).
     fn class(i: usize) -> ScanClass {
         ScanClass::Vst3(crate::plugin::Vst3Class {
-            path: "/x/shell.vst3".into(),
+            path: p("/x/shell.vst3").into(),
             bundle_mtime_ms: 0,
             source: Some(crate::plugin::ScanSource::Factory),
             class_id: format!("{i:032x}"),
@@ -934,7 +936,7 @@ mod tests {
     /// The smallest class (every optional fact absent).
     fn default_class() -> ScanClass {
         ScanClass::Vst3(crate::plugin::Vst3Class {
-            path: "/x/a.vst3".into(),
+            path: p("/x/a.vst3").into(),
             class_id: "0".repeat(32),
             ..Default::default()
         })
@@ -1001,9 +1003,9 @@ mod tests {
     }
 
     fn b_meta(count: u64) -> String {
-        format!(
+        po(format!(
             r#"{{"descriptionCount":{count},"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3"}}"#
-        )
+        ))
     }
 
     fn jsonl(d: &[ScanClass]) -> Vec<u8> {
@@ -1117,10 +1119,14 @@ mod tests {
     #[test]
     fn the_blob_is_json_lines_of_the_codecs_compact_descriptions() {
         let gain = class(0);
-        let line0 = r#"{"format":"vst3","path":"/x/shell.vst3","bundleMtimeMs":0,"source":"factory","classId":"00000000000000000000000000000000","category":"Audio Module Class","name":"fake-scan-class-0","categories":["Fx"],"vendor":"Example Lab","version":"0.1.0","sdkVersion":"VST 3.8.1","instantiated":true,"inputs":2,"outputs":2}"#;
-        let line1 = r#"{"format":"vst3","path":"/x/shell.vst3","bundleMtimeMs":0,"source":"factory","classId":"00000000000000000000000000000001","category":"Audio Module Class","name":"fake-scan-class-1","categories":["Fx"],"vendor":"Example Lab","version":"0.1.0","sdkVersion":"VST 3.8.1","instantiated":true,"inputs":2,"outputs":2}"#;
+        let line0 = j(
+            r#"{"format":"vst3","path":"/x/shell.vst3","bundleMtimeMs":0,"source":"factory","classId":"00000000000000000000000000000000","category":"Audio Module Class","name":"fake-scan-class-0","categories":["Fx"],"vendor":"Example Lab","version":"0.1.0","sdkVersion":"VST 3.8.1","instantiated":true,"inputs":2,"outputs":2}"#,
+        );
+        let line1 = j(
+            r#"{"format":"vst3","path":"/x/shell.vst3","bundleMtimeMs":0,"source":"factory","classId":"00000000000000000000000000000001","category":"Audio Module Class","name":"fake-scan-class-1","categories":["Fx"],"vendor":"Example Lab","version":"0.1.0","sdkVersion":"VST 3.8.1","instantiated":true,"inputs":2,"outputs":2}"#,
+        );
         let s = scanned(
-            "/x/shell.vst3",
+            p("/x/shell.vst3"),
             ScannedOutcome::Ok,
             vec![gain.clone(), class(1)],
         );
@@ -1131,7 +1137,7 @@ mod tests {
             vec![gain, class(1)]
         );
         // 0 lines: an empty blob (and an `ok` with no classes is accepted, as form A's `[]` is).
-        let s0 = scanned("/x/shell.vst3", ScannedOutcome::Ok, vec![]);
+        let s0 = scanned(p("/x/shell.vst3"), ScannedOutcome::Ok, vec![]);
         let bytes = whole(encode_scanned(&s0, true));
         let f = frame(&bytes);
         assert!(f.blob.is_empty() && f.header.blob_len == 0);
@@ -1146,7 +1152,7 @@ mod tests {
         assert!(b.descriptions.is_empty());
         // 1 and 100 lines.
         for n in [1, 100] {
-            let s = scanned("/x/shell.vst3", ScannedOutcome::Ok, classes(n));
+            let s = scanned(p("/x/shell.vst3"), ScannedOutcome::Ok, classes(n));
             let f = frame(&whole(encode_scanned(&s, true)));
             let (r, disc) = decode_scanned(&f, true).unwrap().into_verdict();
             assert_eq!(
@@ -1163,7 +1169,9 @@ mod tests {
         let d = decode_descriptions_blob(blob.as_bytes(), 1).unwrap();
         assert_eq!(d[0], default_class());
         let f = raw(
-            r#"{"descriptionCount":1,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3","newer":{"x":1}}"#,
+            j(
+                r#"{"descriptionCount":1,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3","newer":{"x":1}}"#,
+            ),
             blob.as_bytes(),
         );
         assert!(decode_scanned(&f, true).is_ok());
@@ -1190,7 +1198,7 @@ mod tests {
         }
         // And a newer word round-trips through form B as ScanFailure::Other.
         let s = scanned(
-            "/x/a.vst3",
+            p("/x/a.vst3"),
             failed(
                 ScanFailure::Other {
                     reason: "newerReason".into(),
@@ -1215,19 +1223,21 @@ mod tests {
     fn with_no_offer_the_encoder_writes_form_a_as_1488c63_did() {
         // 1488c63's shape with protocol 4.0's payload: `classes` (raw facts) where 3.x had
         // `descriptions`; every other byte of the frame as before.
-        const DESC: &str = r#"{"format":"vst3","path":"/x/gain.vst3","bundleMtimeMs":0,"classId":"00000000000000000000000000001234","category":"","name":"gain","categories":[],"vendor":"","version":"","sdkVersion":"","inputs":2,"outputs":2}"#;
+        let desc: &str = j(
+            r#"{"format":"vst3","path":"/x/gain.vst3","bundleMtimeMs":0,"classId":"00000000000000000000000000001234","category":"","name":"gain","categories":[],"vendor":"","version":"","sdkVersion":"","inputs":2,"outputs":2}"#,
+        );
         let gain = ScanClass::Vst3(crate::plugin::Vst3Class {
-            path: "/x/gain.vst3".into(),
+            path: p("/x/gain.vst3").into(),
             class_id: format!("{:032x}", 0x1234),
             name: "gain".into(),
             inputs: Some(2),
             outputs: Some(2),
             ..Default::default()
         });
-        let ok = scanned("/x/gain.vst3", ScannedOutcome::Ok, vec![gain.clone()]);
-        let golden_ok = format!(
-            r#"{{"format":"vst3","path":"/x/gain.vst3","outcome":"ok","classes":[{DESC}]}}"#
-        );
+        let ok = scanned(p("/x/gain.vst3"), ScannedOutcome::Ok, vec![gain.clone()]);
+        let golden_ok = po(format!(
+            r#"{{"format":"vst3","path":"/x/gain.vst3","outcome":"ok","classes":[{desc}]}}"#
+        ));
         let bytes = whole(encode_scanned(&ok, false));
         assert_eq!(
             bytes,
@@ -1240,11 +1250,13 @@ mod tests {
         );
         // A failed line keeps 3.1's `[]`, even when the report holds discovered classes.
         let fl = scanned(
-            "/x/h.vst3",
+            p("/x/h.vst3"),
             failed(ScanFailure::Process, "8 blocks"),
             vec![gain.clone()],
         );
-        let golden_failed = r#"{"format":"vst3","path":"/x/h.vst3","outcome":"failed","reason":"process","detail":"8 blocks","classes":[]}"#;
+        let golden_failed = j(
+            r#"{"format":"vst3","path":"/x/h.vst3","outcome":"failed","reason":"process","detail":"8 blocks","classes":[]}"#,
+        );
         let bytes = whole(encode_scanned(&fl, false));
         assert_eq!(
             bytes,
@@ -1284,18 +1296,18 @@ mod tests {
     /// frozen decode ignores it, the path rules still hold, and only version 1 is form B for this codec.
     #[test]
     fn the_offer_is_one_optional_key_an_old_child_ignores() {
-        let plain = Scan::new(ScanFormat::Vst3, "/x/a.vst3").unwrap();
+        let plain = Scan::new(ScanFormat::Vst3, p("/x/a.vst3")).unwrap();
         assert_eq!(plain.descriptions_blob, None);
         assert!(!plain.offers_descriptions_blob());
         assert_eq!(
             serde_json::to_string(&plain).unwrap(),
-            r#"{"format":"vst3","path":"/x/a.vst3"}"#
+            j(r#"{"format":"vst3","path":"/x/a.vst3"}"#)
         );
         let offer = plain.clone().offer_descriptions_blob();
         let bytes = serde_json::to_string(&offer).unwrap();
         assert_eq!(
             bytes,
-            r#"{"format":"vst3","path":"/x/a.vst3","descriptionsBlob":1}"#
+            j(r#"{"format":"vst3","path":"/x/a.vst3","descriptionsBlob":1}"#)
         );
         assert!(offer.offers_descriptions_blob());
         assert_eq!(serde_json::from_str::<Scan>(&bytes).unwrap(), offer);
@@ -1303,7 +1315,7 @@ mod tests {
         let old: ScanUnchecked1488c63 = serde_json::from_str(&bytes).unwrap();
         assert_eq!(
             (old.format, old.path.as_str()),
-            (ScanFormat::Vst3, "/x/a.vst3")
+            (ScanFormat::Vst3, p("/x/a.vst3"))
         );
         // Through a real `scan` frame, as the child reads it.
         let f = crate::codec::encode_msg(kind::SCAN, 0, 5, &offer, &[]);
@@ -1314,23 +1326,25 @@ mod tests {
         // Path rules unchanged with an offer.
         for bad in [
             r#"{"format":"vst3","path":"a.vst3","descriptionsBlob":1}"#,
-            r#"{"format":"au","path":"/x/a.vst3","descriptionsBlob":1}"#,
+            j(r#"{"format":"au","path":"/x/a.vst3","descriptionsBlob":1}"#),
         ] {
             assert!(serde_json::from_str::<Scan>(bad).is_err(), "{bad}");
         }
         // Another version, or null: not this codec's form B.
-        let two: Scan =
-            serde_json::from_str(r#"{"format":"vst3","path":"/x/a.vst3","descriptionsBlob":2}"#)
-                .unwrap();
+        let two: Scan = serde_json::from_str(j(
+            r#"{"format":"vst3","path":"/x/a.vst3","descriptionsBlob":2}"#,
+        ))
+        .unwrap();
         assert!(!two.offers_descriptions_blob());
-        let null: Scan =
-            serde_json::from_str(r#"{"format":"vst3","path":"/x/a.vst3","descriptionsBlob":null}"#)
-                .unwrap();
+        let null: Scan = serde_json::from_str(j(
+            r#"{"format":"vst3","path":"/x/a.vst3","descriptionsBlob":null}"#,
+        ))
+        .unwrap();
         assert_eq!(null, plain);
         assert!(
-            serde_json::from_str::<Scan>(
+            serde_json::from_str::<Scan>(j(
                 r#"{"format":"vst3","path":"/x/a.vst3","descriptionsBlob":"1"}"#
-            )
+            ))
             .is_err()
         );
     }
@@ -1339,7 +1353,7 @@ mod tests {
     #[test]
     fn every_strike_row_is_malformed_and_names_its_step() {
         let one = b"{}\n".to_vec();
-        let ok_a = r#"{"format":"vst3","path":"/x/a.vst3","outcome":"ok","descriptions":[]}"#;
+        let ok_a = j(r#"{"format":"vst3","path":"/x/a.vst3","outcome":"ok","descriptions":[]}"#);
         // 3: form A with a blob.
         assert_eq!(
             mal(decode_scanned(&raw(ok_a, b"{}\n"), true)),
@@ -1347,9 +1361,9 @@ mod tests {
         );
         // 2/4: form B with `descriptions`, with `discovered`.
         for key in ["descriptions", "discovered"] {
-            let m = format!(
+            let m = po(format!(
                 r#"{{"descriptionCount":1,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3","{key}":[]}}"#
-            );
+            ));
             assert_eq!(
                 mal(decode_scanned(&raw(&m, &one), true)),
                 ScannedMalformed::ForbiddenKey(key)
@@ -1357,9 +1371,9 @@ mod tests {
         }
         // 2: `descriptionsBlob` 2, "1", null, 1.0, -1.
         for v in ["2", "\"1\"", "null", "1.0", "-1", "0"] {
-            let m = format!(
+            let m = po(format!(
                 r#"{{"descriptionCount":1,"descriptionsBlob":{v},"format":"vst3","outcome":"ok","path":"/x/a.vst3"}}"#
-            );
+            ));
             assert!(
                 matches!(
                     mal(decode_scanned(&raw(&m, &one), true)),
@@ -1370,14 +1384,26 @@ mod tests {
         }
         // 2: no `descriptionCount`, a negative one, a fraction, a string; the supervisor's own reason; no format.
         for m in [
-            r#"{"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3"}"#,
-            r#"{"descriptionCount":-1,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3"}"#,
-            r#"{"descriptionCount":1.5,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3"}"#,
-            r#"{"descriptionCount":"1","descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3"}"#,
-            r#"{"descriptionCount":0,"descriptionsBlob":1,"format":"vst3","outcome":"failed","reason":"protocolAfterScan","path":"/x/a.vst3"}"#,
-            r#"{"descriptionCount":0,"descriptionsBlob":1,"outcome":"ok","path":"/x/a.vst3"}"#,
-            r#"{"descriptionCount":0,"descriptionsBlob":1,"format":"vst3","outcome":"crashed","path":"/x/a.vst3"}"#,
-            r#"{"descriptionCount":0,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3","overLimit":3}"#,
+            j(r#"{"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3"}"#),
+            j(
+                r#"{"descriptionCount":-1,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3"}"#,
+            ),
+            j(
+                r#"{"descriptionCount":1.5,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3"}"#,
+            ),
+            j(
+                r#"{"descriptionCount":"1","descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3"}"#,
+            ),
+            j(
+                r#"{"descriptionCount":0,"descriptionsBlob":1,"format":"vst3","outcome":"failed","reason":"protocolAfterScan","path":"/x/a.vst3"}"#,
+            ),
+            j(r#"{"descriptionCount":0,"descriptionsBlob":1,"outcome":"ok","path":"/x/a.vst3"}"#),
+            j(
+                r#"{"descriptionCount":0,"descriptionsBlob":1,"format":"vst3","outcome":"crashed","path":"/x/a.vst3"}"#,
+            ),
+            j(
+                r#"{"descriptionCount":0,"descriptionsBlob":1,"format":"vst3","outcome":"ok","path":"/x/a.vst3","overLimit":3}"#,
+            ),
             r#"[1]"#,
         ] {
             assert!(
@@ -1394,7 +1420,9 @@ mod tests {
             ScannedMalformed::NotOffered
         );
         // 5: overLimit with a blob.
-        let over = r#"{"descriptionCount":1,"descriptionsBlob":1,"format":"vst3","outcome":"ok","overLimit":"line","path":"/x/a.vst3"}"#;
+        let over = j(
+            r#"{"descriptionCount":1,"descriptionsBlob":1,"format":"vst3","outcome":"ok","overLimit":"line","path":"/x/a.vst3"}"#,
+        );
         assert_eq!(
             mal(decode_scanned(&raw(over, &one), true)),
             ScannedMalformed::OverLimitBlob { blob_len: 3 }
@@ -1443,7 +1471,9 @@ mod tests {
         let good = serde_json::to_string(&class(0)).unwrap();
         // serde's sequence form of a whole class: the `{` check refuses it first, by name. (Since the scan
         // class tolerates unknown fields, a flattened map, serde refuses the sequence form too; the check stays the first.)
-        let seq = r#"["vst3","/x/a.vst3",0,"factory","00000000000000000000000000000000","Audio Module Class","n",[],"V",null,"1","s"]"#;
+        let seq = j(
+            r#"["vst3","/x/a.vst3",0,"factory","00000000000000000000000000000000","Audio Module Class","n",[],"V",null,"1","s"]"#,
+        );
         let upper = serde_json::to_string(&class(0)).unwrap().replace(
             "00000000000000000000000000000000",
             "5341534C4C4142010000005000000000",
@@ -1662,7 +1692,11 @@ mod tests {
     fn a_line_of_64_kib_is_accepted_and_one_byte_more_is_l4() {
         let at = line_of(MAX_DESCRIPTION_LINE);
         assert_eq!(serde_json::to_vec(&at).unwrap().len(), MAX_DESCRIPTION_LINE);
-        let s = scanned("/x/a.vst3", ScannedOutcome::Ok, vec![class(0), at.clone()]);
+        let s = scanned(
+            p("/x/a.vst3"),
+            ScannedOutcome::Ok,
+            vec![class(0), at.clone()],
+        );
         let f = frame(&whole(encode_scanned(&s, true)));
         let ScannedLine::B(b) = decode_scanned(&f, true).unwrap() else {
             panic!("form B")
@@ -1703,7 +1737,9 @@ mod tests {
             }
         );
         // overLimit comes first (step 5): a well-formed overLimit meta of any count is the over-limit report, its word kept.
-        let m = r#"{"descriptionCount":7,"descriptionsBlob":1,"format":"vst3","outcome":"ok","overLimit":"newerBound","path":"/x/a.vst3"}"#;
+        let m = j(
+            r#"{"descriptionCount":7,"descriptionsBlob":1,"format":"vst3","outcome":"ok","overLimit":"newerBound","path":"/x/a.vst3"}"#,
+        );
         assert_eq!(
             lim(decode_scanned(&raw(m, b""), true)),
             ScannedLimit::OverLimit {
@@ -1719,7 +1755,7 @@ mod tests {
     fn a_blob_of_exactly_64_mib_is_accepted() {
         let d = line_of(4095);
         let s = scanned(
-            "/x/a.vst3",
+            p("/x/a.vst3"),
             ScannedOutcome::Ok,
             vec![d.clone(); MAX_SCAN_DESCRIPTIONS],
         );
@@ -1743,13 +1779,13 @@ mod tests {
     #[test]
     fn the_encoder_reports_count_past_16384() {
         let at = scanned(
-            "/x/a.vst3",
+            p("/x/a.vst3"),
             ScannedOutcome::Ok,
             classes(MAX_SCAN_DESCRIPTIONS),
         );
         assert!(matches!(encode_scanned(&at, true), ScannedFrame::Whole(_)));
         let s = scanned(
-            "/x/a.vst3",
+            p("/x/a.vst3"),
             ScannedOutcome::Ok,
             classes(MAX_SCAN_DESCRIPTIONS + 1),
         );
@@ -1769,7 +1805,7 @@ mod tests {
     #[test]
     fn the_encoder_reports_a_line_past_64_kib() {
         let s = scanned(
-            "/x/a.vst3",
+            p("/x/a.vst3"),
             failed(ScanFailure::Instantiate, "x"),
             vec![class(0), line_of(MAX_DESCRIPTION_LINE + 1), class(2)],
         );
@@ -1797,7 +1833,7 @@ mod tests {
     #[test]
     fn the_encoder_reports_a_blob_past_64_mib() {
         let s = scanned(
-            "/x/a.vst3",
+            p("/x/a.vst3"),
             ScannedOutcome::Ok,
             vec![line_of(4096); MAX_SCAN_DESCRIPTIONS],
         );
@@ -1817,7 +1853,7 @@ mod tests {
     /// alone and names with `oversized_header`. A form B meta past it (a huge `detail`) is the same path.
     #[test]
     fn a_meta_past_64_kib_is_the_header_only_never_a_panic() {
-        let s = scanned("/x/a.vst3", ScannedOutcome::Ok, classes(2000));
+        let s = scanned(p("/x/a.vst3"), ScannedOutcome::Ok, classes(2000));
         let true_len = serde_json::to_vec(&s).unwrap().len();
         assert!(true_len > MAX_META);
         let ScannedFrame::HeaderOnly {
@@ -1845,7 +1881,7 @@ mod tests {
         assert!(f.meta.len() < 1024);
         // A form B meta past MAX_META.
         let big = scanned(
-            "/x/a.vst3",
+            p("/x/a.vst3"),
             failed(ScanFailure::Process, &"d".repeat(MAX_META)),
             classes(1),
         );
@@ -1857,7 +1893,7 @@ mod tests {
         assert!(d.oversized_header().is_some());
         // And its overLimit form too (count passed AND a meta past the cap).
         let big = scanned(
-            "/x/a.vst3",
+            p("/x/a.vst3"),
             failed(ScanFailure::Process, &"d".repeat(MAX_META)),
             classes(MAX_SCAN_DESCRIPTIONS + 1),
         );
@@ -1873,7 +1909,7 @@ mod tests {
     #[test]
     fn a_form_b_meta_past_64_kib_is_the_header_only_with_blob_0() {
         let s = scanned(
-            "/x/a.vst3",
+            p("/x/a.vst3"),
             failed(ScanFailure::Process, &"d".repeat(MAX_META)),
             classes(3),
         );
@@ -2052,13 +2088,13 @@ mod tests {
             detail: "round trip".into(),
         };
         let b = frame(&whole(encode_scanned(
-            &scanned("/x/a.vst3", out.clone(), classes(3)),
+            &scanned(p("/x/a.vst3"), out.clone(), classes(3)),
             true,
         )));
         let (r, disc) = decode_scanned(&b, true).unwrap().into_verdict();
         assert_eq!((r, disc), (verdict.clone(), classes(3)));
         let none = frame(&whole(encode_scanned(
-            &scanned("/x/a.vst3", out.clone(), vec![]),
+            &scanned(p("/x/a.vst3"), out.clone(), vec![]),
             true,
         )));
         assert_eq!(
@@ -2066,7 +2102,7 @@ mod tests {
             (verdict.clone(), vec![])
         );
         let a = frame(&whole(encode_scanned(
-            &scanned("/x/a.vst3", out, classes(3)),
+            &scanned(p("/x/a.vst3"), out, classes(3)),
             false,
         )));
         assert_eq!(
@@ -2080,7 +2116,7 @@ mod tests {
     /// The frames the two label tests read: the offered `scan`, form B `scanned` with 0, 1 and 3 classes, a form B `failed` with
     /// its discovered classes, a form B past the count bound, the blob-limit header-only frame, and a form A `scanned`.
     fn label_frames() -> Vec<(&'static str, Vec<u8>)> {
-        let scan = Scan::new(ScanFormat::Vst3, "/x/shell.vst3")
+        let scan = Scan::new(ScanFormat::Vst3, p("/x/shell.vst3"))
             .unwrap()
             .offer_descriptions_blob();
         let mut out = vec![(
@@ -2088,17 +2124,17 @@ mod tests {
             crate::codec::encode_msg(kind::SCAN, 0, 7, &scan, &[]),
         )];
         for (name, n) in [("form_b_0", 0), ("form_b_1", 1), ("form_b_3", 3)] {
-            let s = scanned("/x/shell.vst3", ScannedOutcome::Ok, classes(n));
+            let s = scanned(p("/x/shell.vst3"), ScannedOutcome::Ok, classes(n));
             out.push((name, encode_scanned_form_b(&s).bytes().to_vec()));
         }
         let f = scanned(
-            "/x/shell.vst3",
+            p("/x/shell.vst3"),
             failed(ScanFailure::Process, "threw"),
             classes(2),
         );
         out.push(("form_b_failed", encode_scanned_form_b(&f).bytes().to_vec()));
         let over = scanned(
-            "/x/shell.vst3",
+            p("/x/shell.vst3"),
             ScannedOutcome::Ok,
             vec![default_class(); MAX_SCAN_DESCRIPTIONS + 1],
         );
@@ -2111,11 +2147,14 @@ mod tests {
             }
         ));
         out.push(("form_b_over_count", over.bytes().to_vec()));
-        let long = format!("/x/{}.vst3", "a".repeat(MAX_META));
+        // The name is shortened by what the OS's root adds (nothing on unix; the drive on Windows), so the declared
+        // meta length, the only trace of the path in a header-only frame, is the unix one.
+        let root_extra = p("/x/").len() - "/x/".len();
+        let long = po(format!("/x/{}.vst3", "a".repeat(MAX_META - root_extra)));
         let l1 = encode_scanned_form_b(&scanned(&long, ScannedOutcome::Ok, classes(1)));
         assert!(matches!(l1, ScannedFrame::HeaderOnly { .. }));
         out.push(("form_b_header_only", l1.bytes().to_vec()));
-        let a = scanned("/x/shell.vst3", ScannedOutcome::Ok, classes(2));
+        let a = scanned(p("/x/shell.vst3"), ScannedOutcome::Ok, classes(2));
         out.push(("form_a", encode_scanned_form_a(&a).bytes().to_vec()));
         out
     }
@@ -2175,7 +2214,11 @@ mod tests {
         assert_eq!(want.len(), got.len(), "the golden lists every frame");
         for ((wn, wh), (gn, gb)) in want.iter().zip(&got) {
             assert_eq!(wn, gn);
-            let gh: String = gb.iter().map(|b| format!("{b:02x}")).collect();
+            // (on Windows the frame is compared in its unix form: its paths unrooted, its lengths re-encoded)
+            let gh: String = crate::test_paths::unix_frame(gb)
+                .iter()
+                .map(|b| format!("{b:02x}"))
+                .collect();
             assert!(*wh == gh, "{gn}: the bytes differ from protocol 4.0's");
         }
     }

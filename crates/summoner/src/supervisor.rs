@@ -18,9 +18,9 @@ use std::cell::Cell;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::ffi::OsString;
 // The bench seam and the tests write to a socket end by hand; the supervisor writes through its channel.
-#[cfg(any(test, feature = "bench-seams"))]
+#[cfg(all(unix, any(test, feature = "bench-seams")))]
 use std::io::Write;
-#[cfg(any(test, feature = "bench-seams"))]
+#[cfg(all(unix, any(test, feature = "bench-seams")))]
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU32, AtomicU64, AtomicUsize, Ordering};
@@ -448,11 +448,15 @@ pub fn spawn_args(cfg: &Config) -> Vec<OsString> {
 /// fallback (the host application then reads no crash log from it: a lost report, never a silenced host). Both children and the
 /// scan use it.
 pub fn crash_log_for_spawn(dir: &std::path::Path, stderr_tag: &str) -> Option<PathBuf> {
-    if let Ok((_, p)) = runecraft_ipc::process::unix::resolve_explicit_dir(dir) {
+    #[cfg(unix)]
+    use runecraft_ipc::process::unix::resolve_explicit_dir;
+    #[cfg(windows)]
+    use runecraft_ipc::process::windows::resolve_explicit_dir;
+    if let Ok((_, p)) = resolve_explicit_dir(dir) {
         return Some(p);
     }
     let made = std::fs::create_dir_all(dir);
-    match runecraft_ipc::process::unix::resolve_explicit_dir(dir) {
+    match resolve_explicit_dir(dir) {
         Ok((_, p)) => {
             runecraft_rt::safe_eprintln!(
                 "{stderr_tag}: WARNING: the crash-log folder {} was gone and was recreated before the spawn",
@@ -2091,6 +2095,24 @@ struct Chain {
     /// that sends neither).
     wired_bytes: u64,
     unwired_bytes: u64,
+    /// Windows only: the chain thread's waiter slot on the child page's hubs, unique among the chains (the same slot
+    /// in every ring group, so an unpark into another group needs no new object).
+    #[cfg(windows)]
+    fan_slot: Option<u8>,
+}
+
+/// The lowest waiter slot no other chain holds (`taken`), or None when all [`runecraft_ipc::bridge::FAN_SLOTS`]
+/// are held.
+#[cfg_attr(not(windows), allow(dead_code))]
+fn free_fan_slot(taken: impl Iterator<Item = u8>) -> Option<u8> {
+    let mut used = 0u64;
+    for t in taken {
+        if t < 64 {
+            used |= 1 << t;
+        }
+    }
+    let free = (!used).trailing_zeros();
+    (free < u32::from(runecraft_ipc::bridge::FAN_SLOTS)).then_some(free as u8)
 }
 
 struct Child {
@@ -2525,6 +2547,38 @@ impl Supervisor {
                 return;
             }
         }
+        // Windows: the chain thread's waiter slot on the page's hubs and its event (4.1). Unix: nothing, as ever.
+        #[cfg(windows)]
+        let fan_slot = {
+            let taken = self
+                .chains
+                .iter()
+                .filter(|(k, _)| **k != key)
+                .filter_map(|(_, c)| c.fan_slot);
+            let stderr_tag = self.cfg.names.stderr;
+            let Some(slot) = free_fan_slot(taken) else {
+                runecraft_rt::safe_eprintln!(
+                    "{stderr_tag}: chain {key} is not loaded: every waiter slot of the child page is held \
+                     ({} chains)",
+                    runecraft_ipc::bridge::FAN_SLOTS
+                );
+                return;
+            };
+            let Some(c) = &self.child else { return };
+            match c.page.hub_waiter_objects(slot) {
+                Ok(objs) => region_objs.extend(objs),
+                Err(e) => {
+                    runecraft_rt::safe_eprintln!("{stderr_tag}: chain {key}'s waiter slot: {e}");
+                    return;
+                }
+            }
+            if let Some(ch) = self.chains.get_mut(&key) {
+                ch.fan_slot = Some(slot);
+            }
+            Some(slot)
+        };
+        #[cfg(not(windows))]
+        let fan_slot = None;
         let region = Arc::new(region);
         let g = spec.geometry;
         let slots: Vec<codec::SlotDesc> = spec
@@ -2557,7 +2611,7 @@ impl Supervisor {
             msg.slots = slots;
             msg.fds = region_objs.len() as u32;
             // Windows only (4.1, additive): this chain's FanOut slot. Never written on unix.
-            msg.fan_slot = None;
+            msg.fan_slot = fan_slot;
             msg
         };
         let now = self.now();
@@ -2806,6 +2860,8 @@ impl Supervisor {
                         sent_enabled: Vec::new(),
                         wired_bytes: 0,
                         unwired_bytes: 0,
+                        #[cfg(windows)]
+                        fan_slot: None,
                     },
                 );
                 // Before the verified hello the table is updated and nothing is sent (as in a backoff).
@@ -5188,12 +5244,12 @@ impl BlobGate {
         self.freed.notify_all();
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, unix))]
     fn held(&self) -> usize {
         self.lock().held
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, unix))]
     fn frames(&self) -> usize {
         self.lock().frames
     }
@@ -5375,12 +5431,14 @@ pub mod bench_seam {
     /// The shipped reader ([`reader`], the reader thread's body) on one end of a socket pair. The bench is the child on the
     /// other end ([`ReaderPipe::write`]) and the supervisor ([`ReaderPipe::take`]: it takes each frame off the
     /// channel and redeems its ticket, as `Supervisor` does).
+    #[cfg(unix)]
     pub struct ReaderPipe {
         child: Option<UnixStream>,
         inbox: Option<InboundRx>,
         thread: Option<JoinHandle<()>>,
     }
 
+    #[cfg(unix)]
     impl ReaderPipe {
         /// Start the shipped reader on one end of a new socket pair, behind a gate of `budget` bytes.
         pub fn start(budget: usize) -> std::io::Result<ReaderPipe> {
@@ -5425,6 +5483,7 @@ pub mod bench_seam {
         }
     }
 
+    #[cfg(unix)]
     impl Drop for ReaderPipe {
         /// The receiver first (it closes the gate), then the child's end (the reader sees EOF), then the join.
         fn drop(&mut self) {
@@ -5755,403 +5814,426 @@ mod tests {
         assert!(frames[0].meta_as::<codec::HelloReply>().is_err());
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    // The reader blob budget: `reader` driven over a socket pair, this test the child (it
-    // writes a few bounded frames) and the consumer (it holds the receiver, so it decides when bytes are freed).
-    // -----------------------------------------------------------------------------------------------------------------
+    // The socket-pair rigs are unix only: on Windows the pipe's peer check refuses an unspawned peer, and a test
+    // identity for it is not in the IPC floor yet.
+    #[cfg(unix)]
+    mod reader_budget {
+        use super::*;
 
-    const KIB: usize = 1024;
-    const MIB: usize = 1024 * 1024;
-    /// How long a reader is given to show it admits nothing more (it is blocked on the gate's condvar).
-    const SETTLE: Duration = Duration::from_millis(150);
+        // -----------------------------------------------------------------------------------------------------------------
+        // The reader blob budget: `reader` driven over a socket pair, this test the child (it
+        // writes a few bounded frames) and the consumer (it holds the receiver, so it decides when bytes are freed).
+        // -----------------------------------------------------------------------------------------------------------------
 
-    fn flood_frame(blob: usize) -> Vec<u8> {
-        codec::encode_msg(
-            kind::LOG,
-            codec::FF_EVENT,
-            0,
-            &codec::Log::new("info".into(), "flood".into()),
-            &vec![0xa5; blob],
-        )
-    }
+        const KIB: usize = 1024;
+        const MIB: usize = 1024 * 1024;
+        /// How long a reader is given to show it admits nothing more (it is blocked on the gate's condvar).
+        const SETTLE: Duration = Duration::from_millis(150);
 
-    struct ReaderRig {
-        gate: Arc<BlobGate>,
-        counters: Arc<ControlCounters>,
-        inbox: Option<InboundRx>,
-        child: Option<UnixStream>,
-        reader: Option<JoinHandle<()>>,
-    }
+        fn flood_frame(blob: usize) -> Vec<u8> {
+            codec::encode_msg(
+                kind::LOG,
+                codec::FF_EVENT,
+                0,
+                &codec::Log::new("info".into(), "flood".into()),
+                &vec![0xa5; blob],
+            )
+        }
 
-    impl ReaderRig {
-        /// A reader with `budget`, and a child that writes `bytes` (from its own thread: its write blocks once the
-        /// reader stops reading, and fails once the reader's end is closed).
-        fn start(budget: usize, bytes: Vec<u8>) -> ReaderRig {
+        struct ReaderRig {
+            gate: Arc<BlobGate>,
+            counters: Arc<ControlCounters>,
+            inbox: Option<InboundRx>,
+            child: Option<UnixStream>,
+            reader: Option<JoinHandle<()>>,
+        }
+
+        impl ReaderRig {
+            /// A reader with `budget`, and a child that writes `bytes` (from its own thread: its write blocks once the
+            /// reader stops reading, and fails once the reader's end is closed).
+            fn start(budget: usize, bytes: Vec<u8>) -> ReaderRig {
+                let (ours, child) = runecraft_ipc::channel::channel_pair().expect("a channel pair");
+                let (_, ours) = ours
+                    .bind(&runecraft_ipc::process::testing::Unspawned(0))
+                    .expect("bind");
+                let child =
+                    UnixStream::from(runecraft_ipc::channel::unix::ChildEndExt::into_fd(child));
+                let counters = Arc::new(ControlCounters::default());
+                let gate = BlobGate::new(budget, counters.clone());
+                let (tx, rx) = sync_channel(COMMAND_BOUND + READER_FRAMES + 16);
+                let g = gate.clone();
+                let reader = std::thread::Builder::new()
+                    .name("test-bridge-read".into())
+                    .spawn(move || reader(ours, 1, tx, g))
+                    .expect("spawn the reader");
+                let mut w = child.try_clone().expect("clone");
+                std::thread::spawn(move || {
+                    let _ = w.write_all(&bytes);
+                });
+                ReaderRig {
+                    inbox: Some(InboundRx {
+                        rx,
+                        gate: gate.clone(),
+                    }),
+                    gate,
+                    counters,
+                    child: Some(child),
+                    reader: Some(reader),
+                }
+            }
+
+            fn flood(budget: usize, blobs: &[usize]) -> ReaderRig {
+                ReaderRig::start(budget, blobs.iter().flat_map(|&b| flood_frame(b)).collect())
+            }
+
+            fn rx(&self) -> &Receiver<Inbound> {
+                &self.inbox.as_ref().expect("the receiver").rx
+            }
+
+            /// The next frame, its ticket kept (it stays in flight until the test redeems or drops the ticket).
+            fn take(&self) -> (Frame, BlobTicket) {
+                match self.rx().recv_timeout(Duration::from_secs(5)) {
+                    Ok(Inbound::Frame(1, f, t)) => (f, t),
+                    Ok(Inbound::ReaderDone(_, e)) => panic!("the reader ended: {e:?}"),
+                    Ok(_) => panic!("not a frame"),
+                    Err(e) => panic!("no frame: {e:?}"),
+                }
+            }
+
+            fn end(&self) -> ReaderEnd {
+                match self.rx().recv_timeout(Duration::from_secs(5)) {
+                    Ok(Inbound::ReaderDone(1, e)) => e,
+                    Ok(Inbound::Frame(..)) => panic!("a frame, not the end"),
+                    Ok(_) => panic!("not the end"),
+                    Err(e) => panic!("no end: {e:?}"),
+                }
+            }
+
+            /// The reader reaches `held` and admits nothing more: the held bytes stay `held` over [`SETTLE`]. (Only the
+            /// reader adds bytes meanwhile, so it waits for at least `held`, then asserts exactly `held`.)
+            fn settled_at(&self, held: usize) {
+                wait_for(
+                    || self.gate.held() >= held,
+                    "the reader holds the expected bytes",
+                );
+                std::thread::sleep(SETTLE);
+                assert_eq!(self.gate.held(), held, "held bytes after the settle");
+            }
+
+            /// The reader reaches `frames` in flight and admits nothing more over [`SETTLE`] (as [`Self::settled_at`]).
+            fn frames_settled_at(&self, frames: usize) {
+                wait_for(
+                    || self.gate.frames() >= frames,
+                    "the reader holds the expected frames",
+                );
+                std::thread::sleep(SETTLE);
+                assert_eq!(
+                    self.gate.frames(),
+                    frames,
+                    "frames in flight after the settle"
+                );
+            }
+
+            /// No frame is queued (every admitted one was taken).
+            fn none_queued(&self) {
+                assert!(
+                    matches!(
+                        self.rx().try_recv(),
+                        Err(std::sync::mpsc::TryRecvError::Empty)
+                    ),
+                    "no frame past the admitted ones"
+                );
+            }
+
+            /// The reader thread is finished within 1 s of now; joined.
+            fn joined_within_1s(&mut self) {
+                let r = self.reader.take().expect("the reader");
+                let until = std::time::Instant::now() + Duration::from_secs(1);
+                while !r.is_finished() && std::time::Instant::now() < until {
+                    std::thread::sleep(Duration::from_millis(1));
+                }
+                assert!(r.is_finished(), "the reader thread did not end within 1 s");
+                r.join().expect("the reader did not panic");
+            }
+        }
+
+        impl Drop for ReaderRig {
+            fn drop(&mut self) {
+                // Unblocks a child write the reader no longer reads (the test thread never waits on it).
+                if let Some(c) = self.child.take() {
+                    let _ = c.shutdown(std::net::Shutdown::Both);
+                }
+            }
+        }
+
+        fn wait_for(mut cond: impl FnMut() -> bool, what: &str) {
+            let until = std::time::Instant::now() + Duration::from_secs(5);
+            while !cond() {
+                assert!(std::time::Instant::now() < until, "timed out: {what}");
+                std::thread::sleep(Duration::from_millis(1));
+            }
+        }
+
+        /// Fix 1 and 2: a flood of 8 × 256 KiB against a 1 MiB budget is held at EXACTLY the budget (4 frames), never
+        /// one frame more: the 5th header waits before its body is allocated. Mutant `mutant_live_reader_post_alloc`
+        /// holds 1.25 MiB (the old wait-while-over, then add) and fails here.
+        #[test]
+        fn the_reader_holds_a_flood_at_exactly_its_budget() {
+            let rig = ReaderRig::flood(MIB, &[256 * KIB; 8]);
+            rig.settled_at(MIB);
+            assert_eq!(
+                rig.counters.reader_blob_held.load(Ordering::Relaxed),
+                MIB as u64
+            );
+            assert_eq!(
+                rig.counters.reader_blob_peak.load(Ordering::Relaxed),
+                MIB as u64,
+                "never more than the budget"
+            );
+            let mut held = Vec::new();
+            for _ in 0..4 {
+                let (f, t) = rig.take();
+                assert_eq!(f.blob.len(), 256 * KIB);
+                held.push(t);
+            }
+            rig.none_queued();
+            rig.settled_at(MIB);
+            rig.none_queued();
+        }
+
+        /// Fix 1 and 2: freeing one frame admits exactly the next admissible frame, at the boundary (`held + declared ≤
+        /// budget`): 512 + 256 KiB held, the next 512 KiB waits; the 256 KiB frame freed, it is admitted (exactly 1 MiB)
+        /// and the 128 KiB after it waits; the first 512 KiB freed, the 128 KiB is admitted.
+        #[test]
+        fn freeing_one_frame_admits_exactly_the_next_admissible_frame() {
+            let rig = ReaderRig::flood(MIB, &[512 * KIB, 256 * KIB, 512 * KIB, 128 * KIB]);
+            rig.settled_at(768 * KIB);
+            let (a, ta) = rig.take();
+            let (b, tb) = rig.take();
+            assert_eq!((a.blob.len(), b.blob.len()), (512 * KIB, 256 * KIB));
+            rig.none_queued();
+            rig.settled_at(768 * KIB);
+            rig.none_queued();
+            tb.redeem();
+            let (c, tc) = rig.take();
+            assert_eq!(c.blob.len(), 512 * KIB, "exactly the next admissible frame");
+            rig.settled_at(MIB);
+            rig.none_queued();
+            assert_eq!(rig.counters.reader_blob_waits.load(Ordering::Relaxed), 1);
+            ta.redeem();
+            let (d, td) = rig.take();
+            assert_eq!(d.blob.len(), 128 * KIB);
+            rig.settled_at(640 * KIB);
+            rig.none_queued();
+            assert_eq!(
+                rig.counters.reader_blob_peak.load(Ordering::Relaxed),
+                MIB as u64
+            );
+            drop((tc, td));
+            assert_eq!(rig.gate.held(), 0);
+        }
+
+        /// Fix 3: the receiver dropped while the reader is stalled at its budget (the frames still queued) ends the reader
+        /// within 1 s, and the queued frames' bytes are freed with them (no leak). Mutant
+        /// `mutant_live_reader_leak_on_drop` leaves 1 MiB held and fails here.
+        #[test]
+        fn a_stalled_reader_ends_when_the_receiver_is_dropped() {
+            let mut rig = ReaderRig::flood(MIB, &[256 * KIB; 8]);
+            rig.settled_at(MIB);
+            drop(rig.inbox.take());
+            rig.joined_within_1s();
+            assert_eq!(rig.gate.held(), 0, "the dropped frames freed their bytes");
+            assert_eq!(rig.counters.reader_blob_held.load(Ordering::Relaxed), 0);
+        }
+
+        /// Fix 3, the receiver's own signal: the consumer still holds every admitted byte (so no free can wake the reader)
+        /// and drops the receiver: the reader ends within 1 s. Mutant `mutant_live_reader_no_close` never wakes it
+        /// and fails here.
+        #[test]
+        fn a_stalled_reader_ends_when_the_receiver_is_dropped_while_its_bytes_are_held() {
+            let mut rig = ReaderRig::flood(MIB, &[256 * KIB; 8]);
+            rig.settled_at(MIB);
+            let tickets: Vec<_> = (0..4).map(|_| rig.take().1).collect();
+            rig.none_queued();
+            rig.settled_at(MIB);
+            drop(rig.inbox.take());
+            rig.joined_within_1s();
+            assert_eq!(
+                rig.gate.held(),
+                MIB,
+                "the consumer's frames are still its own"
+            );
+            drop(tickets);
+            assert_eq!(rig.gate.held(), 0);
+        }
+
+        /// The reservation of a frame the reader never finished (EOF mid-body) is freed when the reader ends: admitted
+        /// from its header (the peak shows it), returned at the end. Mutant `mutant_live_reader_leak_on_drop` fails.
+        #[test]
+        fn a_reservation_is_freed_when_the_reader_ends_mid_frame() {
+            let mut half = flood_frame(512 * KIB);
+            half.truncate(half.len() / 2);
+            let mut rig = ReaderRig::start(MIB, half);
+            wait_for(
+                || rig.counters.reader_blob_peak.load(Ordering::Relaxed) == 512 * KIB as u64,
+                "the header admitted",
+            );
+            rig.child
+                .take()
+                .expect("the child")
+                .shutdown(std::net::Shutdown::Both)
+                .ok();
+            assert!(matches!(rig.end(), ReaderEnd::EofMidFrame));
+            rig.joined_within_1s();
+            assert_eq!(rig.gate.held(), 0);
+        }
+
+        /// A blob past the whole budget (a test budget below the codec's cap) is refused from its header, a protocol
+        /// fault, never a reader waiting forever; nothing of it was admitted.
+        #[test]
+        fn a_blob_past_the_whole_budget_is_refused_not_waited_for() {
+            let mut rig = ReaderRig::flood(MIB, &[2 * MIB]);
+            match rig.end() {
+                ReaderEnd::Refused(codec::ProtoError::NotAdmitted { kind: k, blob_len }) => {
+                    assert_eq!((k, blob_len as usize), (kind::LOG, 2 * MIB));
+                }
+                e => panic!("refused from its header: {e:?}"),
+            }
+            rig.joined_within_1s();
+            assert_eq!(rig.counters.reader_blob_peak.load(Ordering::Relaxed), 0);
+        }
+
+        /// The control: traffic within the budget (frames with and without blobs) passes in order and unchanged, each
+        /// frame's bytes freed as it is taken; the end is a clean EOF; no admission waited.
+        #[test]
+        fn traffic_within_the_budget_passes_unchanged() {
+            let blobs = [0, 3, 0, 64 * KIB, 100_000, 0, 1];
+            let mut rig = ReaderRig::flood(MIB, &blobs);
+            for &b in &blobs {
+                let (f, t) = rig.take();
+                assert_eq!(f.header.kind, kind::LOG);
+                assert_eq!(f.blob, vec![0xa5; b]);
+                t.redeem();
+            }
+            rig.child
+                .take()
+                .expect("the child")
+                .shutdown(std::net::Shutdown::Both)
+                .ok();
+            assert!(matches!(rig.end(), ReaderEnd::Eof));
+            rig.joined_within_1s();
+            assert_eq!((rig.gate.held(), rig.gate.frames()), (0, 0));
+            assert_eq!(rig.counters.reader_blob_waits.load(Ordering::Relaxed), 0);
+        }
+
+        /// The reader frame bound: a flood of 300 META-ONLY frames (no blob, so the byte budget never
+        /// binds) is held at EXACTLY 256 in flight for the reader, the 257th waiting at its header. Mutant
+        /// `mutant_live_reader_no_frame_bound` admits all 300 and fails here.
+        #[test]
+        fn the_reader_holds_a_meta_only_flood_at_exactly_its_frame_bound() {
+            let rig = ReaderRig::flood(MIB, &[0; 300]);
+            rig.frames_settled_at(READER_FRAMES);
+            assert_eq!(rig.gate.held(), 0, "no blob bytes");
+            assert_eq!(
+                rig.counters.reader_frames_peak.load(Ordering::Relaxed),
+                READER_FRAMES as u64,
+                "never more than the bound"
+            );
+            let tickets: Vec<_> = (0..READER_FRAMES).map(|_| rig.take().1).collect();
+            rig.none_queued();
+            rig.frames_settled_at(READER_FRAMES);
+            rig.none_queued();
+            drop(tickets);
+        }
+
+        /// The frame bound: freeing one frame admits exactly one more (twice), and the rest wait.
+        #[test]
+        fn freeing_one_frame_at_the_frame_bound_admits_exactly_one_more() {
+            let rig = ReaderRig::flood(MIB, &[0; 300]);
+            rig.frames_settled_at(READER_FRAMES);
+            let mut tickets: VecDeque<_> = (0..READER_FRAMES).map(|_| rig.take().1).collect();
+            rig.none_queued();
+            let waits = rig.counters.reader_blob_waits.load(Ordering::Relaxed);
+            for _ in 0..2 {
+                tickets.pop_front().expect("a ticket").redeem();
+                let (f, t) = rig.take();
+                assert!(f.blob.is_empty());
+                tickets.push_back(t);
+                rig.frames_settled_at(READER_FRAMES);
+                rig.none_queued();
+            }
+            assert_eq!(
+                rig.counters.reader_blob_waits.load(Ordering::Relaxed),
+                waits + 2,
+                "each admitted after a wait"
+            );
+            assert_eq!(
+                rig.counters.reader_frames_peak.load(Ordering::Relaxed),
+                READER_FRAMES as u64
+            );
+        }
+
+        /// The frame bound and the receiver's signal: the consumer holds every one of the 256 frames in flight and drops
+        /// the receiver; the reader ends within 1 s. Then the frames are freed.
+        #[test]
+        fn a_reader_stalled_at_its_frame_bound_ends_when_the_receiver_is_dropped() {
+            let mut rig = ReaderRig::flood(MIB, &[0; 300]);
+            rig.frames_settled_at(READER_FRAMES);
+            let tickets: Vec<_> = (0..READER_FRAMES).map(|_| rig.take().1).collect();
+            rig.none_queued();
+            drop(rig.inbox.take());
+            rig.joined_within_1s();
+            assert_eq!(rig.gate.frames(), READER_FRAMES);
+            drop(tickets);
+            assert_eq!(rig.gate.frames(), 0);
+            assert_eq!(rig.counters.reader_frames_held.load(Ordering::Relaxed), 0);
+        }
+
+        /// The frame bound is each reader's own: a second reader admits while the first is stalled at its bound, on the
+        /// same gate (the byte budget is the one shared bound).
+        #[test]
+        fn the_frame_bound_is_per_reader() {
+            let first = ReaderRig::flood(MIB, &[0; 300]);
+            first.frames_settled_at(READER_FRAMES);
             let (ours, child) = runecraft_ipc::channel::channel_pair().expect("a channel pair");
             let (_, ours) = ours
                 .bind(&runecraft_ipc::process::testing::Unspawned(0))
                 .expect("bind");
             let child = UnixStream::from(runecraft_ipc::channel::unix::ChildEndExt::into_fd(child));
-            let counters = Arc::new(ControlCounters::default());
-            let gate = BlobGate::new(budget, counters.clone());
-            let (tx, rx) = sync_channel(COMMAND_BOUND + READER_FRAMES + 16);
-            let g = gate.clone();
-            let reader = std::thread::Builder::new()
-                .name("test-bridge-read".into())
-                .spawn(move || reader(ours, 1, tx, g))
-                .expect("spawn the reader");
-            let mut w = child.try_clone().expect("clone");
-            std::thread::spawn(move || {
-                let _ = w.write_all(&bytes);
-            });
-            ReaderRig {
-                inbox: Some(InboundRx {
-                    rx,
-                    gate: gate.clone(),
-                }),
-                gate,
-                counters,
-                child: Some(child),
-                reader: Some(reader),
+            let (tx, rx) = sync_channel(16);
+            let g = first.gate.clone();
+            let second = std::thread::spawn(move || reader(ours, 2, tx, g));
+            (&child).write_all(&flood_frame(0)).expect("write");
+            match rx.recv_timeout(Duration::from_secs(5)) {
+                Ok(Inbound::Frame(2, f, t)) => {
+                    assert!(f.blob.is_empty());
+                    t.redeem();
+                }
+                _ => panic!("the second reader's frame"),
             }
-        }
-
-        fn flood(budget: usize, blobs: &[usize]) -> ReaderRig {
-            ReaderRig::start(budget, blobs.iter().flat_map(|&b| flood_frame(b)).collect())
-        }
-
-        fn rx(&self) -> &Receiver<Inbound> {
-            &self.inbox.as_ref().expect("the receiver").rx
-        }
-
-        /// The next frame, its ticket kept (it stays in flight until the test redeems or drops the ticket).
-        fn take(&self) -> (Frame, BlobTicket) {
-            match self.rx().recv_timeout(Duration::from_secs(5)) {
-                Ok(Inbound::Frame(1, f, t)) => (f, t),
-                Ok(Inbound::ReaderDone(_, e)) => panic!("the reader ended: {e:?}"),
-                Ok(_) => panic!("not a frame"),
-                Err(e) => panic!("no frame: {e:?}"),
-            }
-        }
-
-        fn end(&self) -> ReaderEnd {
-            match self.rx().recv_timeout(Duration::from_secs(5)) {
-                Ok(Inbound::ReaderDone(1, e)) => e,
-                Ok(Inbound::Frame(..)) => panic!("a frame, not the end"),
-                Ok(_) => panic!("not the end"),
-                Err(e) => panic!("no end: {e:?}"),
-            }
-        }
-
-        /// The reader reaches `held` and admits nothing more: the held bytes stay `held` over [`SETTLE`]. (Only the
-        /// reader adds bytes meanwhile, so it waits for at least `held`, then asserts exactly `held`.)
-        fn settled_at(&self, held: usize) {
-            wait_for(
-                || self.gate.held() >= held,
-                "the reader holds the expected bytes",
-            );
-            std::thread::sleep(SETTLE);
-            assert_eq!(self.gate.held(), held, "held bytes after the settle");
-        }
-
-        /// The reader reaches `frames` in flight and admits nothing more over [`SETTLE`] (as [`Self::settled_at`]).
-        fn frames_settled_at(&self, frames: usize) {
-            wait_for(
-                || self.gate.frames() >= frames,
-                "the reader holds the expected frames",
-            );
-            std::thread::sleep(SETTLE);
-            assert_eq!(
-                self.gate.frames(),
-                frames,
-                "frames in flight after the settle"
-            );
-        }
-
-        /// No frame is queued (every admitted one was taken).
-        fn none_queued(&self) {
-            assert!(
-                matches!(
-                    self.rx().try_recv(),
-                    Err(std::sync::mpsc::TryRecvError::Empty)
-                ),
-                "no frame past the admitted ones"
-            );
-        }
-
-        /// The reader thread is finished within 1 s of now; joined.
-        fn joined_within_1s(&mut self) {
-            let r = self.reader.take().expect("the reader");
-            let until = std::time::Instant::now() + Duration::from_secs(1);
-            while !r.is_finished() && std::time::Instant::now() < until {
-                std::thread::sleep(Duration::from_millis(1));
-            }
-            assert!(r.is_finished(), "the reader thread did not end within 1 s");
-            r.join().expect("the reader did not panic");
+            child.shutdown(std::net::Shutdown::Both).ok();
+            assert!(matches!(
+                rx.recv_timeout(Duration::from_secs(5)),
+                Ok(Inbound::ReaderDone(2, ReaderEnd::Eof))
+            ));
+            second.join().expect("the second reader");
+            assert_eq!(first.gate.frames(), READER_FRAMES);
         }
     }
 
-    impl Drop for ReaderRig {
-        fn drop(&mut self) {
-            // Unblocks a child write the reader no longer reads (the test thread never waits on it).
-            if let Some(c) = self.child.take() {
-                let _ = c.shutdown(std::net::Shutdown::Both);
-            }
-        }
-    }
-
-    fn wait_for(mut cond: impl FnMut() -> bool, what: &str) {
-        let until = std::time::Instant::now() + Duration::from_secs(5);
-        while !cond() {
-            assert!(std::time::Instant::now() < until, "timed out: {what}");
-            std::thread::sleep(Duration::from_millis(1));
-        }
-    }
-
-    /// Fix 1 and 2: a flood of 8 × 256 KiB against a 1 MiB budget is held at EXACTLY the budget (4 frames), never
-    /// one frame more: the 5th header waits before its body is allocated. Mutant `mutant_live_reader_post_alloc`
-    /// holds 1.25 MiB (the old wait-while-over, then add) and fails here.
+    /// A chain's waiter slot is the lowest one no other chain holds; with all of them held there is none.
     #[test]
-    fn the_reader_holds_a_flood_at_exactly_its_budget() {
-        let rig = ReaderRig::flood(MIB, &[256 * KIB; 8]);
-        rig.settled_at(MIB);
+    fn a_chain_takes_the_lowest_free_waiter_slot_and_none_past_the_last() {
+        assert_eq!(free_fan_slot([].into_iter()), Some(0));
+        assert_eq!(free_fan_slot([0, 1, 3].into_iter()), Some(2));
         assert_eq!(
-            rig.counters.reader_blob_held.load(Ordering::Relaxed),
-            MIB as u64
+            free_fan_slot([200].into_iter()),
+            Some(0),
+            "an out-of-range value takes nothing"
         );
-        assert_eq!(
-            rig.counters.reader_blob_peak.load(Ordering::Relaxed),
-            MIB as u64,
-            "never more than the budget"
-        );
-        let mut held = Vec::new();
-        for _ in 0..4 {
-            let (f, t) = rig.take();
-            assert_eq!(f.blob.len(), 256 * KIB);
-            held.push(t);
-        }
-        rig.none_queued();
-        rig.settled_at(MIB);
-        rig.none_queued();
-    }
-
-    /// Fix 1 and 2: freeing one frame admits exactly the next admissible frame, at the boundary (`held + declared ≤
-    /// budget`): 512 + 256 KiB held, the next 512 KiB waits; the 256 KiB frame freed, it is admitted (exactly 1 MiB)
-    /// and the 128 KiB after it waits; the first 512 KiB freed, the 128 KiB is admitted.
-    #[test]
-    fn freeing_one_frame_admits_exactly_the_next_admissible_frame() {
-        let rig = ReaderRig::flood(MIB, &[512 * KIB, 256 * KIB, 512 * KIB, 128 * KIB]);
-        rig.settled_at(768 * KIB);
-        let (a, ta) = rig.take();
-        let (b, tb) = rig.take();
-        assert_eq!((a.blob.len(), b.blob.len()), (512 * KIB, 256 * KIB));
-        rig.none_queued();
-        rig.settled_at(768 * KIB);
-        rig.none_queued();
-        tb.redeem();
-        let (c, tc) = rig.take();
-        assert_eq!(c.blob.len(), 512 * KIB, "exactly the next admissible frame");
-        rig.settled_at(MIB);
-        rig.none_queued();
-        assert_eq!(rig.counters.reader_blob_waits.load(Ordering::Relaxed), 1);
-        ta.redeem();
-        let (d, td) = rig.take();
-        assert_eq!(d.blob.len(), 128 * KIB);
-        rig.settled_at(640 * KIB);
-        rig.none_queued();
-        assert_eq!(
-            rig.counters.reader_blob_peak.load(Ordering::Relaxed),
-            MIB as u64
-        );
-        drop((tc, td));
-        assert_eq!(rig.gate.held(), 0);
-    }
-
-    /// Fix 3: the receiver dropped while the reader is stalled at its budget (the frames still queued) ends the reader
-    /// within 1 s, and the queued frames' bytes are freed with them (no leak). Mutant
-    /// `mutant_live_reader_leak_on_drop` leaves 1 MiB held and fails here.
-    #[test]
-    fn a_stalled_reader_ends_when_the_receiver_is_dropped() {
-        let mut rig = ReaderRig::flood(MIB, &[256 * KIB; 8]);
-        rig.settled_at(MIB);
-        drop(rig.inbox.take());
-        rig.joined_within_1s();
-        assert_eq!(rig.gate.held(), 0, "the dropped frames freed their bytes");
-        assert_eq!(rig.counters.reader_blob_held.load(Ordering::Relaxed), 0);
-    }
-
-    /// Fix 3, the receiver's own signal: the consumer still holds every admitted byte (so no free can wake the reader)
-    /// and drops the receiver: the reader ends within 1 s. Mutant `mutant_live_reader_no_close` never wakes it
-    /// and fails here.
-    #[test]
-    fn a_stalled_reader_ends_when_the_receiver_is_dropped_while_its_bytes_are_held() {
-        let mut rig = ReaderRig::flood(MIB, &[256 * KIB; 8]);
-        rig.settled_at(MIB);
-        let tickets: Vec<_> = (0..4).map(|_| rig.take().1).collect();
-        rig.none_queued();
-        rig.settled_at(MIB);
-        drop(rig.inbox.take());
-        rig.joined_within_1s();
-        assert_eq!(
-            rig.gate.held(),
-            MIB,
-            "the consumer's frames are still its own"
-        );
-        drop(tickets);
-        assert_eq!(rig.gate.held(), 0);
-    }
-
-    /// The reservation of a frame the reader never finished (EOF mid-body) is freed when the reader ends: admitted
-    /// from its header (the peak shows it), returned at the end. Mutant `mutant_live_reader_leak_on_drop` fails.
-    #[test]
-    fn a_reservation_is_freed_when_the_reader_ends_mid_frame() {
-        let mut half = flood_frame(512 * KIB);
-        half.truncate(half.len() / 2);
-        let mut rig = ReaderRig::start(MIB, half);
-        wait_for(
-            || rig.counters.reader_blob_peak.load(Ordering::Relaxed) == 512 * KIB as u64,
-            "the header admitted",
-        );
-        rig.child
-            .take()
-            .expect("the child")
-            .shutdown(std::net::Shutdown::Both)
-            .ok();
-        assert!(matches!(rig.end(), ReaderEnd::EofMidFrame));
-        rig.joined_within_1s();
-        assert_eq!(rig.gate.held(), 0);
-    }
-
-    /// A blob past the whole budget (a test budget below the codec's cap) is refused from its header, a protocol
-    /// fault, never a reader waiting forever; nothing of it was admitted.
-    #[test]
-    fn a_blob_past_the_whole_budget_is_refused_not_waited_for() {
-        let mut rig = ReaderRig::flood(MIB, &[2 * MIB]);
-        match rig.end() {
-            ReaderEnd::Refused(codec::ProtoError::NotAdmitted { kind: k, blob_len }) => {
-                assert_eq!((k, blob_len as usize), (kind::LOG, 2 * MIB));
-            }
-            e => panic!("refused from its header: {e:?}"),
-        }
-        rig.joined_within_1s();
-        assert_eq!(rig.counters.reader_blob_peak.load(Ordering::Relaxed), 0);
-    }
-
-    /// The control: traffic within the budget (frames with and without blobs) passes in order and unchanged, each
-    /// frame's bytes freed as it is taken; the end is a clean EOF; no admission waited.
-    #[test]
-    fn traffic_within_the_budget_passes_unchanged() {
-        let blobs = [0, 3, 0, 64 * KIB, 100_000, 0, 1];
-        let mut rig = ReaderRig::flood(MIB, &blobs);
-        for &b in &blobs {
-            let (f, t) = rig.take();
-            assert_eq!(f.header.kind, kind::LOG);
-            assert_eq!(f.blob, vec![0xa5; b]);
-            t.redeem();
-        }
-        rig.child
-            .take()
-            .expect("the child")
-            .shutdown(std::net::Shutdown::Both)
-            .ok();
-        assert!(matches!(rig.end(), ReaderEnd::Eof));
-        rig.joined_within_1s();
-        assert_eq!((rig.gate.held(), rig.gate.frames()), (0, 0));
-        assert_eq!(rig.counters.reader_blob_waits.load(Ordering::Relaxed), 0);
-    }
-
-    /// The reader frame bound: a flood of 300 META-ONLY frames (no blob, so the byte budget never
-    /// binds) is held at EXACTLY 256 in flight for the reader, the 257th waiting at its header. Mutant
-    /// `mutant_live_reader_no_frame_bound` admits all 300 and fails here.
-    #[test]
-    fn the_reader_holds_a_meta_only_flood_at_exactly_its_frame_bound() {
-        let rig = ReaderRig::flood(MIB, &[0; 300]);
-        rig.frames_settled_at(READER_FRAMES);
-        assert_eq!(rig.gate.held(), 0, "no blob bytes");
-        assert_eq!(
-            rig.counters.reader_frames_peak.load(Ordering::Relaxed),
-            READER_FRAMES as u64,
-            "never more than the bound"
-        );
-        let tickets: Vec<_> = (0..READER_FRAMES).map(|_| rig.take().1).collect();
-        rig.none_queued();
-        rig.frames_settled_at(READER_FRAMES);
-        rig.none_queued();
-        drop(tickets);
-    }
-
-    /// The frame bound: freeing one frame admits exactly one more (twice), and the rest wait.
-    #[test]
-    fn freeing_one_frame_at_the_frame_bound_admits_exactly_one_more() {
-        let rig = ReaderRig::flood(MIB, &[0; 300]);
-        rig.frames_settled_at(READER_FRAMES);
-        let mut tickets: VecDeque<_> = (0..READER_FRAMES).map(|_| rig.take().1).collect();
-        rig.none_queued();
-        let waits = rig.counters.reader_blob_waits.load(Ordering::Relaxed);
-        for _ in 0..2 {
-            tickets.pop_front().expect("a ticket").redeem();
-            let (f, t) = rig.take();
-            assert!(f.blob.is_empty());
-            tickets.push_back(t);
-            rig.frames_settled_at(READER_FRAMES);
-            rig.none_queued();
-        }
-        assert_eq!(
-            rig.counters.reader_blob_waits.load(Ordering::Relaxed),
-            waits + 2,
-            "each admitted after a wait"
-        );
-        assert_eq!(
-            rig.counters.reader_frames_peak.load(Ordering::Relaxed),
-            READER_FRAMES as u64
-        );
-    }
-
-    /// The frame bound and the receiver's signal: the consumer holds every one of the 256 frames in flight and drops
-    /// the receiver; the reader ends within 1 s. Then the frames are freed.
-    #[test]
-    fn a_reader_stalled_at_its_frame_bound_ends_when_the_receiver_is_dropped() {
-        let mut rig = ReaderRig::flood(MIB, &[0; 300]);
-        rig.frames_settled_at(READER_FRAMES);
-        let tickets: Vec<_> = (0..READER_FRAMES).map(|_| rig.take().1).collect();
-        rig.none_queued();
-        drop(rig.inbox.take());
-        rig.joined_within_1s();
-        assert_eq!(rig.gate.frames(), READER_FRAMES);
-        drop(tickets);
-        assert_eq!(rig.gate.frames(), 0);
-        assert_eq!(rig.counters.reader_frames_held.load(Ordering::Relaxed), 0);
-    }
-
-    /// The frame bound is each reader's own: a second reader admits while the first is stalled at its bound, on the
-    /// same gate (the byte budget is the one shared bound).
-    #[test]
-    fn the_frame_bound_is_per_reader() {
-        let first = ReaderRig::flood(MIB, &[0; 300]);
-        first.frames_settled_at(READER_FRAMES);
-        let (ours, child) = runecraft_ipc::channel::channel_pair().expect("a channel pair");
-        let (_, ours) = ours
-            .bind(&runecraft_ipc::process::testing::Unspawned(0))
-            .expect("bind");
-        let child = UnixStream::from(runecraft_ipc::channel::unix::ChildEndExt::into_fd(child));
-        let (tx, rx) = sync_channel(16);
-        let g = first.gate.clone();
-        let second = std::thread::spawn(move || reader(ours, 2, tx, g));
-        (&child).write_all(&flood_frame(0)).expect("write");
-        match rx.recv_timeout(Duration::from_secs(5)) {
-            Ok(Inbound::Frame(2, f, t)) => {
-                assert!(f.blob.is_empty());
-                t.redeem();
-            }
-            _ => panic!("the second reader's frame"),
-        }
-        child.shutdown(std::net::Shutdown::Both).ok();
-        assert!(matches!(
-            rx.recv_timeout(Duration::from_secs(5)),
-            Ok(Inbound::ReaderDone(2, ReaderEnd::Eof))
-        ));
-        second.join().expect("the second reader");
-        assert_eq!(first.gate.frames(), READER_FRAMES);
+        let all = 0..runecraft_ipc::bridge::FAN_SLOTS;
+        assert_eq!(free_fan_slot(all.clone()), None);
+        assert_eq!(free_fan_slot(all.filter(|s| *s != 63)), Some(63));
     }
 
     /// The no-blame reasons have their own words, never `crash`.
