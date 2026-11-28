@@ -1,0 +1,1568 @@
+# The public API of summoner-proto (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-proto; check: tools/public-api.py check.
+#[non_exhaustive] pub enum summoner_proto::codec::AppliedKind
+#[non_exhaustive] pub enum summoner_proto::codec::CorrRefused
+#[non_exhaustive] pub enum summoner_proto::codec::EditorWindow
+#[non_exhaustive] pub enum summoner_proto::codec::LineFault
+#[non_exhaustive] pub enum summoner_proto::codec::OsCode
+#[non_exhaustive] pub enum summoner_proto::codec::OverLimit
+#[non_exhaustive] pub enum summoner_proto::codec::PluginFormat
+#[non_exhaustive] pub enum summoner_proto::codec::ProtoError
+#[non_exhaustive] pub enum summoner_proto::codec::Role
+#[non_exhaustive] pub enum summoner_proto::codec::ScanClass
+#[non_exhaustive] pub enum summoner_proto::codec::ScanFailure
+#[non_exhaustive] pub enum summoner_proto::codec::ScanFormat
+#[non_exhaustive] pub enum summoner_proto::codec::ScanVerdict<D>
+#[non_exhaustive] pub enum summoner_proto::codec::ScannedFault
+#[non_exhaustive] pub enum summoner_proto::codec::ScannedLimit
+#[non_exhaustive] pub enum summoner_proto::codec::ScannedMalformed
+#[non_exhaustive] pub enum summoner_proto::codec::ScannedMeta
+#[non_exhaustive] pub enum summoner_proto::codec::ScannedOutcome
+#[non_exhaustive] pub enum summoner_proto::codec::StateMode
+#[non_exhaustive] pub enum summoner_proto::codec::TimeoutKind
+#[non_exhaustive] pub enum summoner_proto::codec::form_b::LineFault
+#[non_exhaustive] pub enum summoner_proto::codec::form_b::OverLimit
+#[non_exhaustive] pub enum summoner_proto::codec::form_b::ScannedFault
+#[non_exhaustive] pub enum summoner_proto::codec::form_b::ScannedLimit
+#[non_exhaustive] pub enum summoner_proto::codec::form_b::ScannedMalformed
+#[non_exhaustive] pub enum summoner_proto::codec::form_b::ScannedMeta
+#[non_exhaustive] pub enum summoner_proto::plugin::PluginFormat
+#[non_exhaustive] pub enum summoner_proto::plugin::ScanClass
+#[non_exhaustive] pub enum summoner_proto::plugin::ScanSource
+#[non_exhaustive] pub enum summoner_proto::state_blob::Blob<'a>
+#[non_exhaustive] pub enum summoner_proto::state_blob::Format
+#[non_exhaustive] pub enum summoner_proto::state_blob::Refusal
+#[non_exhaustive] pub struct summoner_proto::codec::Applied
+#[non_exhaustive] pub struct summoner_proto::codec::ChainLoad
+#[non_exhaustive] pub struct summoner_proto::codec::ChainLoaded
+#[non_exhaustive] pub struct summoner_proto::codec::ChainPrepared
+#[non_exhaustive] pub struct summoner_proto::codec::ChainPreparedFresh
+#[non_exhaustive] pub struct summoner_proto::codec::ChainRef
+#[non_exhaustive] pub struct summoner_proto::codec::ChainUnpark
+#[non_exhaustive] pub struct summoner_proto::codec::EditorClosed
+#[non_exhaustive] pub struct summoner_proto::codec::EditorOpened
+#[non_exhaustive] pub struct summoner_proto::codec::EditorRef
+#[non_exhaustive] pub struct summoner_proto::codec::ErrorReply
+#[non_exhaustive] pub struct summoner_proto::codec::FormBMeta
+#[non_exhaustive] pub struct summoner_proto::codec::GenEntry
+#[non_exhaustive] pub struct summoner_proto::codec::Generations
+#[non_exhaustive] pub struct summoner_proto::codec::Hello
+#[non_exhaustive] pub struct summoner_proto::codec::HelloReply
+#[non_exhaustive] pub struct summoner_proto::codec::LatencyChanged
+#[non_exhaustive] pub struct summoner_proto::codec::Log
+#[non_exhaustive] pub struct summoner_proto::codec::LogSet
+#[non_exhaustive] pub struct summoner_proto::codec::LogSetReply
+#[non_exhaustive] pub struct summoner_proto::codec::ParamEntry
+#[non_exhaustive] pub struct summoner_proto::codec::ParamList
+#[non_exhaustive] pub struct summoner_proto::codec::ParamListReply
+#[non_exhaustive] pub struct summoner_proto::codec::ParamSet
+#[non_exhaustive] pub struct summoner_proto::codec::ParamSetReply
+#[non_exhaustive] pub struct summoner_proto::codec::Scanned
+#[non_exhaustive] pub struct summoner_proto::codec::ScannedB
+#[non_exhaustive] pub struct summoner_proto::codec::SlotDesc
+#[non_exhaustive] pub struct summoner_proto::codec::SlotEnabled
+#[non_exhaustive] pub struct summoner_proto::codec::SlotEnabledReply
+#[non_exhaustive] pub struct summoner_proto::codec::SlotInfo
+#[non_exhaustive] pub struct summoner_proto::codec::SlotReactivated
+#[non_exhaustive] pub struct summoner_proto::codec::StateApplied
+#[non_exhaustive] pub struct summoner_proto::codec::StateGet
+#[non_exhaustive] pub struct summoner_proto::codec::StateGetReply
+#[non_exhaustive] pub struct summoner_proto::codec::StateSet
+#[non_exhaustive] pub struct summoner_proto::codec::WorkgroupAttach
+#[non_exhaustive] pub struct summoner_proto::codec::WorkgroupAttached
+#[non_exhaustive] pub struct summoner_proto::codec::form_b::FormBMeta
+#[non_exhaustive] pub struct summoner_proto::codec::form_b::ScannedB
+#[non_exhaustive] pub struct summoner_proto::plugin::AuClass
+#[non_exhaustive] pub struct summoner_proto::plugin::Vst3Class
+#[non_exhaustive] pub struct summoner_proto::state_blob::Checked
+#[non_exhaustive] pub variant summoner_proto::codec::ScanVerdict::Crashed {}
+impl core::clone::Clone for summoner_proto::codec::Applied
+impl core::clone::Clone for summoner_proto::codec::AppliedKind
+impl core::clone::Clone for summoner_proto::codec::ChainLoad
+impl core::clone::Clone for summoner_proto::codec::ChainLoaded
+impl core::clone::Clone for summoner_proto::codec::ChainPrepared
+impl core::clone::Clone for summoner_proto::codec::ChainPreparedFresh
+impl core::clone::Clone for summoner_proto::codec::ChainRef
+impl core::clone::Clone for summoner_proto::codec::ChainUnpark
+impl core::clone::Clone for summoner_proto::codec::CorrRead
+impl core::clone::Clone for summoner_proto::codec::CorrRefused
+impl core::clone::Clone for summoner_proto::codec::Direction
+impl core::clone::Clone for summoner_proto::codec::EditorClosed
+impl core::clone::Clone for summoner_proto::codec::EditorOpened
+impl core::clone::Clone for summoner_proto::codec::EditorRef
+impl core::clone::Clone for summoner_proto::codec::EditorWindow
+impl core::clone::Clone for summoner_proto::codec::ErrorReply
+impl core::clone::Clone for summoner_proto::codec::Frame
+impl core::clone::Clone for summoner_proto::codec::GenEntry
+impl core::clone::Clone for summoner_proto::codec::Generations
+impl core::clone::Clone for summoner_proto::codec::Header
+impl core::clone::Clone for summoner_proto::codec::Hello
+impl core::clone::Clone for summoner_proto::codec::HelloReply
+impl core::clone::Clone for summoner_proto::codec::LatencyChanged
+impl core::clone::Clone for summoner_proto::codec::Log
+impl core::clone::Clone for summoner_proto::codec::LogSet
+impl core::clone::Clone for summoner_proto::codec::LogSetReply
+impl core::clone::Clone for summoner_proto::codec::OsCode
+impl core::clone::Clone for summoner_proto::codec::ParamEntry
+impl core::clone::Clone for summoner_proto::codec::ParamList
+impl core::clone::Clone for summoner_proto::codec::ParamListReply
+impl core::clone::Clone for summoner_proto::codec::ParamSet
+impl core::clone::Clone for summoner_proto::codec::ParamSetReply
+impl core::clone::Clone for summoner_proto::codec::ProtoError
+impl core::clone::Clone for summoner_proto::codec::Role
+impl core::clone::Clone for summoner_proto::codec::Scan
+impl core::clone::Clone for summoner_proto::codec::ScanFailure
+impl core::clone::Clone for summoner_proto::codec::ScanFormat
+impl core::clone::Clone for summoner_proto::codec::Scanned
+impl core::clone::Clone for summoner_proto::codec::ScannedOutcome
+impl core::clone::Clone for summoner_proto::codec::SlotDesc
+impl core::clone::Clone for summoner_proto::codec::SlotEnabled
+impl core::clone::Clone for summoner_proto::codec::SlotEnabledReply
+impl core::clone::Clone for summoner_proto::codec::SlotInfo
+impl core::clone::Clone for summoner_proto::codec::SlotReactivated
+impl core::clone::Clone for summoner_proto::codec::StateApplied
+impl core::clone::Clone for summoner_proto::codec::StateGet
+impl core::clone::Clone for summoner_proto::codec::StateGetReply
+impl core::clone::Clone for summoner_proto::codec::StateMode
+impl core::clone::Clone for summoner_proto::codec::StateSet
+impl core::clone::Clone for summoner_proto::codec::TimeoutKind
+impl core::clone::Clone for summoner_proto::codec::WorkgroupAttach
+impl core::clone::Clone for summoner_proto::codec::WorkgroupAttached
+impl core::clone::Clone for summoner_proto::codec::form_b::FormBMeta
+impl core::clone::Clone for summoner_proto::codec::form_b::LineFault
+impl core::clone::Clone for summoner_proto::codec::form_b::OverLimit
+impl core::clone::Clone for summoner_proto::codec::form_b::ScannedB
+impl core::clone::Clone for summoner_proto::codec::form_b::ScannedFault
+impl core::clone::Clone for summoner_proto::codec::form_b::ScannedFrame
+impl core::clone::Clone for summoner_proto::codec::form_b::ScannedLimit
+impl core::clone::Clone for summoner_proto::codec::form_b::ScannedLine
+impl core::clone::Clone for summoner_proto::codec::form_b::ScannedMalformed
+impl core::clone::Clone for summoner_proto::codec::form_b::ScannedMeta
+impl core::clone::Clone for summoner_proto::layout::Field
+impl core::clone::Clone for summoner_proto::layout::Geometry
+impl core::clone::Clone for summoner_proto::layout::GeometryError
+impl core::clone::Clone for summoner_proto::layout::Kind
+impl core::clone::Clone for summoner_proto::layout::Section
+impl core::clone::Clone for summoner_proto::plugin::AuClass
+impl core::clone::Clone for summoner_proto::plugin::FakeRef
+impl core::clone::Clone for summoner_proto::plugin::PluginFormat
+impl core::clone::Clone for summoner_proto::plugin::PluginRef
+impl core::clone::Clone for summoner_proto::plugin::ScanClass
+impl core::clone::Clone for summoner_proto::plugin::ScanSource
+impl core::clone::Clone for summoner_proto::plugin::Vst3Class
+impl core::clone::Clone for summoner_proto::state_blob::Checked
+impl core::clone::Clone for summoner_proto::state_blob::Format
+impl core::clone::Clone for summoner_proto::state_blob::Refusal
+impl core::clone::TrivialClone for summoner_proto::codec::Applied
+impl core::clone::TrivialClone for summoner_proto::codec::AppliedKind
+impl core::clone::TrivialClone for summoner_proto::codec::CorrRefused
+impl core::clone::TrivialClone for summoner_proto::codec::Direction
+impl core::clone::TrivialClone for summoner_proto::codec::EditorWindow
+impl core::clone::TrivialClone for summoner_proto::codec::Header
+impl core::clone::TrivialClone for summoner_proto::codec::OsCode
+impl core::clone::TrivialClone for summoner_proto::codec::Role
+impl core::clone::TrivialClone for summoner_proto::codec::ScanFormat
+impl core::clone::TrivialClone for summoner_proto::codec::StateMode
+impl core::clone::TrivialClone for summoner_proto::codec::TimeoutKind
+impl core::clone::TrivialClone for summoner_proto::codec::form_b::OverLimit
+impl core::clone::TrivialClone for summoner_proto::layout::Field
+impl core::clone::TrivialClone for summoner_proto::layout::Geometry
+impl core::clone::TrivialClone for summoner_proto::layout::Kind
+impl core::clone::TrivialClone for summoner_proto::layout::Section
+impl core::clone::TrivialClone for summoner_proto::plugin::PluginFormat
+impl core::clone::TrivialClone for summoner_proto::plugin::ScanSource
+impl core::clone::TrivialClone for summoner_proto::state_blob::Checked
+impl core::clone::TrivialClone for summoner_proto::state_blob::Format
+impl core::clone::TrivialClone for summoner_proto::state_blob::Refusal
+impl core::cmp::Eq for summoner_proto::codec::Applied
+impl core::cmp::Eq for summoner_proto::codec::AppliedKind
+impl core::cmp::Eq for summoner_proto::codec::CorrRead
+impl core::cmp::Eq for summoner_proto::codec::CorrRefused
+impl core::cmp::Eq for summoner_proto::codec::Direction
+impl core::cmp::Eq for summoner_proto::codec::EditorWindow
+impl core::cmp::Eq for summoner_proto::codec::Frame
+impl core::cmp::Eq for summoner_proto::codec::GenEntry
+impl core::cmp::Eq for summoner_proto::codec::Header
+impl core::cmp::Eq for summoner_proto::codec::LogSet
+impl core::cmp::Eq for summoner_proto::codec::LogSetReply
+impl core::cmp::Eq for summoner_proto::codec::OsCode
+impl core::cmp::Eq for summoner_proto::codec::ProtoError
+impl core::cmp::Eq for summoner_proto::codec::Role
+impl core::cmp::Eq for summoner_proto::codec::Scan
+impl core::cmp::Eq for summoner_proto::codec::ScanFailure
+impl core::cmp::Eq for summoner_proto::codec::ScanFormat
+impl core::cmp::Eq for summoner_proto::codec::Scanned
+impl core::cmp::Eq for summoner_proto::codec::ScannedOutcome
+impl core::cmp::Eq for summoner_proto::codec::SlotEnabled
+impl core::cmp::Eq for summoner_proto::codec::SlotEnabledReply
+impl core::cmp::Eq for summoner_proto::codec::StateMode
+impl core::cmp::Eq for summoner_proto::codec::TimeoutKind
+impl core::cmp::Eq for summoner_proto::codec::form_b::FormBMeta
+impl core::cmp::Eq for summoner_proto::codec::form_b::LineFault
+impl core::cmp::Eq for summoner_proto::codec::form_b::OverLimit
+impl core::cmp::Eq for summoner_proto::codec::form_b::ScannedB
+impl core::cmp::Eq for summoner_proto::codec::form_b::ScannedFault
+impl core::cmp::Eq for summoner_proto::codec::form_b::ScannedFrame
+impl core::cmp::Eq for summoner_proto::codec::form_b::ScannedLimit
+impl core::cmp::Eq for summoner_proto::codec::form_b::ScannedLine
+impl core::cmp::Eq for summoner_proto::codec::form_b::ScannedMalformed
+impl core::cmp::Eq for summoner_proto::codec::form_b::ScannedMeta
+impl core::cmp::Eq for summoner_proto::layout::Geometry
+impl core::cmp::Eq for summoner_proto::layout::GeometryError
+impl core::cmp::Eq for summoner_proto::layout::Kind
+impl core::cmp::Eq for summoner_proto::plugin::AuClass
+impl core::cmp::Eq for summoner_proto::plugin::FakeRef
+impl core::cmp::Eq for summoner_proto::plugin::PluginFormat
+impl core::cmp::Eq for summoner_proto::plugin::PluginRef
+impl core::cmp::Eq for summoner_proto::plugin::ScanClass
+impl core::cmp::Eq for summoner_proto::plugin::ScanSource
+impl core::cmp::Eq for summoner_proto::plugin::Vst3Class
+impl core::cmp::Eq for summoner_proto::state_blob::Checked
+impl core::cmp::Eq for summoner_proto::state_blob::Format
+impl core::cmp::Eq for summoner_proto::state_blob::Refusal
+impl core::cmp::Ord for summoner_proto::plugin::PluginFormat
+impl core::cmp::PartialEq for summoner_proto::codec::Applied
+impl core::cmp::PartialEq for summoner_proto::codec::AppliedKind
+impl core::cmp::PartialEq for summoner_proto::codec::ChainLoad
+impl core::cmp::PartialEq for summoner_proto::codec::ChainLoaded
+impl core::cmp::PartialEq for summoner_proto::codec::ChainPrepared
+impl core::cmp::PartialEq for summoner_proto::codec::ChainPreparedFresh
+impl core::cmp::PartialEq for summoner_proto::codec::ChainRef
+impl core::cmp::PartialEq for summoner_proto::codec::ChainUnpark
+impl core::cmp::PartialEq for summoner_proto::codec::CorrRead
+impl core::cmp::PartialEq for summoner_proto::codec::CorrRefused
+impl core::cmp::PartialEq for summoner_proto::codec::Direction
+impl core::cmp::PartialEq for summoner_proto::codec::EditorClosed
+impl core::cmp::PartialEq for summoner_proto::codec::EditorOpened
+impl core::cmp::PartialEq for summoner_proto::codec::EditorRef
+impl core::cmp::PartialEq for summoner_proto::codec::EditorWindow
+impl core::cmp::PartialEq for summoner_proto::codec::ErrorReply
+impl core::cmp::PartialEq for summoner_proto::codec::Frame
+impl core::cmp::PartialEq for summoner_proto::codec::GenEntry
+impl core::cmp::PartialEq for summoner_proto::codec::Generations
+impl core::cmp::PartialEq for summoner_proto::codec::Header
+impl core::cmp::PartialEq for summoner_proto::codec::Hello
+impl core::cmp::PartialEq for summoner_proto::codec::HelloReply
+impl core::cmp::PartialEq for summoner_proto::codec::LatencyChanged
+impl core::cmp::PartialEq for summoner_proto::codec::Log
+impl core::cmp::PartialEq for summoner_proto::codec::LogSet
+impl core::cmp::PartialEq for summoner_proto::codec::LogSetReply
+impl core::cmp::PartialEq for summoner_proto::codec::OsCode
+impl core::cmp::PartialEq for summoner_proto::codec::ParamEntry
+impl core::cmp::PartialEq for summoner_proto::codec::ParamList
+impl core::cmp::PartialEq for summoner_proto::codec::ParamListReply
+impl core::cmp::PartialEq for summoner_proto::codec::ParamSet
+impl core::cmp::PartialEq for summoner_proto::codec::ParamSetReply
+impl core::cmp::PartialEq for summoner_proto::codec::ProtoError
+impl core::cmp::PartialEq for summoner_proto::codec::Role
+impl core::cmp::PartialEq for summoner_proto::codec::Scan
+impl core::cmp::PartialEq for summoner_proto::codec::ScanFailure
+impl core::cmp::PartialEq for summoner_proto::codec::ScanFormat
+impl core::cmp::PartialEq for summoner_proto::codec::Scanned
+impl core::cmp::PartialEq for summoner_proto::codec::ScannedOutcome
+impl core::cmp::PartialEq for summoner_proto::codec::SlotDesc
+impl core::cmp::PartialEq for summoner_proto::codec::SlotEnabled
+impl core::cmp::PartialEq for summoner_proto::codec::SlotEnabledReply
+impl core::cmp::PartialEq for summoner_proto::codec::SlotInfo
+impl core::cmp::PartialEq for summoner_proto::codec::SlotReactivated
+impl core::cmp::PartialEq for summoner_proto::codec::StateApplied
+impl core::cmp::PartialEq for summoner_proto::codec::StateGet
+impl core::cmp::PartialEq for summoner_proto::codec::StateGetReply
+impl core::cmp::PartialEq for summoner_proto::codec::StateMode
+impl core::cmp::PartialEq for summoner_proto::codec::StateSet
+impl core::cmp::PartialEq for summoner_proto::codec::TimeoutKind
+impl core::cmp::PartialEq for summoner_proto::codec::WorkgroupAttach
+impl core::cmp::PartialEq for summoner_proto::codec::WorkgroupAttached
+impl core::cmp::PartialEq for summoner_proto::codec::form_b::FormBMeta
+impl core::cmp::PartialEq for summoner_proto::codec::form_b::LineFault
+impl core::cmp::PartialEq for summoner_proto::codec::form_b::OverLimit
+impl core::cmp::PartialEq for summoner_proto::codec::form_b::ScannedB
+impl core::cmp::PartialEq for summoner_proto::codec::form_b::ScannedFault
+impl core::cmp::PartialEq for summoner_proto::codec::form_b::ScannedFrame
+impl core::cmp::PartialEq for summoner_proto::codec::form_b::ScannedLimit
+impl core::cmp::PartialEq for summoner_proto::codec::form_b::ScannedLine
+impl core::cmp::PartialEq for summoner_proto::codec::form_b::ScannedMalformed
+impl core::cmp::PartialEq for summoner_proto::codec::form_b::ScannedMeta
+impl core::cmp::PartialEq for summoner_proto::layout::Geometry
+impl core::cmp::PartialEq for summoner_proto::layout::GeometryError
+impl core::cmp::PartialEq for summoner_proto::layout::Kind
+impl core::cmp::PartialEq for summoner_proto::plugin::AuClass
+impl core::cmp::PartialEq for summoner_proto::plugin::FakeRef
+impl core::cmp::PartialEq for summoner_proto::plugin::PluginFormat
+impl core::cmp::PartialEq for summoner_proto::plugin::PluginRef
+impl core::cmp::PartialEq for summoner_proto::plugin::ScanClass
+impl core::cmp::PartialEq for summoner_proto::plugin::ScanSource
+impl core::cmp::PartialEq for summoner_proto::plugin::Vst3Class
+impl core::cmp::PartialEq for summoner_proto::state_blob::Checked
+impl core::cmp::PartialEq for summoner_proto::state_blob::Format
+impl core::cmp::PartialEq for summoner_proto::state_blob::Refusal
+impl core::cmp::PartialOrd for summoner_proto::plugin::PluginFormat
+impl core::default::Default for summoner_proto::codec::Applied
+impl core::default::Default for summoner_proto::codec::ChainLoad
+impl core::default::Default for summoner_proto::codec::ChainLoaded
+impl core::default::Default for summoner_proto::codec::ChainPrepared
+impl core::default::Default for summoner_proto::codec::ChainPreparedFresh
+impl core::default::Default for summoner_proto::codec::ChainRef
+impl core::default::Default for summoner_proto::codec::ChainUnpark
+impl core::default::Default for summoner_proto::codec::EditorClosed
+impl core::default::Default for summoner_proto::codec::EditorOpened
+impl core::default::Default for summoner_proto::codec::EditorRef
+impl core::default::Default for summoner_proto::codec::ErrorReply
+impl core::default::Default for summoner_proto::codec::GenEntry
+impl core::default::Default for summoner_proto::codec::Generations
+impl core::default::Default for summoner_proto::codec::Hello
+impl core::default::Default for summoner_proto::codec::HelloReply
+impl core::default::Default for summoner_proto::codec::LatencyChanged
+impl core::default::Default for summoner_proto::codec::Log
+impl core::default::Default for summoner_proto::codec::ParamEntry
+impl core::default::Default for summoner_proto::codec::ParamList
+impl core::default::Default for summoner_proto::codec::ParamListReply
+impl core::default::Default for summoner_proto::codec::ParamSetReply
+impl core::default::Default for summoner_proto::codec::Role
+impl core::default::Default for summoner_proto::codec::SlotDesc
+impl core::default::Default for summoner_proto::codec::SlotEnabledReply
+impl core::default::Default for summoner_proto::codec::SlotInfo
+impl core::default::Default for summoner_proto::codec::SlotReactivated
+impl core::default::Default for summoner_proto::codec::StateApplied
+impl core::default::Default for summoner_proto::codec::StateGet
+impl core::default::Default for summoner_proto::codec::StateGetReply
+impl core::default::Default for summoner_proto::codec::StateMode
+impl core::default::Default for summoner_proto::codec::StateSet
+impl core::default::Default for summoner_proto::codec::WorkgroupAttach
+impl core::default::Default for summoner_proto::codec::WorkgroupAttached
+impl core::default::Default for summoner_proto::plugin::AuClass
+impl core::default::Default for summoner_proto::plugin::Vst3Class
+impl core::error::Error for summoner_proto::codec::ProtoError
+impl core::error::Error for summoner_proto::codec::form_b::ScannedFault
+impl core::error::Error for summoner_proto::layout::GeometryError
+impl core::error::Error for summoner_proto::state_blob::Refusal
+impl core::fmt::Debug for summoner_proto::codec::Applied
+impl core::fmt::Debug for summoner_proto::codec::AppliedKind
+impl core::fmt::Debug for summoner_proto::codec::ChainLoad
+impl core::fmt::Debug for summoner_proto::codec::ChainLoaded
+impl core::fmt::Debug for summoner_proto::codec::ChainPrepared
+impl core::fmt::Debug for summoner_proto::codec::ChainPreparedFresh
+impl core::fmt::Debug for summoner_proto::codec::ChainRef
+impl core::fmt::Debug for summoner_proto::codec::ChainUnpark
+impl core::fmt::Debug for summoner_proto::codec::CorrRead
+impl core::fmt::Debug for summoner_proto::codec::CorrRefused
+impl core::fmt::Debug for summoner_proto::codec::Direction
+impl core::fmt::Debug for summoner_proto::codec::EditorClosed
+impl core::fmt::Debug for summoner_proto::codec::EditorOpened
+impl core::fmt::Debug for summoner_proto::codec::EditorRef
+impl core::fmt::Debug for summoner_proto::codec::EditorWindow
+impl core::fmt::Debug for summoner_proto::codec::ErrorReply
+impl core::fmt::Debug for summoner_proto::codec::Frame
+impl core::fmt::Debug for summoner_proto::codec::GenEntry
+impl core::fmt::Debug for summoner_proto::codec::Generations
+impl core::fmt::Debug for summoner_proto::codec::Header
+impl core::fmt::Debug for summoner_proto::codec::Hello
+impl core::fmt::Debug for summoner_proto::codec::HelloReply
+impl core::fmt::Debug for summoner_proto::codec::LatencyChanged
+impl core::fmt::Debug for summoner_proto::codec::Log
+impl core::fmt::Debug for summoner_proto::codec::LogSet
+impl core::fmt::Debug for summoner_proto::codec::LogSetReply
+impl core::fmt::Debug for summoner_proto::codec::OsCode
+impl core::fmt::Debug for summoner_proto::codec::ParamEntry
+impl core::fmt::Debug for summoner_proto::codec::ParamList
+impl core::fmt::Debug for summoner_proto::codec::ParamListReply
+impl core::fmt::Debug for summoner_proto::codec::ParamSet
+impl core::fmt::Debug for summoner_proto::codec::ParamSetReply
+impl core::fmt::Debug for summoner_proto::codec::ProtoError
+impl core::fmt::Debug for summoner_proto::codec::Role
+impl core::fmt::Debug for summoner_proto::codec::Scan
+impl core::fmt::Debug for summoner_proto::codec::ScanFailure
+impl core::fmt::Debug for summoner_proto::codec::ScanFormat
+impl core::fmt::Debug for summoner_proto::codec::Scanned
+impl core::fmt::Debug for summoner_proto::codec::ScannedOutcome
+impl core::fmt::Debug for summoner_proto::codec::SlotDesc
+impl core::fmt::Debug for summoner_proto::codec::SlotEnabled
+impl core::fmt::Debug for summoner_proto::codec::SlotEnabledReply
+impl core::fmt::Debug for summoner_proto::codec::SlotInfo
+impl core::fmt::Debug for summoner_proto::codec::SlotReactivated
+impl core::fmt::Debug for summoner_proto::codec::StateApplied
+impl core::fmt::Debug for summoner_proto::codec::StateGet
+impl core::fmt::Debug for summoner_proto::codec::StateGetReply
+impl core::fmt::Debug for summoner_proto::codec::StateMode
+impl core::fmt::Debug for summoner_proto::codec::StateSet
+impl core::fmt::Debug for summoner_proto::codec::TimeoutKind
+impl core::fmt::Debug for summoner_proto::codec::WorkgroupAttach
+impl core::fmt::Debug for summoner_proto::codec::WorkgroupAttached
+impl core::fmt::Debug for summoner_proto::codec::form_b::FormBMeta
+impl core::fmt::Debug for summoner_proto::codec::form_b::LineFault
+impl core::fmt::Debug for summoner_proto::codec::form_b::OverLimit
+impl core::fmt::Debug for summoner_proto::codec::form_b::ScannedB
+impl core::fmt::Debug for summoner_proto::codec::form_b::ScannedFault
+impl core::fmt::Debug for summoner_proto::codec::form_b::ScannedFrame
+impl core::fmt::Debug for summoner_proto::codec::form_b::ScannedLimit
+impl core::fmt::Debug for summoner_proto::codec::form_b::ScannedLine
+impl core::fmt::Debug for summoner_proto::codec::form_b::ScannedMalformed
+impl core::fmt::Debug for summoner_proto::codec::form_b::ScannedMeta
+impl core::fmt::Debug for summoner_proto::layout::Field
+impl core::fmt::Debug for summoner_proto::layout::Geometry
+impl core::fmt::Debug for summoner_proto::layout::GeometryError
+impl core::fmt::Debug for summoner_proto::layout::Kind
+impl core::fmt::Debug for summoner_proto::layout::Section
+impl core::fmt::Debug for summoner_proto::plugin::AuClass
+impl core::fmt::Debug for summoner_proto::plugin::FakeRef
+impl core::fmt::Debug for summoner_proto::plugin::PluginFormat
+impl core::fmt::Debug for summoner_proto::plugin::PluginRef
+impl core::fmt::Debug for summoner_proto::plugin::ScanClass
+impl core::fmt::Debug for summoner_proto::plugin::ScanSource
+impl core::fmt::Debug for summoner_proto::plugin::Vst3Class
+impl core::fmt::Debug for summoner_proto::state_blob::Checked
+impl core::fmt::Debug for summoner_proto::state_blob::Format
+impl core::fmt::Debug for summoner_proto::state_blob::Refusal
+impl core::fmt::Display for summoner_proto::codec::ProtoError
+impl core::fmt::Display for summoner_proto::codec::form_b::ScannedFault
+impl core::fmt::Display for summoner_proto::layout::GeometryError
+impl core::fmt::Display for summoner_proto::state_blob::Refusal
+impl core::hash::Hash for summoner_proto::codec::OsCode
+impl core::hash::Hash for summoner_proto::codec::ScanFormat
+impl core::hash::Hash for summoner_proto::codec::TimeoutKind
+impl core::hash::Hash for summoner_proto::layout::Geometry
+impl core::hash::Hash for summoner_proto::plugin::PluginFormat
+impl core::hash::Hash for summoner_proto::state_blob::Format
+impl core::marker::Copy for summoner_proto::codec::Applied
+impl core::marker::Copy for summoner_proto::codec::AppliedKind
+impl core::marker::Copy for summoner_proto::codec::CorrRefused
+impl core::marker::Copy for summoner_proto::codec::Direction
+impl core::marker::Copy for summoner_proto::codec::EditorWindow
+impl core::marker::Copy for summoner_proto::codec::Header
+impl core::marker::Copy for summoner_proto::codec::OsCode
+impl core::marker::Copy for summoner_proto::codec::Role
+impl core::marker::Copy for summoner_proto::codec::ScanFormat
+impl core::marker::Copy for summoner_proto::codec::StateMode
+impl core::marker::Copy for summoner_proto::codec::TimeoutKind
+impl core::marker::Copy for summoner_proto::codec::form_b::OverLimit
+impl core::marker::Copy for summoner_proto::layout::Field
+impl core::marker::Copy for summoner_proto::layout::Geometry
+impl core::marker::Copy for summoner_proto::layout::Kind
+impl core::marker::Copy for summoner_proto::layout::Section
+impl core::marker::Copy for summoner_proto::plugin::PluginFormat
+impl core::marker::Copy for summoner_proto::plugin::ScanSource
+impl core::marker::Copy for summoner_proto::state_blob::Checked
+impl core::marker::Copy for summoner_proto::state_blob::Format
+impl core::marker::Copy for summoner_proto::state_blob::Refusal
+impl core::marker::Send for summoner_proto::codec::Applied
+impl core::marker::Send for summoner_proto::codec::AppliedKind
+impl core::marker::Send for summoner_proto::codec::ChainLoad
+impl core::marker::Send for summoner_proto::codec::ChainLoaded
+impl core::marker::Send for summoner_proto::codec::ChainPrepared
+impl core::marker::Send for summoner_proto::codec::ChainPreparedFresh
+impl core::marker::Send for summoner_proto::codec::ChainRef
+impl core::marker::Send for summoner_proto::codec::ChainUnpark
+impl core::marker::Send for summoner_proto::codec::CorrRead
+impl core::marker::Send for summoner_proto::codec::CorrRefused
+impl core::marker::Send for summoner_proto::codec::Decoder
+impl core::marker::Send for summoner_proto::codec::Direction
+impl core::marker::Send for summoner_proto::codec::EditorClosed
+impl core::marker::Send for summoner_proto::codec::EditorOpened
+impl core::marker::Send for summoner_proto::codec::EditorRef
+impl core::marker::Send for summoner_proto::codec::EditorWindow
+impl core::marker::Send for summoner_proto::codec::ErrorReply
+impl core::marker::Send for summoner_proto::codec::Frame
+impl core::marker::Send for summoner_proto::codec::GenEntry
+impl core::marker::Send for summoner_proto::codec::Generations
+impl core::marker::Send for summoner_proto::codec::Header
+impl core::marker::Send for summoner_proto::codec::Hello
+impl core::marker::Send for summoner_proto::codec::HelloReply
+impl core::marker::Send for summoner_proto::codec::LatencyChanged
+impl core::marker::Send for summoner_proto::codec::Log
+impl core::marker::Send for summoner_proto::codec::LogSet
+impl core::marker::Send for summoner_proto::codec::LogSetReply
+impl core::marker::Send for summoner_proto::codec::OsCode
+impl core::marker::Send for summoner_proto::codec::ParamEntry
+impl core::marker::Send for summoner_proto::codec::ParamList
+impl core::marker::Send for summoner_proto::codec::ParamListReply
+impl core::marker::Send for summoner_proto::codec::ParamSet
+impl core::marker::Send for summoner_proto::codec::ParamSetReply
+impl core::marker::Send for summoner_proto::codec::ProtoError
+impl core::marker::Send for summoner_proto::codec::Role
+impl core::marker::Send for summoner_proto::codec::Scan
+impl core::marker::Send for summoner_proto::codec::ScanFailure
+impl core::marker::Send for summoner_proto::codec::ScanFormat
+impl core::marker::Send for summoner_proto::codec::Scanned
+impl core::marker::Send for summoner_proto::codec::ScannedOutcome
+impl core::marker::Send for summoner_proto::codec::SlotDesc
+impl core::marker::Send for summoner_proto::codec::SlotEnabled
+impl core::marker::Send for summoner_proto::codec::SlotEnabledReply
+impl core::marker::Send for summoner_proto::codec::SlotInfo
+impl core::marker::Send for summoner_proto::codec::SlotReactivated
+impl core::marker::Send for summoner_proto::codec::StateApplied
+impl core::marker::Send for summoner_proto::codec::StateGet
+impl core::marker::Send for summoner_proto::codec::StateGetReply
+impl core::marker::Send for summoner_proto::codec::StateMode
+impl core::marker::Send for summoner_proto::codec::StateSet
+impl core::marker::Send for summoner_proto::codec::TimeoutKind
+impl core::marker::Send for summoner_proto::codec::WorkgroupAttach
+impl core::marker::Send for summoner_proto::codec::WorkgroupAttached
+impl core::marker::Send for summoner_proto::codec::form_b::FormBMeta
+impl core::marker::Send for summoner_proto::codec::form_b::LineFault
+impl core::marker::Send for summoner_proto::codec::form_b::OverLimit
+impl core::marker::Send for summoner_proto::codec::form_b::ScannedB
+impl core::marker::Send for summoner_proto::codec::form_b::ScannedFault
+impl core::marker::Send for summoner_proto::codec::form_b::ScannedFrame
+impl core::marker::Send for summoner_proto::codec::form_b::ScannedLimit
+impl core::marker::Send for summoner_proto::codec::form_b::ScannedLine
+impl core::marker::Send for summoner_proto::codec::form_b::ScannedMalformed
+impl core::marker::Send for summoner_proto::codec::form_b::ScannedMeta
+impl core::marker::Send for summoner_proto::layout::Field
+impl core::marker::Send for summoner_proto::layout::Geometry
+impl core::marker::Send for summoner_proto::layout::GeometryError
+impl core::marker::Send for summoner_proto::layout::Kind
+impl core::marker::Send for summoner_proto::layout::Section
+impl core::marker::Send for summoner_proto::plugin::AuClass
+impl core::marker::Send for summoner_proto::plugin::FakeRef
+impl core::marker::Send for summoner_proto::plugin::PluginFormat
+impl core::marker::Send for summoner_proto::plugin::PluginRef
+impl core::marker::Send for summoner_proto::plugin::ScanClass
+impl core::marker::Send for summoner_proto::plugin::ScanSource
+impl core::marker::Send for summoner_proto::plugin::Vst3Class
+impl core::marker::Send for summoner_proto::state_blob::Checked
+impl core::marker::Send for summoner_proto::state_blob::Format
+impl core::marker::Send for summoner_proto::state_blob::Refusal
+impl core::marker::Sync for summoner_proto::codec::Applied
+impl core::marker::Sync for summoner_proto::codec::AppliedKind
+impl core::marker::Sync for summoner_proto::codec::ChainLoad
+impl core::marker::Sync for summoner_proto::codec::ChainLoaded
+impl core::marker::Sync for summoner_proto::codec::ChainPrepared
+impl core::marker::Sync for summoner_proto::codec::ChainPreparedFresh
+impl core::marker::Sync for summoner_proto::codec::ChainRef
+impl core::marker::Sync for summoner_proto::codec::ChainUnpark
+impl core::marker::Sync for summoner_proto::codec::CorrRead
+impl core::marker::Sync for summoner_proto::codec::CorrRefused
+impl core::marker::Sync for summoner_proto::codec::Decoder
+impl core::marker::Sync for summoner_proto::codec::Direction
+impl core::marker::Sync for summoner_proto::codec::EditorClosed
+impl core::marker::Sync for summoner_proto::codec::EditorOpened
+impl core::marker::Sync for summoner_proto::codec::EditorRef
+impl core::marker::Sync for summoner_proto::codec::EditorWindow
+impl core::marker::Sync for summoner_proto::codec::ErrorReply
+impl core::marker::Sync for summoner_proto::codec::Frame
+impl core::marker::Sync for summoner_proto::codec::GenEntry
+impl core::marker::Sync for summoner_proto::codec::Generations
+impl core::marker::Sync for summoner_proto::codec::Header
+impl core::marker::Sync for summoner_proto::codec::Hello
+impl core::marker::Sync for summoner_proto::codec::HelloReply
+impl core::marker::Sync for summoner_proto::codec::LatencyChanged
+impl core::marker::Sync for summoner_proto::codec::Log
+impl core::marker::Sync for summoner_proto::codec::LogSet
+impl core::marker::Sync for summoner_proto::codec::LogSetReply
+impl core::marker::Sync for summoner_proto::codec::OsCode
+impl core::marker::Sync for summoner_proto::codec::ParamEntry
+impl core::marker::Sync for summoner_proto::codec::ParamList
+impl core::marker::Sync for summoner_proto::codec::ParamListReply
+impl core::marker::Sync for summoner_proto::codec::ParamSet
+impl core::marker::Sync for summoner_proto::codec::ParamSetReply
+impl core::marker::Sync for summoner_proto::codec::ProtoError
+impl core::marker::Sync for summoner_proto::codec::Role
+impl core::marker::Sync for summoner_proto::codec::Scan
+impl core::marker::Sync for summoner_proto::codec::ScanFailure
+impl core::marker::Sync for summoner_proto::codec::ScanFormat
+impl core::marker::Sync for summoner_proto::codec::Scanned
+impl core::marker::Sync for summoner_proto::codec::ScannedOutcome
+impl core::marker::Sync for summoner_proto::codec::SlotDesc
+impl core::marker::Sync for summoner_proto::codec::SlotEnabled
+impl core::marker::Sync for summoner_proto::codec::SlotEnabledReply
+impl core::marker::Sync for summoner_proto::codec::SlotInfo
+impl core::marker::Sync for summoner_proto::codec::SlotReactivated
+impl core::marker::Sync for summoner_proto::codec::StateApplied
+impl core::marker::Sync for summoner_proto::codec::StateGet
+impl core::marker::Sync for summoner_proto::codec::StateGetReply
+impl core::marker::Sync for summoner_proto::codec::StateMode
+impl core::marker::Sync for summoner_proto::codec::StateSet
+impl core::marker::Sync for summoner_proto::codec::TimeoutKind
+impl core::marker::Sync for summoner_proto::codec::WorkgroupAttach
+impl core::marker::Sync for summoner_proto::codec::WorkgroupAttached
+impl core::marker::Sync for summoner_proto::codec::form_b::FormBMeta
+impl core::marker::Sync for summoner_proto::codec::form_b::LineFault
+impl core::marker::Sync for summoner_proto::codec::form_b::OverLimit
+impl core::marker::Sync for summoner_proto::codec::form_b::ScannedB
+impl core::marker::Sync for summoner_proto::codec::form_b::ScannedFault
+impl core::marker::Sync for summoner_proto::codec::form_b::ScannedFrame
+impl core::marker::Sync for summoner_proto::codec::form_b::ScannedLimit
+impl core::marker::Sync for summoner_proto::codec::form_b::ScannedLine
+impl core::marker::Sync for summoner_proto::codec::form_b::ScannedMalformed
+impl core::marker::Sync for summoner_proto::codec::form_b::ScannedMeta
+impl core::marker::Sync for summoner_proto::layout::Field
+impl core::marker::Sync for summoner_proto::layout::Geometry
+impl core::marker::Sync for summoner_proto::layout::GeometryError
+impl core::marker::Sync for summoner_proto::layout::Kind
+impl core::marker::Sync for summoner_proto::layout::Section
+impl core::marker::Sync for summoner_proto::plugin::AuClass
+impl core::marker::Sync for summoner_proto::plugin::FakeRef
+impl core::marker::Sync for summoner_proto::plugin::PluginFormat
+impl core::marker::Sync for summoner_proto::plugin::PluginRef
+impl core::marker::Sync for summoner_proto::plugin::ScanClass
+impl core::marker::Sync for summoner_proto::plugin::ScanSource
+impl core::marker::Sync for summoner_proto::plugin::Vst3Class
+impl core::marker::Sync for summoner_proto::state_blob::Checked
+impl core::marker::Sync for summoner_proto::state_blob::Format
+impl core::marker::Sync for summoner_proto::state_blob::Refusal
+impl serde_core::ser::Serialize for summoner_proto::codec::Applied
+impl serde_core::ser::Serialize for summoner_proto::codec::ChainLoad
+impl serde_core::ser::Serialize for summoner_proto::codec::ChainLoaded
+impl serde_core::ser::Serialize for summoner_proto::codec::ChainPrepared
+impl serde_core::ser::Serialize for summoner_proto::codec::ChainPreparedFresh
+impl serde_core::ser::Serialize for summoner_proto::codec::ChainRef
+impl serde_core::ser::Serialize for summoner_proto::codec::ChainUnpark
+impl serde_core::ser::Serialize for summoner_proto::codec::EditorClosed
+impl serde_core::ser::Serialize for summoner_proto::codec::EditorOpened
+impl serde_core::ser::Serialize for summoner_proto::codec::EditorRef
+impl serde_core::ser::Serialize for summoner_proto::codec::EditorWindow
+impl serde_core::ser::Serialize for summoner_proto::codec::ErrorReply
+impl serde_core::ser::Serialize for summoner_proto::codec::GenEntry
+impl serde_core::ser::Serialize for summoner_proto::codec::Generations
+impl serde_core::ser::Serialize for summoner_proto::codec::Hello
+impl serde_core::ser::Serialize for summoner_proto::codec::HelloReply
+impl serde_core::ser::Serialize for summoner_proto::codec::LatencyChanged
+impl serde_core::ser::Serialize for summoner_proto::codec::Log
+impl serde_core::ser::Serialize for summoner_proto::codec::LogSet
+impl serde_core::ser::Serialize for summoner_proto::codec::LogSetReply
+impl serde_core::ser::Serialize for summoner_proto::codec::OsCode
+impl serde_core::ser::Serialize for summoner_proto::codec::ParamEntry
+impl serde_core::ser::Serialize for summoner_proto::codec::ParamList
+impl serde_core::ser::Serialize for summoner_proto::codec::ParamListReply
+impl serde_core::ser::Serialize for summoner_proto::codec::ParamSet
+impl serde_core::ser::Serialize for summoner_proto::codec::ParamSetReply
+impl serde_core::ser::Serialize for summoner_proto::codec::Role
+impl serde_core::ser::Serialize for summoner_proto::codec::Scan
+impl serde_core::ser::Serialize for summoner_proto::codec::ScanFailure
+impl serde_core::ser::Serialize for summoner_proto::codec::ScanFormat
+impl serde_core::ser::Serialize for summoner_proto::codec::Scanned
+impl serde_core::ser::Serialize for summoner_proto::codec::ScannedOutcome
+impl serde_core::ser::Serialize for summoner_proto::codec::SlotDesc
+impl serde_core::ser::Serialize for summoner_proto::codec::SlotEnabled
+impl serde_core::ser::Serialize for summoner_proto::codec::SlotEnabledReply
+impl serde_core::ser::Serialize for summoner_proto::codec::SlotInfo
+impl serde_core::ser::Serialize for summoner_proto::codec::SlotReactivated
+impl serde_core::ser::Serialize for summoner_proto::codec::StateApplied
+impl serde_core::ser::Serialize for summoner_proto::codec::StateGet
+impl serde_core::ser::Serialize for summoner_proto::codec::StateGetReply
+impl serde_core::ser::Serialize for summoner_proto::codec::StateMode
+impl serde_core::ser::Serialize for summoner_proto::codec::StateSet
+impl serde_core::ser::Serialize for summoner_proto::codec::TimeoutKind
+impl serde_core::ser::Serialize for summoner_proto::codec::WorkgroupAttach
+impl serde_core::ser::Serialize for summoner_proto::codec::WorkgroupAttached
+impl serde_core::ser::Serialize for summoner_proto::plugin::PluginFormat
+impl serde_core::ser::Serialize for summoner_proto::plugin::PluginRef
+impl serde_core::ser::Serialize for summoner_proto::plugin::ScanClass
+impl serde_core::ser::Serialize for summoner_proto::plugin::ScanSource
+impl<'a> core::clone::Clone for summoner_proto::state_blob::Blob<'a>
+impl<'a> core::clone::TrivialClone for summoner_proto::state_blob::Blob<'a>
+impl<'a> core::cmp::Eq for summoner_proto::state_blob::Blob<'a>
+impl<'a> core::cmp::PartialEq for summoner_proto::state_blob::Blob<'a>
+impl<'a> core::fmt::Debug for summoner_proto::state_blob::Blob<'a>
+impl<'a> core::marker::Copy for summoner_proto::state_blob::Blob<'a>
+impl<'a> core::marker::Send for summoner_proto::state_blob::Blob<'a>
+impl<'a> core::marker::Sync for summoner_proto::state_blob::Blob<'a>
+impl<'de, D> serde_core::de::Deserialize<'de> for summoner_proto::codec::ScanVerdict<D> where D: serde_core::de::Deserialize<'de>
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::Applied where summoner_proto::codec::Applied: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ChainLoad where summoner_proto::codec::ChainLoad: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ChainLoaded where summoner_proto::codec::ChainLoaded: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ChainPrepared where summoner_proto::codec::ChainPrepared: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ChainPreparedFresh where summoner_proto::codec::ChainPreparedFresh: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ChainRef where summoner_proto::codec::ChainRef: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ChainUnpark where summoner_proto::codec::ChainUnpark: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::EditorClosed where summoner_proto::codec::EditorClosed: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::EditorOpened where summoner_proto::codec::EditorOpened: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::EditorRef where summoner_proto::codec::EditorRef: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::EditorWindow
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ErrorReply where summoner_proto::codec::ErrorReply: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::GenEntry where summoner_proto::codec::GenEntry: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::Generations where summoner_proto::codec::Generations: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::Hello where summoner_proto::codec::Hello: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::HelloReply where summoner_proto::codec::HelloReply: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::LatencyChanged where summoner_proto::codec::LatencyChanged: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::Log where summoner_proto::codec::Log: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::LogSet
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::LogSetReply
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::OsCode
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ParamEntry where summoner_proto::codec::ParamEntry: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ParamList where summoner_proto::codec::ParamList: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ParamListReply where summoner_proto::codec::ParamListReply: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ParamSet
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ParamSetReply where summoner_proto::codec::ParamSetReply: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::Role
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::Scan
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ScanFailure
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ScanFormat
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::Scanned
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::ScannedOutcome
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::SlotDesc where summoner_proto::codec::SlotDesc: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::SlotEnabled
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::SlotEnabledReply where summoner_proto::codec::SlotEnabledReply: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::SlotInfo where summoner_proto::codec::SlotInfo: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::SlotReactivated where summoner_proto::codec::SlotReactivated: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::StateApplied where summoner_proto::codec::StateApplied: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::StateGet where summoner_proto::codec::StateGet: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::StateGetReply where summoner_proto::codec::StateGetReply: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::StateMode
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::StateSet where summoner_proto::codec::StateSet: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::TimeoutKind
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::WorkgroupAttach where summoner_proto::codec::WorkgroupAttach: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::codec::WorkgroupAttached where summoner_proto::codec::WorkgroupAttached: core::default::Default
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::plugin::PluginFormat
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::plugin::PluginRef
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::plugin::ScanClass
+impl<'de> serde_core::de::Deserialize<'de> for summoner_proto::plugin::ScanSource
+impl<D: core::clone::Clone> core::clone::Clone for summoner_proto::codec::ScanVerdict<D>
+impl<D: core::cmp::Eq> core::cmp::Eq for summoner_proto::codec::ScanVerdict<D>
+impl<D: core::cmp::PartialEq> core::cmp::PartialEq for summoner_proto::codec::ScanVerdict<D>
+impl<D: core::fmt::Debug> core::fmt::Debug for summoner_proto::codec::ScanVerdict<D>
+impl<D> core::marker::Send for summoner_proto::codec::ScanVerdict<D> where alloc::vec::Vec<D>: core::marker::Send
+impl<D> core::marker::Sync for summoner_proto::codec::ScanVerdict<D> where alloc::vec::Vec<D>: core::marker::Sync
+impl<D> serde_core::ser::Serialize for summoner_proto::codec::ScanVerdict<D> where D: serde_core::ser::Serialize
+pub const summoner_proto::codec::AU_CODES_LEN: usize = 26
+pub const summoner_proto::codec::CLASS_ID_DIGITS: usize = 32
+pub const summoner_proto::codec::CORR_KEY_BYTES: usize = _
+pub const summoner_proto::codec::FF_ERROR: u16 = _
+pub const summoner_proto::codec::FF_EVENT: u16 = _
+pub const summoner_proto::codec::FF_FDS: u16 = _
+pub const summoner_proto::codec::FF_REPLY: u16 = _
+pub const summoner_proto::codec::KINDS: &[(&str, u16)] = _
+pub const summoner_proto::codec::MAX_BLOB: usize = _
+pub const summoner_proto::codec::MAX_DESCRIPTION_LINE: usize = MAX_META
+pub const summoner_proto::codec::MAX_FRAME_FDS: u32 = 2
+pub const summoner_proto::codec::MAX_LOG_SET_EXPIRES_MS: u64 = 86_400_000
+pub const summoner_proto::codec::MAX_META: usize = _
+pub const summoner_proto::codec::MAX_NOTICE_BYTES: usize = 64
+pub const summoner_proto::codec::MAX_SCAN_DESCRIPTIONS: usize = 16_384
+pub const summoner_proto::codec::MAX_SLOT_NOTICES: usize = 8
+pub const summoner_proto::codec::SCAN_DESCRIPTIONS_BLOB: u32 = 1
+pub const summoner_proto::codec::StateGetReply::TOO_LARGE: &'static str = "tooLarge"
+pub const summoner_proto::codec::form_b::MAX_DESCRIPTION_LINE: usize = MAX_META
+pub const summoner_proto::codec::form_b::MAX_FAULT_TEXT: usize = 256
+pub const summoner_proto::codec::form_b::MAX_SCAN_DESCRIPTIONS: usize = 16_384
+pub const summoner_proto::codec::form_b::SCAN_DESCRIPTIONS_BLOB: u32 = 1
+pub const summoner_proto::codec::kind::CHAIN_LOAD: u16 = 16
+pub const summoner_proto::codec::kind::CHAIN_LOADED: u16 = 48
+pub const summoner_proto::codec::kind::CHAIN_PARK: u16 = 19
+pub const summoner_proto::codec::kind::CHAIN_PARKED: u16 = 51
+pub const summoner_proto::codec::kind::CHAIN_PREPARE: u16 = 18
+pub const summoner_proto::codec::kind::CHAIN_PREPARED: u16 = 50
+pub const summoner_proto::codec::kind::CHAIN_PREPARED_FRESH: u16 = 61
+pub const summoner_proto::codec::kind::CHAIN_PREPARE_FRESH: u16 = 25
+pub const summoner_proto::codec::kind::CHAIN_UNLOAD: u16 = 17
+pub const summoner_proto::codec::kind::CHAIN_UNLOADED: u16 = 49
+pub const summoner_proto::codec::kind::CHAIN_UNPARK: u16 = 20
+pub const summoner_proto::codec::kind::CHAIN_UNPARKED: u16 = 52
+pub const summoner_proto::codec::kind::EDITOR_AVAILABILITY: u16 = 57
+pub const summoner_proto::codec::kind::EDITOR_CLOSE: u16 = 23
+pub const summoner_proto::codec::kind::EDITOR_CLOSED: u16 = 56
+pub const summoner_proto::codec::kind::EDITOR_OPEN: u16 = 22
+pub const summoner_proto::codec::kind::HELLO: u16 = 1
+pub const summoner_proto::codec::kind::LATENCY_CHANGED: u16 = 55
+pub const summoner_proto::codec::kind::LOG: u16 = 58
+pub const summoner_proto::codec::kind::LOG_SET: u16 = 5
+pub const summoner_proto::codec::kind::PARAM_LIST: u16 = 33
+pub const summoner_proto::codec::kind::PARAM_SET: u16 = 35
+pub const summoner_proto::codec::kind::PING: u16 = 2
+pub const summoner_proto::codec::kind::SCAN: u16 = 64
+pub const summoner_proto::codec::kind::SCANNED: u16 = 65
+pub const summoner_proto::codec::kind::SHUTDOWN: u16 = 4
+pub const summoner_proto::codec::kind::SLOT_REACTIVATED: u16 = 60
+pub const summoner_proto::codec::kind::SLOT_SET_ENABLED: u16 = 34
+pub const summoner_proto::codec::kind::STATE_APPLIED: u16 = 53
+pub const summoner_proto::codec::kind::STATE_GENERATIONS: u16 = 3
+pub const summoner_proto::codec::kind::STATE_GET: u16 = 32
+pub const summoner_proto::codec::kind::STATE_SET: u16 = 21
+pub const summoner_proto::codec::kind::STATE_VERIFIED: u16 = 54
+pub const summoner_proto::codec::kind::WORKGROUP_ATTACH: u16 = 24
+pub const summoner_proto::codec::kind::WORKGROUP_ATTACHED: u16 = 59
+pub const summoner_proto::host_names::CRASH_BANNER: &str = "==== summoner-host crash ===="
+pub const summoner_proto::host_names::CRASH_LOG_STEM: &str = "summoner-host-crash"
+pub const summoner_proto::host_names::LAB_DEATH_ENV: &str = "SUMMONER_LAB_DEATH"
+pub const summoner_proto::layout::ABI_VERSION: u32 = _
+pub const summoner_proto::layout::ACK_FIELDS: &[summoner_proto::layout::Field] = _
+pub const summoner_proto::layout::ACK_LINE: usize = 256
+pub const summoner_proto::layout::A_ACK: usize = 256
+pub const summoner_proto::layout::A_GROUP: usize = 284
+pub const summoner_proto::layout::A_HIST: usize = 288
+pub const summoner_proto::layout::A_IN_SLOT: usize = 280
+pub const summoner_proto::layout::A_PONG: usize = 272
+pub const summoner_proto::layout::A_PROCESSED: usize = 264
+pub const summoner_proto::layout::A_RESERVED: usize = 352
+pub const summoner_proto::layout::BF_DISCONTINUITY: u32 = _
+pub const summoner_proto::layout::BF_RESET: u32 = _
+pub const summoner_proto::layout::CHILD_PAGE_BYTES: usize = _
+pub const summoner_proto::layout::CHILD_PAGE_FIELDS: &[summoner_proto::layout::Field] = _
+pub const summoner_proto::layout::DOORBELL_FIELDS: &[summoner_proto::layout::Field] = _
+pub const summoner_proto::layout::DOORBELL_LINE: usize = 128
+pub const summoner_proto::layout::D_PING: usize = 136
+pub const summoner_proto::layout::D_RESERVED: usize = 144
+pub const summoner_proto::layout::D_SEQ: usize = 128
+pub const summoner_proto::layout::FLAG_ACK_WAKE: u32 = _
+pub const summoner_proto::layout::FLAG_RENDER: u32 = _
+pub const summoner_proto::layout::FRAME_FIELDS: &[summoner_proto::layout::Field] = _
+pub const summoner_proto::layout::FRAME_HEADER: usize = 24
+pub const summoner_proto::layout::FRAME_KIND_DOC: &str = "the frame kind's code (K_*)"
+pub const summoner_proto::layout::F_BLOB_LEN: usize = 20
+pub const summoner_proto::layout::F_FLAGS: usize = 6
+pub const summoner_proto::layout::F_FRAME_LEN: usize = 0
+pub const summoner_proto::layout::F_ID: usize = 8
+pub const summoner_proto::layout::F_KIND: usize = 4
+pub const summoner_proto::layout::F_META_LEN: usize = 16
+pub const summoner_proto::layout::HEADER_FIELDS: &[summoner_proto::layout::Field] = _
+pub const summoner_proto::layout::HEADER_LINE: usize = 0
+pub const summoner_proto::layout::HIST_BUCKETS: usize = 16
+pub const summoner_proto::layout::H_ABI: usize = 4
+pub const summoner_proto::layout::H_CHAIN_KEY: usize = 16
+pub const summoner_proto::layout::H_CH_IN: usize = 44
+pub const summoner_proto::layout::H_CH_OUT: usize = 48
+pub const summoner_proto::layout::H_FLAGS: usize = 12
+pub const summoner_proto::layout::H_INSTANCE_ID: usize = 24
+pub const summoner_proto::layout::H_IN_OFF: usize = 76
+pub const summoner_proto::layout::H_MAGIC: usize = 0
+pub const summoner_proto::layout::H_MAX_FRAMES: usize = 40
+pub const summoner_proto::layout::H_MAX_MIDI: usize = 52
+pub const summoner_proto::layout::H_MAX_PARAMS: usize = 56
+pub const summoner_proto::layout::H_MIDI_OFF: usize = 84
+pub const summoner_proto::layout::H_OUT_OFF: usize = 80
+pub const summoner_proto::layout::H_PARAM_OFF: usize = 88
+pub const summoner_proto::layout::H_REGION_BYTES: usize = 8
+pub const summoner_proto::layout::H_RESERVED: usize = 92
+pub const summoner_proto::layout::H_SAMPLE_RATE: usize = 32
+pub const summoner_proto::layout::H_SLOT_BYTES: usize = 64
+pub const summoner_proto::layout::H_SLOT_OFF0: usize = 68
+pub const summoner_proto::layout::H_SLOT_OFF1: usize = 72
+pub const summoner_proto::layout::H_TAP_SLOT: usize = 60
+pub const summoner_proto::layout::LINE: usize = 128
+pub const summoner_proto::layout::MAGIC: u32 = 0x4353_4153
+pub const summoner_proto::layout::MAX_CHANNELS: u32 = 8
+pub const summoner_proto::layout::MAX_FRAMES: u32 = 8192
+pub const summoner_proto::layout::MAX_MIDI: u32 = 1024
+pub const summoner_proto::layout::MAX_PARAMS: u32 = 64
+pub const summoner_proto::layout::MAX_SLOTS: usize = 32
+pub const summoner_proto::layout::MIDI_FIELDS: &[summoner_proto::layout::Field] = _
+pub const summoner_proto::layout::MIDI_RECORD: usize = 24
+pub const summoner_proto::layout::NO_TAP: u32 = u32::MAX
+pub const summoner_proto::layout::OP_EDITOR: u32 = 5
+pub const summoner_proto::layout::OP_GET_STATE: u32 = 4
+pub const summoner_proto::layout::OP_LOAD: u32 = 1
+pub const summoner_proto::layout::OP_NONE: u32 = 0
+pub const summoner_proto::layout::OP_PREPARE: u32 = 2
+pub const summoner_proto::layout::OP_SET_STATE: u32 = 3
+pub const summoner_proto::layout::OP_UNLOAD: u32 = 6
+pub const summoner_proto::layout::PARAM_FIELDS: &[summoner_proto::layout::Field] = _
+pub const summoner_proto::layout::PARAM_RECORD: usize = 8
+pub const summoner_proto::layout::PLANES: usize = 256
+pub const summoner_proto::layout::P_CHAIN_KEY: usize = 1032
+pub const summoner_proto::layout::P_COUNTERS: usize = 1152
+pub const summoner_proto::layout::P_HUB: [usize; 4] = _
+pub const summoner_proto::layout::P_NAME: usize = 1048
+pub const summoner_proto::layout::P_NAME_BYTES: usize = 64
+pub const summoner_proto::layout::P_OP: usize = 1024
+pub const summoner_proto::layout::P_OP_START_TICKS: usize = 1040
+pub const summoner_proto::layout::P_RING_STAMP: usize = 8
+pub const summoner_proto::layout::P_SLOT: usize = 1028
+pub const summoner_proto::layout::P_SPURIOUS_WAKES: usize = 1152
+pub const summoner_proto::layout::P_STATUS: usize = 1024
+pub const summoner_proto::layout::P_WG_FALLBACKS: usize = 1160
+pub const summoner_proto::layout::P_WG_JOINED: usize = 1168
+pub const summoner_proto::layout::REQUEST_FIELDS: &[summoner_proto::layout::Field] = _
+pub const summoner_proto::layout::RING_GROUPS: usize = 4
+pub const summoner_proto::layout::R_ECHO: usize = 128
+pub const summoner_proto::layout::R_PROCESS_NS: usize = 144
+pub const summoner_proto::layout::R_RESERVED: usize = 164
+pub const summoner_proto::layout::R_RESERVED_LATENCY: usize = 140
+pub const summoner_proto::layout::R_STATUS: usize = 136
+pub const summoner_proto::layout::R_TAP_PEAK_L: usize = 148
+pub const summoner_proto::layout::R_TAP_PEAK_R: usize = 152
+pub const summoner_proto::layout::R_TAP_SUMSQ_L: usize = 156
+pub const summoner_proto::layout::R_TAP_SUMSQ_R: usize = 160
+pub const summoner_proto::layout::SECTIONS: &[summoner_proto::layout::Section] = _
+pub const summoner_proto::layout::SLOTS_BASE: usize = 384
+pub const summoner_proto::layout::ST_BYPASSED: u32 = _
+pub const summoner_proto::layout::ST_PROCESSED: u32 = _
+pub const summoner_proto::layout::ST_SKIPPED: u32 = _
+pub const summoner_proto::layout::ST_THREW: u32 = _
+pub const summoner_proto::layout::S_BAR_START_PPQ: usize = 80
+pub const summoner_proto::layout::S_BLOCK_FLAGS: usize = 12
+pub const summoner_proto::layout::S_BLOCK_SEQ: usize = 0
+pub const summoner_proto::layout::S_BPM: usize = 40
+pub const summoner_proto::layout::S_FRAMES: usize = 8
+pub const summoner_proto::layout::S_LOOP_END_PPQ: usize = 72
+pub const summoner_proto::layout::S_LOOP_START_PPQ: usize = 64
+pub const summoner_proto::layout::S_MIDI_COUNT: usize = 16
+pub const summoner_proto::layout::S_OUTPUT_HOST_TIME: usize = 88
+pub const summoner_proto::layout::S_PARAM_COUNT: usize = 20
+pub const summoner_proto::layout::S_PPQ: usize = 32
+pub const summoner_proto::layout::S_RESERVED0: usize = 28
+pub const summoner_proto::layout::S_RESERVED1: usize = 96
+pub const summoner_proto::layout::S_TIME_SAMPLES: usize = 56
+pub const summoner_proto::layout::S_TIME_SECONDS: usize = 48
+pub const summoner_proto::layout::S_TIME_SIG: usize = 24
+pub const summoner_proto::log_vocab::AUDIO: runecraft_contracts::log::Area = _
+pub const summoner_proto::log_vocab::CONTROL: runecraft_contracts::log::Area = _
+pub const summoner_proto::log_vocab::HOST: runecraft_contracts::log::Area = _
+pub const summoner_proto::log_vocab::PINNED: [u8; 4] = _
+pub const summoner_proto::log_vocab::PLUGIN: runecraft_contracts::log::Area = _
+pub const summoner_proto::log_vocab::code::CHAIN_BLOCK: u16 = 0
+pub const summoner_proto::log_vocab::code::CHAIN_SLOW: u16 = 1
+pub const summoner_proto::plugin::MAX_FAKE_KNOBS: usize = 32
+pub const summoner_proto::plugin::MAX_FAKE_REF_BYTES: usize = _
+pub const summoner_proto::plugin::MAX_PLUGIN_REF_BYTES: usize = 4096
+pub const summoner_proto::state_blob::BPLIST: &[u8; 8] = b"bplist00"
+pub const summoner_proto::state_blob::FORMAT_AU: u8 = 2
+pub const summoner_proto::state_blob::FORMAT_BUILTIN: u8 = 3
+pub const summoner_proto::state_blob::FORMAT_VST3: u8 = 1
+pub const summoner_proto::state_blob::HEADER: usize = 12
+pub const summoner_proto::state_blob::MAGIC: [u8; 4] = _
+pub const summoner_proto::state_blob::PRESENT_COMPONENT: u8 = _
+pub const summoner_proto::state_blob::PRESENT_CONTROLLER: u8 = _
+pub const summoner_proto::state_blob::VERSION: u8 = 1
+pub enum summoner_proto::codec::CorrRead
+pub enum summoner_proto::codec::Direction
+pub enum summoner_proto::codec::ScannedFrame
+pub enum summoner_proto::codec::ScannedLine
+pub enum summoner_proto::codec::form_b::ScannedFrame
+pub enum summoner_proto::codec::form_b::ScannedLine
+pub enum summoner_proto::layout::Kind
+pub field summoner_proto::codec::Applied::component: bool
+pub field summoner_proto::codec::Applied::controller: bool
+pub field summoner_proto::codec::ChainLoad::ch_in: u32
+pub field summoner_proto::codec::ChainLoad::ch_out: u32
+pub field summoner_proto::codec::ChainLoad::chain_key: u64
+pub field summoner_proto::codec::ChainLoad::fan_slot: core::option::Option<u8>
+pub field summoner_proto::codec::ChainLoad::fds: u32
+pub field summoner_proto::codec::ChainLoad::group: u32
+pub field summoner_proto::codec::ChainLoad::instance_id: u64
+pub field summoner_proto::codec::ChainLoad::max_frames: u32
+pub field summoner_proto::codec::ChainLoad::max_midi: u32
+pub field summoner_proto::codec::ChainLoad::max_params: u32
+pub field summoner_proto::codec::ChainLoad::rate: f64
+pub field summoner_proto::codec::ChainLoad::role: summoner_proto::codec::Role
+pub field summoner_proto::codec::ChainLoad::slots: alloc::vec::Vec<summoner_proto::codec::SlotDesc>
+pub field summoner_proto::codec::ChainLoad::tap_slot: u32
+pub field summoner_proto::codec::ChainLoaded::chain_key: u64
+pub field summoner_proto::codec::ChainLoaded::latency: u32
+pub field summoner_proto::codec::ChainLoaded::ok: bool
+pub field summoner_proto::codec::ChainLoaded::param_count: u32
+pub field summoner_proto::codec::ChainLoaded::slots: alloc::vec::Vec<summoner_proto::codec::SlotInfo>
+pub field summoner_proto::codec::ChainLoaded::unwired_bytes: u64
+pub field summoner_proto::codec::ChainLoaded::wired_bytes: u64
+pub field summoner_proto::codec::ChainPrepared::chain_key: u64
+pub field summoner_proto::codec::ChainPrepared::ok: bool
+pub field summoner_proto::codec::ChainPrepared::slot_notices: alloc::vec::Vec<alloc::vec::Vec<alloc::string::String>>
+pub field summoner_proto::codec::ChainPrepared::unwired_bytes: core::option::Option<u64>
+pub field summoner_proto::codec::ChainPrepared::wired_bytes: core::option::Option<u64>
+pub field summoner_proto::codec::ChainPreparedFresh::chain_key: u64
+pub field summoner_proto::codec::ChainPreparedFresh::error: core::option::Option<alloc::string::String>
+pub field summoner_proto::codec::ChainPreparedFresh::latency: u32
+pub field summoner_proto::codec::ChainPreparedFresh::ms: f64
+pub field summoner_proto::codec::ChainPreparedFresh::ok: bool
+pub field summoner_proto::codec::ChainPreparedFresh::slot_notices: core::option::Option<alloc::vec::Vec<alloc::vec::Vec<alloc::string::String>>>
+pub field summoner_proto::codec::ChainRef::chain_key: u64
+pub field summoner_proto::codec::ChainRef::ok: bool
+pub field summoner_proto::codec::ChainUnpark::chain_key: u64
+pub field summoner_proto::codec::ChainUnpark::group: u32
+pub field summoner_proto::codec::EditorClosed::chain_key: u64
+pub field summoner_proto::codec::EditorClosed::child_gen: u64
+pub field summoner_proto::codec::EditorClosed::slot: u32
+pub field summoner_proto::codec::EditorOpened::editor_window: core::option::Option<summoner_proto::codec::EditorWindow>
+pub field summoner_proto::codec::EditorRef::chain_key: u64
+pub field summoner_proto::codec::EditorRef::guard_reset: bool
+pub field summoner_proto::codec::EditorRef::slot: core::option::Option<u32>
+pub field summoner_proto::codec::ErrorReply::code: i32
+pub field summoner_proto::codec::ErrorReply::message: alloc::string::String
+pub field summoner_proto::codec::FormBMeta::description_count: u64
+pub field summoner_proto::codec::FormBMeta::format: summoner_proto::codec::ScanFormat
+pub field summoner_proto::codec::FormBMeta::outcome: summoner_proto::codec::ScannedOutcome
+pub field summoner_proto::codec::FormBMeta::over_limit: core::option::Option<alloc::string::String>
+pub field summoner_proto::codec::FormBMeta::path: alloc::string::String
+pub field summoner_proto::codec::Frame::blob: alloc::vec::Vec<u8>
+pub field summoner_proto::codec::Frame::header: summoner_proto::codec::Header
+pub field summoner_proto::codec::Frame::meta: alloc::vec::Vec<u8>
+pub field summoner_proto::codec::GenEntry::chain_key: u64
+pub field summoner_proto::codec::GenEntry::child_gen: u64
+pub field summoner_proto::codec::GenEntry::editor_open: bool
+pub field summoner_proto::codec::GenEntry::slot: u32
+pub field summoner_proto::codec::Generations::slots: alloc::vec::Vec<summoner_proto::codec::GenEntry>
+pub field summoner_proto::codec::Header::blob_len: u32
+pub field summoner_proto::codec::Header::flags: u16
+pub field summoner_proto::codec::Header::id: u64
+pub field summoner_proto::codec::Header::kind: u16
+pub field summoner_proto::codec::Header::meta_len: u32
+pub field summoner_proto::codec::Hello::child_id: alloc::string::String
+pub field summoner_proto::codec::Hello::fds: u32
+pub field summoner_proto::codec::HelloReply::child_id: alloc::string::String
+pub field summoner_proto::codec::HelloReply::formats: alloc::vec::Vec<alloc::string::String>
+pub field summoner_proto::codec::HelloReply::host: alloc::string::String
+pub field summoner_proto::codec::HelloReply::mach_slot0: bool
+pub field summoner_proto::codec::HelloReply::pid: u32
+pub field summoner_proto::codec::HelloReply::protocol: u32
+pub field summoner_proto::codec::HelloReply::unwired_bytes: u64
+pub field summoner_proto::codec::HelloReply::wired_bytes: u64
+pub field summoner_proto::codec::LatencyChanged::chain_key: u64
+pub field summoner_proto::codec::LatencyChanged::latency: u32
+pub field summoner_proto::codec::LineFault::NonCanonical::at: usize
+pub field summoner_proto::codec::LineFault::NotUtf8::at: usize
+pub field summoner_proto::codec::Log::level: alloc::string::String
+pub field summoner_proto::codec::Log::message: alloc::string::String
+pub field summoner_proto::codec::LogSet::expires_in_ms: core::option::Option<u64>
+pub field summoner_proto::codec::LogSet::levels: u64
+pub field summoner_proto::codec::LogSetReply::levels: u64
+pub field summoner_proto::codec::ParamEntry::automatable: bool
+pub field summoner_proto::codec::ParamEntry::default: f32
+pub field summoner_proto::codec::ParamEntry::id: u32
+pub field summoner_proto::codec::ParamEntry::label: alloc::string::String
+pub field summoner_proto::codec::ParamEntry::name: alloc::string::String
+pub field summoner_proto::codec::ParamEntry::order: u32
+pub field summoner_proto::codec::ParamEntry::plugin_id: u32
+pub field summoner_proto::codec::ParamEntry::step_count: u32
+pub field summoner_proto::codec::ParamEntry::value: f32
+pub field summoner_proto::codec::ParamList::chain_key: u64
+pub field summoner_proto::codec::ParamList::count: u32
+pub field summoner_proto::codec::ParamList::offset: u32
+pub field summoner_proto::codec::ParamList::slot: u32
+pub field summoner_proto::codec::ParamListReply::chain_key: u64
+pub field summoner_proto::codec::ParamListReply::params: alloc::vec::Vec<summoner_proto::codec::ParamEntry>
+pub field summoner_proto::codec::ParamListReply::slot: u32
+pub field summoner_proto::codec::ParamListReply::total: u32
+pub field summoner_proto::codec::ParamSet::chain_key: u64
+pub field summoner_proto::codec::ParamSet::plugin_id: u32
+pub field summoner_proto::codec::ParamSet::slot: u32
+pub field summoner_proto::codec::ParamSet::value: f32
+pub field summoner_proto::codec::ParamSetReply::chain_key: u64
+pub field summoner_proto::codec::ParamSetReply::plugin_id: u32
+pub field summoner_proto::codec::ParamSetReply::slot: u32
+pub field summoner_proto::codec::ParamSetReply::value: f32
+pub field summoner_proto::codec::ProtoError::BadFlags::flags: u16
+pub field summoner_proto::codec::ProtoError::BadFlags::kind: u16
+pub field summoner_proto::codec::ProtoError::BadId::id: u64
+pub field summoner_proto::codec::ProtoError::BadId::kind: u16
+pub field summoner_proto::codec::ProtoError::FrameLen::blob: u32
+pub field summoner_proto::codec::ProtoError::FrameLen::frame_len: u32
+pub field summoner_proto::codec::ProtoError::FrameLen::meta: u32
+pub field summoner_proto::codec::ProtoError::NotAdmitted::blob_len: u32
+pub field summoner_proto::codec::ProtoError::NotAdmitted::kind: u16
+pub field summoner_proto::codec::ScanFailure::Other::reason: alloc::string::String
+pub field summoner_proto::codec::ScanVerdict::Crashed::exit_code: core::option::Option<i32>
+pub field summoner_proto::codec::ScanVerdict::Crashed::os_code: core::option::Option<summoner_proto::codec::OsCode>
+pub field summoner_proto::codec::ScanVerdict::Failed::detail: alloc::string::String
+pub field summoner_proto::codec::ScanVerdict::Failed::failure: summoner_proto::codec::ScanFailure
+pub field summoner_proto::codec::ScanVerdict::Ok::descriptions: alloc::vec::Vec<D>
+pub field summoner_proto::codec::ScanVerdict::Timeout::kind: summoner_proto::codec::TimeoutKind
+pub field summoner_proto::codec::Scanned::classes: alloc::vec::Vec<summoner_proto::plugin::ScanClass>
+pub field summoner_proto::codec::Scanned::format: summoner_proto::codec::ScanFormat
+pub field summoner_proto::codec::Scanned::outcome: summoner_proto::codec::ScannedOutcome
+pub field summoner_proto::codec::Scanned::path: alloc::string::String
+pub field summoner_proto::codec::ScannedB::descriptions: alloc::vec::Vec<summoner_proto::plugin::ScanClass>
+pub field summoner_proto::codec::ScannedB::format: summoner_proto::codec::ScanFormat
+pub field summoner_proto::codec::ScannedB::outcome: summoner_proto::codec::ScannedOutcome
+pub field summoner_proto::codec::ScannedB::path: alloc::string::String
+pub field summoner_proto::codec::ScannedFrame::HeaderOnly::blob_len: usize
+pub field summoner_proto::codec::ScannedFrame::HeaderOnly::header: [u8; 24]
+pub field summoner_proto::codec::ScannedFrame::HeaderOnly::meta_len: usize
+pub field summoner_proto::codec::ScannedFrame::OverLimit::bound: summoner_proto::codec::form_b::OverLimit
+pub field summoner_proto::codec::ScannedFrame::OverLimit::frame: alloc::vec::Vec<u8>
+pub field summoner_proto::codec::ScannedLimit::Count::description_count: u64
+pub field summoner_proto::codec::ScannedLimit::Line::index: usize
+pub field summoner_proto::codec::ScannedLimit::Line::len: usize
+pub field summoner_proto::codec::ScannedLimit::OverLimit::description_count: u64
+pub field summoner_proto::codec::ScannedLimit::OverLimit::word: alloc::string::String
+pub field summoner_proto::codec::ScannedMalformed::BlobWithoutCount::blob_len: usize
+pub field summoner_proto::codec::ScannedMalformed::CountMismatch::description_count: u64
+pub field summoner_proto::codec::ScannedMalformed::CountMismatch::newlines: usize
+pub field summoner_proto::codec::ScannedMalformed::CountWithoutBlob::description_count: u64
+pub field summoner_proto::codec::ScannedMalformed::FormABlob::blob_len: usize
+pub field summoner_proto::codec::ScannedMalformed::Line::index: usize
+pub field summoner_proto::codec::ScannedMalformed::Line::why: summoner_proto::codec::form_b::LineFault
+pub field summoner_proto::codec::ScannedMalformed::NotScanned::flags: u16
+pub field summoner_proto::codec::ScannedMalformed::NotScanned::id: u64
+pub field summoner_proto::codec::ScannedMalformed::NotScanned::kind: u16
+pub field summoner_proto::codec::ScannedMalformed::OverLimitBlob::blob_len: usize
+pub field summoner_proto::codec::ScannedOutcome::Failed::detail: alloc::string::String
+pub field summoner_proto::codec::ScannedOutcome::Failed::failure: summoner_proto::codec::ScanFailure
+pub field summoner_proto::codec::SlotDesc::enabled: bool
+pub field summoner_proto::codec::SlotDesc::plugin: core::option::Option<summoner_proto::plugin::PluginRef>
+pub field summoner_proto::codec::SlotEnabled::chain_key: u64
+pub field summoner_proto::codec::SlotEnabled::enabled: bool
+pub field summoner_proto::codec::SlotEnabled::slot: u32
+pub field summoner_proto::codec::SlotEnabledReply::chain_key: u64
+pub field summoner_proto::codec::SlotEnabledReply::enabled: bool
+pub field summoner_proto::codec::SlotEnabledReply::ok: bool
+pub field summoner_proto::codec::SlotEnabledReply::slot: u32
+pub field summoner_proto::codec::SlotInfo::channels: u32
+pub field summoner_proto::codec::SlotInfo::has_editor: bool
+pub field summoner_proto::codec::SlotInfo::latency: u32
+pub field summoner_proto::codec::SlotInfo::name: alloc::string::String
+pub field summoner_proto::codec::SlotInfo::notices: alloc::vec::Vec<alloc::string::String>
+pub field summoner_proto::codec::SlotInfo::ok: bool
+pub field summoner_proto::codec::SlotInfo::param_count: u32
+pub field summoner_proto::codec::SlotReactivated::abandoned: bool
+pub field summoner_proto::codec::SlotReactivated::bypassed_blocks: u32
+pub field summoner_proto::codec::SlotReactivated::chain_key: u64
+pub field summoner_proto::codec::SlotReactivated::cycle_ns: u64
+pub field summoner_proto::codec::SlotReactivated::flags: u32
+pub field summoner_proto::codec::SlotReactivated::forced_take: bool
+pub field summoner_proto::codec::SlotReactivated::latency: u32
+pub field summoner_proto::codec::SlotReactivated::misaligned: u32
+pub field summoner_proto::codec::SlotReactivated::slot: u32
+pub field summoner_proto::codec::SlotReactivated::take_given_up: bool
+pub field summoner_proto::codec::StateApplied::applied: core::option::Option<summoner_proto::codec::Applied>
+pub field summoner_proto::codec::StateApplied::chain_key: u64
+pub field summoner_proto::codec::StateApplied::child_generation: core::option::Option<u64>
+pub field summoner_proto::codec::StateApplied::generation: u64
+pub field summoner_proto::codec::StateApplied::ok: bool
+pub field summoner_proto::codec::StateApplied::slot: u32
+pub field summoner_proto::codec::StateGet::cached: bool
+pub field summoner_proto::codec::StateGet::chain_key: u64
+pub field summoner_proto::codec::StateGet::slot: u32
+pub field summoner_proto::codec::StateGetReply::bytes: core::option::Option<u64>
+pub field summoner_proto::codec::StateGetReply::chain_key: u64
+pub field summoner_proto::codec::StateGetReply::child_gen: u64
+pub field summoner_proto::codec::StateGetReply::ok: bool
+pub field summoner_proto::codec::StateGetReply::reason: core::option::Option<alloc::string::String>
+pub field summoner_proto::codec::StateGetReply::slot: u32
+pub field summoner_proto::codec::StateSet::chain_key: u64
+pub field summoner_proto::codec::StateSet::generation: u64
+pub field summoner_proto::codec::StateSet::mode: summoner_proto::codec::StateMode
+pub field summoner_proto::codec::StateSet::slot: u32
+pub field summoner_proto::codec::WorkgroupAttach::bootstrap_name: core::option::Option<alloc::string::String>
+pub field summoner_proto::codec::WorkgroupAttach::token: u64
+pub field summoner_proto::codec::WorkgroupAttached::joined: bool
+pub field summoner_proto::codec::WorkgroupAttached::ok: bool
+pub field summoner_proto::codec::WorkgroupAttached::token: u64
+pub field summoner_proto::codec::form_b::FormBMeta::description_count: u64
+pub field summoner_proto::codec::form_b::FormBMeta::format: summoner_proto::codec::ScanFormat
+pub field summoner_proto::codec::form_b::FormBMeta::outcome: summoner_proto::codec::ScannedOutcome
+pub field summoner_proto::codec::form_b::FormBMeta::over_limit: core::option::Option<alloc::string::String>
+pub field summoner_proto::codec::form_b::FormBMeta::path: alloc::string::String
+pub field summoner_proto::codec::form_b::LineFault::NonCanonical::at: usize
+pub field summoner_proto::codec::form_b::LineFault::NotUtf8::at: usize
+pub field summoner_proto::codec::form_b::ScannedB::descriptions: alloc::vec::Vec<summoner_proto::plugin::ScanClass>
+pub field summoner_proto::codec::form_b::ScannedB::format: summoner_proto::codec::ScanFormat
+pub field summoner_proto::codec::form_b::ScannedB::outcome: summoner_proto::codec::ScannedOutcome
+pub field summoner_proto::codec::form_b::ScannedB::path: alloc::string::String
+pub field summoner_proto::codec::form_b::ScannedFrame::HeaderOnly::blob_len: usize
+pub field summoner_proto::codec::form_b::ScannedFrame::HeaderOnly::header: [u8; 24]
+pub field summoner_proto::codec::form_b::ScannedFrame::HeaderOnly::meta_len: usize
+pub field summoner_proto::codec::form_b::ScannedFrame::OverLimit::bound: summoner_proto::codec::form_b::OverLimit
+pub field summoner_proto::codec::form_b::ScannedFrame::OverLimit::frame: alloc::vec::Vec<u8>
+pub field summoner_proto::codec::form_b::ScannedLimit::Count::description_count: u64
+pub field summoner_proto::codec::form_b::ScannedLimit::Line::index: usize
+pub field summoner_proto::codec::form_b::ScannedLimit::Line::len: usize
+pub field summoner_proto::codec::form_b::ScannedLimit::OverLimit::description_count: u64
+pub field summoner_proto::codec::form_b::ScannedLimit::OverLimit::word: alloc::string::String
+pub field summoner_proto::codec::form_b::ScannedMalformed::BlobWithoutCount::blob_len: usize
+pub field summoner_proto::codec::form_b::ScannedMalformed::CountMismatch::description_count: u64
+pub field summoner_proto::codec::form_b::ScannedMalformed::CountMismatch::newlines: usize
+pub field summoner_proto::codec::form_b::ScannedMalformed::CountWithoutBlob::description_count: u64
+pub field summoner_proto::codec::form_b::ScannedMalformed::FormABlob::blob_len: usize
+pub field summoner_proto::codec::form_b::ScannedMalformed::Line::index: usize
+pub field summoner_proto::codec::form_b::ScannedMalformed::Line::why: summoner_proto::codec::form_b::LineFault
+pub field summoner_proto::codec::form_b::ScannedMalformed::NotScanned::flags: u16
+pub field summoner_proto::codec::form_b::ScannedMalformed::NotScanned::id: u64
+pub field summoner_proto::codec::form_b::ScannedMalformed::NotScanned::kind: u16
+pub field summoner_proto::codec::form_b::ScannedMalformed::OverLimitBlob::blob_len: usize
+pub field summoner_proto::layout::Field::count: usize
+pub field summoner_proto::layout::Field::doc: &'static str
+pub field summoner_proto::layout::Field::kind: summoner_proto::layout::Kind
+pub field summoner_proto::layout::Field::name: &'static str
+pub field summoner_proto::layout::Field::offset: usize
+pub field summoner_proto::layout::Geometry::ch_in: u32
+pub field summoner_proto::layout::Geometry::ch_out: u32
+pub field summoner_proto::layout::Geometry::max_frames: u32
+pub field summoner_proto::layout::Geometry::max_midi: u32
+pub field summoner_proto::layout::Geometry::max_params: u32
+pub field summoner_proto::layout::Geometry::tap_slot: u32
+pub field summoner_proto::layout::Section::doc: &'static str
+pub field summoner_proto::layout::Section::fields: &'static [summoner_proto::layout::Field]
+pub field summoner_proto::layout::Section::size: usize
+pub field summoner_proto::layout::Section::tag: &'static str
+pub field summoner_proto::plugin::AuClass::au_codes: alloc::string::String
+pub field summoner_proto::plugin::AuClass::au_version: core::option::Option<u32>
+pub field summoner_proto::plugin::AuClass::bundle_mtime_ms: i64
+pub field summoner_proto::plugin::AuClass::component_name: alloc::string::String
+pub field summoner_proto::plugin::AuClass::entry: core::option::Option<u32>
+pub field summoner_proto::plugin::AuClass::inputs: core::option::Option<u32>
+pub field summoner_proto::plugin::AuClass::outputs: core::option::Option<u32>
+pub field summoner_proto::plugin::AuClass::path: alloc::string::String
+pub field summoner_proto::plugin::AuClass::refused: core::option::Option<alloc::string::String>
+pub field summoner_proto::plugin::Vst3Class::bundle_mtime_ms: i64
+pub field summoner_proto::plugin::Vst3Class::categories: alloc::vec::Vec<alloc::string::String>
+pub field summoner_proto::plugin::Vst3Class::category: alloc::string::String
+pub field summoner_proto::plugin::Vst3Class::class_id: alloc::string::String
+pub field summoner_proto::plugin::Vst3Class::class_vendor: core::option::Option<alloc::string::String>
+pub field summoner_proto::plugin::Vst3Class::inputs: core::option::Option<u32>
+pub field summoner_proto::plugin::Vst3Class::instantiated: core::option::Option<bool>
+pub field summoner_proto::plugin::Vst3Class::name: alloc::string::String
+pub field summoner_proto::plugin::Vst3Class::outputs: core::option::Option<u32>
+pub field summoner_proto::plugin::Vst3Class::path: alloc::string::String
+pub field summoner_proto::plugin::Vst3Class::sdk_version: alloc::string::String
+pub field summoner_proto::plugin::Vst3Class::source: core::option::Option<summoner_proto::plugin::ScanSource>
+pub field summoner_proto::plugin::Vst3Class::vendor: alloc::string::String
+pub field summoner_proto::plugin::Vst3Class::version: alloc::string::String
+pub field summoner_proto::state_blob::Blob::Au::plist: &'a [u8]
+pub field summoner_proto::state_blob::Blob::Builtin::body: &'a [u8]
+pub field summoner_proto::state_blob::Blob::Vst3::component: core::option::Option<&'a [u8]>
+pub field summoner_proto::state_blob::Blob::Vst3::controller: core::option::Option<&'a [u8]>
+pub field summoner_proto::state_blob::Checked::both_absent: bool
+pub field summoner_proto::state_blob::Checked::format: summoner_proto::state_blob::Format
+pub fn summoner_proto::codec::Applied::new(component: bool, controller: bool) -> summoner_proto::codec::Applied
+pub fn summoner_proto::codec::ChainLoaded::new(chain_key: u64, ok: bool, slots: alloc::vec::Vec<summoner_proto::codec::SlotInfo>, latency: u32, param_count: u32, wired_bytes: u64, unwired_bytes: u64) -> summoner_proto::codec::ChainLoaded
+pub fn summoner_proto::codec::ChainPrepared::new(chain_key: u64, ok: bool, wired_bytes: core::option::Option<u64>, unwired_bytes: core::option::Option<u64>, slot_notices: alloc::vec::Vec<alloc::vec::Vec<alloc::string::String>>) -> summoner_proto::codec::ChainPrepared
+pub fn summoner_proto::codec::ChainPreparedFresh::new(chain_key: u64, ok: bool, ms: f64, latency: u32, slot_notices: core::option::Option<alloc::vec::Vec<alloc::vec::Vec<alloc::string::String>>>, error: core::option::Option<alloc::string::String>) -> summoner_proto::codec::ChainPreparedFresh
+pub fn summoner_proto::codec::ChainRef::new(chain_key: u64, ok: bool) -> summoner_proto::codec::ChainRef
+pub fn summoner_proto::codec::ChainUnpark::new(chain_key: u64, group: u32) -> summoner_proto::codec::ChainUnpark
+pub fn summoner_proto::codec::Decoder::at_boundary(&self) -> bool
+pub fn summoner_proto::codec::Decoder::feed(&mut self, data: &[u8], out: &mut impl core::ops::function::FnMut(summoner_proto::codec::Frame)) -> core::result::Result<(), summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::Decoder::feed_admitting(&mut self, data: &[u8], admit: &mut impl core::ops::function::FnMut(&summoner_proto::codec::Header) -> bool, out: &mut impl core::ops::function::FnMut(summoner_proto::codec::Frame)) -> core::result::Result<(), summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::Decoder::new(dir: summoner_proto::codec::Direction) -> summoner_proto::codec::Decoder
+pub fn summoner_proto::codec::Decoder::oversized_header(&self) -> core::option::Option<summoner_proto::codec::Header>
+pub fn summoner_proto::codec::Decoder::oversized_meta_header(&self) -> core::option::Option<summoner_proto::codec::Header>
+pub fn summoner_proto::codec::EditorClosed::new(chain_key: u64, slot: u32, child_gen: u64) -> summoner_proto::codec::EditorClosed
+pub fn summoner_proto::codec::EditorOpened::new(editor_window: core::option::Option<summoner_proto::codec::EditorWindow>) -> summoner_proto::codec::EditorOpened
+pub fn summoner_proto::codec::EditorRef::new(chain_key: u64, slot: core::option::Option<u32>, guard_reset: bool) -> summoner_proto::codec::EditorRef
+pub fn summoner_proto::codec::ErrorReply::new(code: i32, message: alloc::string::String) -> summoner_proto::codec::ErrorReply
+pub fn summoner_proto::codec::FormBMeta::new(format: summoner_proto::codec::ScanFormat, path: alloc::string::String, outcome: summoner_proto::codec::ScannedOutcome, description_count: u64, over_limit: core::option::Option<alloc::string::String>) -> summoner_proto::codec::form_b::FormBMeta
+pub fn summoner_proto::codec::FormBMeta::to_bytes(&self) -> core::option::Option<alloc::vec::Vec<u8>>
+pub fn summoner_proto::codec::Frame::meta_as<T: for<'de> serde_core::de::Deserialize<'de>>(&self) -> core::result::Result<T, summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::GenEntry::new(chain_key: u64, slot: u32, child_gen: u64, editor_open: bool) -> summoner_proto::codec::GenEntry
+pub fn summoner_proto::codec::Generations::new(slots: alloc::vec::Vec<summoner_proto::codec::GenEntry>) -> summoner_proto::codec::Generations
+pub fn summoner_proto::codec::Header::carries_fds(&self) -> bool
+pub fn summoner_proto::codec::Header::handles(&self) -> u8
+pub fn summoner_proto::codec::Header::is_error(&self) -> bool
+pub fn summoner_proto::codec::Header::is_event(&self) -> bool
+pub fn summoner_proto::codec::Header::is_reply(&self) -> bool
+pub fn summoner_proto::codec::Hello::new(child_id: alloc::string::String, fds: u32) -> summoner_proto::codec::Hello
+pub fn summoner_proto::codec::LatencyChanged::new(chain_key: u64, latency: u32) -> summoner_proto::codec::LatencyChanged
+pub fn summoner_proto::codec::Log::new(level: alloc::string::String, message: alloc::string::String) -> summoner_proto::codec::Log
+pub fn summoner_proto::codec::LogSet::check(&self) -> core::result::Result<(u64, core::option::Option<core::time::Duration>), &'static str>
+pub fn summoner_proto::codec::LogSet::new(levels: u64, expires_in_ms: core::option::Option<u64>) -> summoner_proto::codec::LogSet
+pub fn summoner_proto::codec::LogSetReply::new(levels: u64) -> summoner_proto::codec::LogSetReply
+pub fn summoner_proto::codec::OsCode::name(&self) -> core::option::Option<&'static str>
+pub fn summoner_proto::codec::OverLimit::word(self) -> &'static str
+pub fn summoner_proto::codec::ParamList::new(chain_key: u64, slot: u32, offset: u32, count: u32) -> summoner_proto::codec::ParamList
+pub fn summoner_proto::codec::ParamListReply::new(chain_key: u64, slot: u32, total: u32, params: alloc::vec::Vec<summoner_proto::codec::ParamEntry>) -> summoner_proto::codec::ParamListReply
+pub fn summoner_proto::codec::ParamSet::new(chain_key: u64, slot: u32, plugin_id: u32, value: f32) -> summoner_proto::codec::ParamSet
+pub fn summoner_proto::codec::ParamSetReply::new(chain_key: u64, slot: u32, plugin_id: u32, value: f32) -> summoner_proto::codec::ParamSetReply
+pub fn summoner_proto::codec::PluginRef::au(path: impl core::convert::AsRef<std::path::Path>, au_codes: impl core::convert::Into<alloc::string::String>, name: impl core::convert::Into<alloc::string::String>) -> core::result::Result<summoner_proto::plugin::PluginRef, summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::PluginRef::au_codes(&self) -> core::option::Option<&str>
+pub fn summoner_proto::codec::PluginRef::bundle_path(&self) -> core::option::Option<&std::path::Path>
+pub fn summoner_proto::codec::PluginRef::class_id(&self) -> core::option::Option<&str>
+pub fn summoner_proto::codec::PluginRef::fake_knob(&self, key: &str) -> core::option::Option<alloc::string::String>
+pub fn summoner_proto::codec::PluginRef::format(&self) -> core::option::Option<summoner_proto::plugin::PluginFormat>
+pub fn summoner_proto::codec::PluginRef::is_fake(&self) -> bool
+pub fn summoner_proto::codec::PluginRef::json_len(&self) -> usize
+pub fn summoner_proto::codec::PluginRef::name(&self) -> &str
+pub fn summoner_proto::codec::PluginRef::path(&self) -> core::option::Option<&str>
+pub fn summoner_proto::codec::PluginRef::vst3(path: impl core::convert::AsRef<std::path::Path>, class_id: impl core::convert::Into<alloc::string::String>, name: impl core::convert::Into<alloc::string::String>) -> core::result::Result<summoner_proto::plugin::PluginRef, summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::Scan::bundle_path(&self) -> &std::path::Path
+pub fn summoner_proto::codec::Scan::descriptions_blob(&self) -> core::option::Option<u32>
+pub fn summoner_proto::codec::Scan::format(&self) -> summoner_proto::codec::ScanFormat
+pub fn summoner_proto::codec::Scan::new(format: summoner_proto::codec::ScanFormat, path: impl core::convert::AsRef<std::path::Path>) -> core::result::Result<summoner_proto::codec::Scan, summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::Scan::offer_descriptions_blob(self) -> summoner_proto::codec::Scan
+pub fn summoner_proto::codec::Scan::offers_descriptions_blob(&self) -> bool
+pub fn summoner_proto::codec::Scan::path(&self) -> &str
+pub fn summoner_proto::codec::ScanClass::au_codes(&self) -> core::option::Option<&str>
+pub fn summoner_proto::codec::ScanClass::bundle_path(&self) -> &std::path::Path
+pub fn summoner_proto::codec::ScanClass::name(&self) -> &str
+pub fn summoner_proto::codec::ScanClass::path(&self) -> &str
+pub fn summoner_proto::codec::ScanVerdict::crash_name(&self) -> core::option::Option<&'static str>
+pub fn summoner_proto::codec::ScanVerdict::crashed_by(code: summoner_proto::codec::OsCode) -> summoner_proto::codec::ScanVerdict<D>
+pub fn summoner_proto::codec::ScanVerdict::crashed_unknown() -> summoner_proto::codec::ScanVerdict<D>
+pub fn summoner_proto::codec::ScanVerdict::exited_early(n: i32) -> summoner_proto::codec::ScanVerdict<D>
+pub fn summoner_proto::codec::ScanVerdict::from_scanned(s: summoner_proto::codec::Scanned) -> summoner_proto::codec::ScanResult
+pub fn summoner_proto::codec::ScanVerdict::map_classes<E>(self, f: impl core::ops::function::FnOnce(alloc::vec::Vec<D>) -> alloc::vec::Vec<E>) -> summoner_proto::codec::ScanVerdict<E>
+pub fn summoner_proto::codec::ScanVerdict::tag(&self) -> &'static str
+pub fn summoner_proto::codec::Scanned::new(format: summoner_proto::codec::ScanFormat, path: alloc::string::String, outcome: summoner_proto::codec::ScannedOutcome, classes: alloc::vec::Vec<summoner_proto::plugin::ScanClass>) -> summoner_proto::codec::Scanned
+pub fn summoner_proto::codec::ScannedB::new(format: summoner_proto::codec::ScanFormat, path: alloc::string::String, outcome: summoner_proto::codec::ScannedOutcome, descriptions: alloc::vec::Vec<summoner_proto::plugin::ScanClass>) -> summoner_proto::codec::form_b::ScannedB
+pub fn summoner_proto::codec::ScannedFault::is_engine_limit(&self) -> bool
+pub fn summoner_proto::codec::ScannedFrame::bytes(&self) -> &[u8]
+pub fn summoner_proto::codec::ScannedLine::into_verdict(self) -> (summoner_proto::codec::ScanResult, alloc::vec::Vec<summoner_proto::plugin::ScanClass>)
+pub fn summoner_proto::codec::ScannedMeta::format(&self) -> summoner_proto::codec::ScanFormat
+pub fn summoner_proto::codec::ScannedMeta::path(&self) -> &str
+pub fn summoner_proto::codec::ScannedMeta::with_blob(self, blob: &[u8], offered: bool) -> core::result::Result<summoner_proto::codec::form_b::ScannedLine, summoner_proto::codec::form_b::ScannedFault>
+pub fn summoner_proto::codec::SlotDesc::new(plugin: core::option::Option<summoner_proto::plugin::PluginRef>, enabled: bool) -> summoner_proto::codec::SlotDesc
+pub fn summoner_proto::codec::SlotEnabled::new(chain_key: u64, slot: u32, enabled: bool) -> summoner_proto::codec::SlotEnabled
+pub fn summoner_proto::codec::SlotEnabledReply::new(chain_key: u64, slot: u32, enabled: bool, ok: bool) -> summoner_proto::codec::SlotEnabledReply
+pub fn summoner_proto::codec::SlotInfo::new(ok: bool, name: alloc::string::String, channels: u32, latency: u32, param_count: u32, has_editor: bool, notices: alloc::vec::Vec<alloc::string::String>) -> summoner_proto::codec::SlotInfo
+pub fn summoner_proto::codec::StateApplied::classify(&self) -> summoner_proto::codec::AppliedKind
+pub fn summoner_proto::codec::StateApplied::new(chain_key: u64, slot: u32, generation: u64, ok: bool, applied: core::option::Option<summoner_proto::codec::Applied>, child_generation: core::option::Option<u64>) -> summoner_proto::codec::StateApplied
+pub fn summoner_proto::codec::StateApplied::partial(&self) -> bool
+pub fn summoner_proto::codec::StateGet::new(chain_key: u64, slot: u32, cached: bool) -> summoner_proto::codec::StateGet
+pub fn summoner_proto::codec::StateGetReply::new(chain_key: u64, slot: u32, child_gen: u64, ok: bool, reason: core::option::Option<alloc::string::String>, bytes: core::option::Option<u64>) -> summoner_proto::codec::StateGetReply
+pub fn summoner_proto::codec::StateGetReply::too_large(&self) -> core::option::Option<u64>
+pub fn summoner_proto::codec::StateSet::new(chain_key: u64, slot: u32, generation: u64, mode: summoner_proto::codec::StateMode) -> summoner_proto::codec::StateSet
+pub fn summoner_proto::codec::WorkgroupAttach::new(token: u64, bootstrap_name: core::option::Option<alloc::string::String>) -> summoner_proto::codec::WorkgroupAttach
+pub fn summoner_proto::codec::WorkgroupAttached::new(token: u64, ok: bool, joined: bool) -> summoner_proto::codec::WorkgroupAttached
+pub fn summoner_proto::codec::answers_a_request(h: &summoner_proto::codec::Header) -> bool
+pub fn summoner_proto::codec::au_codes_string(kind: u32, sub: u32, manu: u32) -> alloc::string::String
+pub fn summoner_proto::codec::au_version_string(v: u32) -> alloc::string::String
+pub fn summoner_proto::codec::check_au_codes(codes: &str) -> core::result::Result<[u32; 3], summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::check_class_id(id: &str) -> core::result::Result<(), summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::check_to_core(f: &summoner_proto::codec::Frame) -> core::result::Result<(), summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::corr_of_meta(meta: &[u8]) -> summoner_proto::codec::CorrRead
+pub fn summoner_proto::codec::decode_descriptions_blob(blob: &[u8], description_count: u64) -> core::result::Result<alloc::vec::Vec<summoner_proto::plugin::ScanClass>, summoner_proto::codec::form_b::ScannedFault>
+pub fn summoner_proto::codec::decode_header(b: &[u8; 24], dir: summoner_proto::codec::Direction) -> core::result::Result<summoner_proto::codec::Header, summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::decode_scanned(f: &summoner_proto::codec::Frame, offered: bool) -> core::result::Result<summoner_proto::codec::form_b::ScannedLine, summoner_proto::codec::form_b::ScannedFault>
+pub fn summoner_proto::codec::encode(kind: u16, flags: u16, id: u64, meta: &[u8], blob: &[u8]) -> alloc::vec::Vec<u8>
+pub fn summoner_proto::codec::encode_header_only(kind: u16, flags: u16, id: u64, meta_len: usize, blob_len: usize) -> [u8; 24]
+pub fn summoner_proto::codec::encode_msg<T: serde_core::ser::Serialize>(kind: u16, flags: u16, id: u64, meta: &T, blob: &[u8]) -> alloc::vec::Vec<u8>
+pub fn summoner_proto::codec::encode_scanned(s: &summoner_proto::codec::Scanned, offered: bool) -> summoner_proto::codec::form_b::ScannedFrame
+pub fn summoner_proto::codec::encode_scanned_form_a(s: &summoner_proto::codec::Scanned) -> summoner_proto::codec::form_b::ScannedFrame
+pub fn summoner_proto::codec::encode_scanned_form_b(s: &summoner_proto::codec::Scanned) -> summoner_proto::codec::form_b::ScannedFrame
+pub fn summoner_proto::codec::form_b::FormBMeta::new(format: summoner_proto::codec::ScanFormat, path: alloc::string::String, outcome: summoner_proto::codec::ScannedOutcome, description_count: u64, over_limit: core::option::Option<alloc::string::String>) -> summoner_proto::codec::form_b::FormBMeta
+pub fn summoner_proto::codec::form_b::FormBMeta::to_bytes(&self) -> core::option::Option<alloc::vec::Vec<u8>>
+pub fn summoner_proto::codec::form_b::OverLimit::word(self) -> &'static str
+pub fn summoner_proto::codec::form_b::ScannedB::new(format: summoner_proto::codec::ScanFormat, path: alloc::string::String, outcome: summoner_proto::codec::ScannedOutcome, descriptions: alloc::vec::Vec<summoner_proto::plugin::ScanClass>) -> summoner_proto::codec::form_b::ScannedB
+pub fn summoner_proto::codec::form_b::ScannedFault::is_engine_limit(&self) -> bool
+pub fn summoner_proto::codec::form_b::ScannedFrame::bytes(&self) -> &[u8]
+pub fn summoner_proto::codec::form_b::ScannedLine::into_verdict(self) -> (summoner_proto::codec::ScanResult, alloc::vec::Vec<summoner_proto::plugin::ScanClass>)
+pub fn summoner_proto::codec::form_b::ScannedMeta::format(&self) -> summoner_proto::codec::ScanFormat
+pub fn summoner_proto::codec::form_b::ScannedMeta::path(&self) -> &str
+pub fn summoner_proto::codec::form_b::ScannedMeta::with_blob(self, blob: &[u8], offered: bool) -> core::result::Result<summoner_proto::codec::form_b::ScannedLine, summoner_proto::codec::form_b::ScannedFault>
+pub fn summoner_proto::codec::form_b::decode_descriptions_blob(blob: &[u8], description_count: u64) -> core::result::Result<alloc::vec::Vec<summoner_proto::plugin::ScanClass>, summoner_proto::codec::form_b::ScannedFault>
+pub fn summoner_proto::codec::form_b::decode_scanned(f: &summoner_proto::codec::Frame, offered: bool) -> core::result::Result<summoner_proto::codec::form_b::ScannedLine, summoner_proto::codec::form_b::ScannedFault>
+pub fn summoner_proto::codec::form_b::encode_header_only(kind: u16, flags: u16, id: u64, meta_len: usize, blob_len: usize) -> [u8; 24]
+pub fn summoner_proto::codec::form_b::encode_scanned(s: &summoner_proto::codec::Scanned, offered: bool) -> summoner_proto::codec::form_b::ScannedFrame
+pub fn summoner_proto::codec::form_b::encode_scanned_form_a(s: &summoner_proto::codec::Scanned) -> summoner_proto::codec::form_b::ScannedFrame
+pub fn summoner_proto::codec::form_b::encode_scanned_form_b(s: &summoner_proto::codec::Scanned) -> summoner_proto::codec::form_b::ScannedFrame
+pub fn summoner_proto::codec::form_b::parse_scanned_meta(meta: &[u8]) -> core::result::Result<summoner_proto::codec::form_b::ScannedMeta, summoner_proto::codec::form_b::ScannedFault>
+pub fn summoner_proto::codec::handles_flag(handles: usize) -> u16
+pub fn summoner_proto::codec::kind_name(k: u16) -> core::option::Option<&'static str>
+pub fn summoner_proto::codec::page_within(entries: alloc::vec::Vec<summoner_proto::codec::ParamEntry>, limit: usize) -> alloc::vec::Vec<summoner_proto::codec::ParamEntry>
+pub fn summoner_proto::codec::parse_meta<T: for<'de> serde_core::de::Deserialize<'de>>(meta: &[u8]) -> core::result::Result<T, summoner_proto::codec::ProtoError>
+pub fn summoner_proto::codec::parse_scanned_meta(meta: &[u8]) -> core::result::Result<summoner_proto::codec::form_b::ScannedMeta, summoner_proto::codec::form_b::ScannedFault>
+pub fn summoner_proto::codec::slot_notices_clamped(v: &[alloc::string::String]) -> alloc::vec::Vec<alloc::string::String>
+pub fn summoner_proto::codec::with_corr(meta: &mut alloc::vec::Vec<u8>, corr: &str) -> core::result::Result<(), summoner_proto::codec::CorrRefused>
+pub fn summoner_proto::host_names::crash_log_name(pid: u32) -> alloc::string::String
+pub fn summoner_proto::layout::Geometry::in_off(&self) -> usize
+pub fn summoner_proto::layout::Geometry::mapped_bytes(&self) -> usize
+pub fn summoner_proto::layout::Geometry::midi_off(&self) -> usize
+pub fn summoner_proto::layout::Geometry::out_off(&self) -> usize
+pub fn summoner_proto::layout::Geometry::param_off(&self) -> usize
+pub fn summoner_proto::layout::Geometry::region_bytes(&self) -> usize
+pub fn summoner_proto::layout::Geometry::slot_bytes(&self) -> usize
+pub fn summoner_proto::layout::Geometry::slot_off(&self, k: usize) -> usize
+pub fn summoner_proto::layout::Geometry::stereo(max_frames: u32) -> summoner_proto::layout::Geometry
+pub fn summoner_proto::layout::Geometry::validate(&self) -> core::result::Result<(), summoner_proto::layout::GeometryError>
+pub fn summoner_proto::layout::GeometryError::bound(&self) -> &'static str
+pub fn summoner_proto::layout::Kind::width(self) -> usize
+pub fn summoner_proto::layout::op_name(op: u32) -> &'static str
+pub fn summoner_proto::plugin::FakeRef::knobs(&self) -> &serde_json::map::Map<alloc::string::String, serde_json::value::Value>
+pub fn summoner_proto::plugin::PluginRef::au(path: impl core::convert::AsRef<std::path::Path>, au_codes: impl core::convert::Into<alloc::string::String>, name: impl core::convert::Into<alloc::string::String>) -> core::result::Result<summoner_proto::plugin::PluginRef, summoner_proto::codec::ProtoError>
+pub fn summoner_proto::plugin::PluginRef::au_codes(&self) -> core::option::Option<&str>
+pub fn summoner_proto::plugin::PluginRef::bundle_path(&self) -> core::option::Option<&std::path::Path>
+pub fn summoner_proto::plugin::PluginRef::class_id(&self) -> core::option::Option<&str>
+pub fn summoner_proto::plugin::PluginRef::fake_knob(&self, key: &str) -> core::option::Option<alloc::string::String>
+pub fn summoner_proto::plugin::PluginRef::format(&self) -> core::option::Option<summoner_proto::plugin::PluginFormat>
+pub fn summoner_proto::plugin::PluginRef::is_fake(&self) -> bool
+pub fn summoner_proto::plugin::PluginRef::json_len(&self) -> usize
+pub fn summoner_proto::plugin::PluginRef::name(&self) -> &str
+pub fn summoner_proto::plugin::PluginRef::path(&self) -> core::option::Option<&str>
+pub fn summoner_proto::plugin::PluginRef::vst3(path: impl core::convert::AsRef<std::path::Path>, class_id: impl core::convert::Into<alloc::string::String>, name: impl core::convert::Into<alloc::string::String>) -> core::result::Result<summoner_proto::plugin::PluginRef, summoner_proto::codec::ProtoError>
+pub fn summoner_proto::plugin::ScanClass::au_codes(&self) -> core::option::Option<&str>
+pub fn summoner_proto::plugin::ScanClass::bundle_path(&self) -> &std::path::Path
+pub fn summoner_proto::plugin::ScanClass::name(&self) -> &str
+pub fn summoner_proto::plugin::ScanClass::path(&self) -> &str
+pub fn summoner_proto::plugin::bundle_text(p: &std::path::Path) -> core::result::Result<&str, summoner_proto::codec::ProtoError>
+pub fn summoner_proto::plugin::check_au_code_values(codes: [u32; 3]) -> core::result::Result<(), summoner_proto::codec::ProtoError>
+pub fn summoner_proto::plugin::unknown_scan_class_fields() -> u64
+pub fn summoner_proto::state_blob::Blob::both_absent(&self) -> bool
+pub fn summoner_proto::state_blob::Blob::format(&self) -> summoner_proto::state_blob::Format
+pub fn summoner_proto::state_blob::Format::code(self) -> u8
+pub fn summoner_proto::state_blob::Format::name(self) -> &'static str
+pub fn summoner_proto::state_blob::Refusal::name(self) -> &'static str
+pub fn summoner_proto::state_blob::builtin(body: &[u8]) -> alloc::vec::Vec<u8>
+pub fn summoner_proto::state_blob::check(b: &[u8]) -> core::result::Result<summoner_proto::state_blob::Checked, summoner_proto::state_blob::Refusal>
+pub fn summoner_proto::state_blob::decode(b: &[u8]) -> core::result::Result<summoner_proto::state_blob::Blob<'_>, summoner_proto::state_blob::Refusal>
+pub fn summoner_proto::state_blob::encode(x: &summoner_proto::state_blob::Blob<'_>) -> core::result::Result<alloc::vec::Vec<u8>, summoner_proto::state_blob::Refusal>
+pub mod summoner_proto::codec
+pub mod summoner_proto::codec::form_b
+pub mod summoner_proto::codec::kind
+pub mod summoner_proto::host_names
+pub mod summoner_proto::layout
+pub mod summoner_proto::log_vocab
+pub mod summoner_proto::log_vocab::code
+pub mod summoner_proto::plugin
+pub mod summoner_proto::state_blob
+pub static summoner_proto::log_vocab::EVENTS: [runecraft_contracts::log::Event; 2]
+pub static summoner_proto::log_vocab::HOST_VOCAB: runecraft_contracts::log::Vocab
+pub struct summoner_proto::codec::Decoder {private fields}
+pub struct summoner_proto::codec::Frame
+pub struct summoner_proto::codec::Header
+pub struct summoner_proto::codec::PluginRef(_);
+pub struct summoner_proto::codec::Scan {private fields}
+pub struct summoner_proto::layout::Field
+pub struct summoner_proto::layout::Geometry
+pub struct summoner_proto::layout::GeometryError(_);
+pub struct summoner_proto::layout::Section
+pub struct summoner_proto::plugin::FakeRef {private fields}
+pub struct summoner_proto::plugin::PluginRef(_);
+pub type summoner_proto::codec::ScanResult = summoner_proto::codec::ScanVerdict<summoner_proto::plugin::ScanClass>
+pub use summoner_proto::codec::FormBMeta = form_b::FormBMeta
+pub use summoner_proto::codec::LineFault = form_b::LineFault
+pub use summoner_proto::codec::MAX_DESCRIPTION_LINE = form_b::MAX_DESCRIPTION_LINE
+pub use summoner_proto::codec::MAX_SCAN_DESCRIPTIONS = form_b::MAX_SCAN_DESCRIPTIONS
+pub use summoner_proto::codec::OverLimit = form_b::OverLimit
+pub use summoner_proto::codec::PluginFormat = crate::plugin::PluginFormat
+pub use summoner_proto::codec::PluginRef = crate::plugin::PluginRef
+pub use summoner_proto::codec::SCAN_DESCRIPTIONS_BLOB = form_b::SCAN_DESCRIPTIONS_BLOB
+pub use summoner_proto::codec::ScanClass = crate::plugin::ScanClass
+pub use summoner_proto::codec::ScannedB = form_b::ScannedB
+pub use summoner_proto::codec::ScannedFault = form_b::ScannedFault
+pub use summoner_proto::codec::ScannedFrame = form_b::ScannedFrame
+pub use summoner_proto::codec::ScannedLimit = form_b::ScannedLimit
+pub use summoner_proto::codec::ScannedLine = form_b::ScannedLine
+pub use summoner_proto::codec::ScannedMalformed = form_b::ScannedMalformed
+pub use summoner_proto::codec::ScannedMeta = form_b::ScannedMeta
+pub use summoner_proto::codec::decode_descriptions_blob = form_b::decode_descriptions_blob
+pub use summoner_proto::codec::decode_scanned = form_b::decode_scanned
+pub use summoner_proto::codec::encode_header_only = form_b::encode_header_only
+pub use summoner_proto::codec::encode_scanned = form_b::encode_scanned
+pub use summoner_proto::codec::encode_scanned_form_a = form_b::encode_scanned_form_a
+pub use summoner_proto::codec::encode_scanned_form_b = form_b::encode_scanned_form_b
+pub use summoner_proto::codec::parse_scanned_meta = form_b::parse_scanned_meta
+pub use summoner_proto::layout::BF_BAR_START_VALID = orrery_time::BF_BAR_START_VALID
+pub use summoner_proto::layout::BF_LOOPING = orrery_time::BF_LOOPING
+pub use summoner_proto::layout::BF_LOOP_POINTS_VALID = orrery_time::BF_LOOP_POINTS_VALID
+pub use summoner_proto::layout::BF_PLAYING = orrery_time::BF_PLAYING
+pub use summoner_proto::layout::BF_RECORDING = orrery_time::BF_RECORDING
+pub variant summoner_proto::codec::AppliedKind::Invalid
+pub variant summoner_proto::codec::AppliedKind::Partial
+pub variant summoner_proto::codec::AppliedKind::Whole
+pub variant summoner_proto::codec::CorrRead::Absent
+pub variant summoner_proto::codec::CorrRead::Invalid
+pub variant summoner_proto::codec::CorrRead::Valid(alloc::string::String)
+pub variant summoner_proto::codec::CorrRefused::Invalid
+pub variant summoner_proto::codec::CorrRefused::MetaLess
+pub variant summoner_proto::codec::CorrRefused::NotObject
+pub variant summoner_proto::codec::CorrRefused::TooLong
+pub variant summoner_proto::codec::Direction::ToChild
+pub variant summoner_proto::codec::Direction::ToCore
+pub variant summoner_proto::codec::EditorWindow::Hwnd(u64)
+pub variant summoner_proto::codec::LineFault::Description(alloc::string::String)
+pub variant summoner_proto::codec::LineFault::NonCanonical {}
+pub variant summoner_proto::codec::LineFault::NotAnObject
+pub variant summoner_proto::codec::LineFault::NotUtf8 {}
+pub variant summoner_proto::codec::OsCode::Exception(u32)
+pub variant summoner_proto::codec::OsCode::Signal(i32)
+pub variant summoner_proto::codec::OverLimit::Blob
+pub variant summoner_proto::codec::OverLimit::Count
+pub variant summoner_proto::codec::OverLimit::Line
+pub variant summoner_proto::codec::PluginFormat::Au
+pub variant summoner_proto::codec::PluginFormat::Vst3
+pub variant summoner_proto::codec::ProtoError::BadFlags {}
+pub variant summoner_proto::codec::ProtoError::BadId {}
+pub variant summoner_proto::codec::ProtoError::BadMeta(alloc::string::String)
+pub variant summoner_proto::codec::ProtoError::BlobTooLong(u32)
+pub variant summoner_proto::codec::ProtoError::Fds(&'static str)
+pub variant summoner_proto::codec::ProtoError::FrameLen {}
+pub variant summoner_proto::codec::ProtoError::MetaTooLong(u32)
+pub variant summoner_proto::codec::ProtoError::NotAdmitted {}
+pub variant summoner_proto::codec::ProtoError::UnknownKind(u16)
+pub variant summoner_proto::codec::Role::Live
+pub variant summoner_proto::codec::Role::Render
+pub variant summoner_proto::codec::ScanClass::Au(summoner_proto::plugin::AuClass)
+pub variant summoner_proto::codec::ScanClass::Vst3(summoner_proto::plugin::Vst3Class)
+pub variant summoner_proto::codec::ScanFailure::Arch
+pub variant summoner_proto::codec::ScanFailure::Instantiate
+pub variant summoner_proto::codec::ScanFailure::NotFound
+pub variant summoner_proto::codec::ScanFailure::Other {}
+pub variant summoner_proto::codec::ScanFailure::Prepare
+pub variant summoner_proto::codec::ScanFailure::Process
+pub variant summoner_proto::codec::ScanFailure::ProtocolAfterScan
+pub variant summoner_proto::codec::ScanFailure::State
+pub variant summoner_proto::codec::ScanFailure::Ui
+pub variant summoner_proto::codec::ScanFormat::Au
+pub variant summoner_proto::codec::ScanFormat::Vst3
+pub variant summoner_proto::codec::ScanVerdict::Failed {}
+pub variant summoner_proto::codec::ScanVerdict::Ok {}
+pub variant summoner_proto::codec::ScanVerdict::Timeout {}
+pub variant summoner_proto::codec::ScannedFault::Limit(summoner_proto::codec::form_b::ScannedLimit)
+pub variant summoner_proto::codec::ScannedFault::Malformed(summoner_proto::codec::form_b::ScannedMalformed)
+pub variant summoner_proto::codec::ScannedFrame::HeaderOnly {}
+pub variant summoner_proto::codec::ScannedFrame::OverLimit {}
+pub variant summoner_proto::codec::ScannedFrame::Whole(alloc::vec::Vec<u8>)
+pub variant summoner_proto::codec::ScannedLimit::Count {}
+pub variant summoner_proto::codec::ScannedLimit::Line {}
+pub variant summoner_proto::codec::ScannedLimit::OverLimit {}
+pub variant summoner_proto::codec::ScannedLine::A(summoner_proto::codec::Scanned)
+pub variant summoner_proto::codec::ScannedLine::B(summoner_proto::codec::form_b::ScannedB)
+pub variant summoner_proto::codec::ScannedMalformed::BlobWithoutCount {}
+pub variant summoner_proto::codec::ScannedMalformed::CountMismatch {}
+pub variant summoner_proto::codec::ScannedMalformed::CountWithoutBlob {}
+pub variant summoner_proto::codec::ScannedMalformed::ForbiddenKey(&'static str)
+pub variant summoner_proto::codec::ScannedMalformed::FormABlob {}
+pub variant summoner_proto::codec::ScannedMalformed::Line {}
+pub variant summoner_proto::codec::ScannedMalformed::Meta(alloc::string::String)
+pub variant summoner_proto::codec::ScannedMalformed::NoFinalNewline
+pub variant summoner_proto::codec::ScannedMalformed::NotOffered
+pub variant summoner_proto::codec::ScannedMalformed::NotScanned {}
+pub variant summoner_proto::codec::ScannedMalformed::OverLimitBlob {}
+pub variant summoner_proto::codec::ScannedMalformed::Version(alloc::string::String)
+pub variant summoner_proto::codec::ScannedMeta::A(summoner_proto::codec::Scanned)
+pub variant summoner_proto::codec::ScannedMeta::B(summoner_proto::codec::form_b::FormBMeta)
+pub variant summoner_proto::codec::ScannedOutcome::Failed {}
+pub variant summoner_proto::codec::ScannedOutcome::Ok
+pub variant summoner_proto::codec::StateMode::Unknown
+pub variant summoner_proto::codec::StateMode::V1
+pub variant summoner_proto::codec::TimeoutKind::Budget
+pub variant summoner_proto::codec::TimeoutKind::Step
+pub variant summoner_proto::codec::form_b::LineFault::Description(alloc::string::String)
+pub variant summoner_proto::codec::form_b::LineFault::NonCanonical {}
+pub variant summoner_proto::codec::form_b::LineFault::NotAnObject
+pub variant summoner_proto::codec::form_b::LineFault::NotUtf8 {}
+pub variant summoner_proto::codec::form_b::OverLimit::Blob
+pub variant summoner_proto::codec::form_b::OverLimit::Count
+pub variant summoner_proto::codec::form_b::OverLimit::Line
+pub variant summoner_proto::codec::form_b::ScannedFault::Limit(summoner_proto::codec::form_b::ScannedLimit)
+pub variant summoner_proto::codec::form_b::ScannedFault::Malformed(summoner_proto::codec::form_b::ScannedMalformed)
+pub variant summoner_proto::codec::form_b::ScannedFrame::HeaderOnly {}
+pub variant summoner_proto::codec::form_b::ScannedFrame::OverLimit {}
+pub variant summoner_proto::codec::form_b::ScannedFrame::Whole(alloc::vec::Vec<u8>)
+pub variant summoner_proto::codec::form_b::ScannedLimit::Count {}
+pub variant summoner_proto::codec::form_b::ScannedLimit::Line {}
+pub variant summoner_proto::codec::form_b::ScannedLimit::OverLimit {}
+pub variant summoner_proto::codec::form_b::ScannedLine::A(summoner_proto::codec::Scanned)
+pub variant summoner_proto::codec::form_b::ScannedLine::B(summoner_proto::codec::form_b::ScannedB)
+pub variant summoner_proto::codec::form_b::ScannedMalformed::BlobWithoutCount {}
+pub variant summoner_proto::codec::form_b::ScannedMalformed::CountMismatch {}
+pub variant summoner_proto::codec::form_b::ScannedMalformed::CountWithoutBlob {}
+pub variant summoner_proto::codec::form_b::ScannedMalformed::ForbiddenKey(&'static str)
+pub variant summoner_proto::codec::form_b::ScannedMalformed::FormABlob {}
+pub variant summoner_proto::codec::form_b::ScannedMalformed::Line {}
+pub variant summoner_proto::codec::form_b::ScannedMalformed::Meta(alloc::string::String)
+pub variant summoner_proto::codec::form_b::ScannedMalformed::NoFinalNewline
+pub variant summoner_proto::codec::form_b::ScannedMalformed::NotOffered
+pub variant summoner_proto::codec::form_b::ScannedMalformed::NotScanned {}
+pub variant summoner_proto::codec::form_b::ScannedMalformed::OverLimitBlob {}
+pub variant summoner_proto::codec::form_b::ScannedMalformed::Version(alloc::string::String)
+pub variant summoner_proto::codec::form_b::ScannedMeta::A(summoner_proto::codec::Scanned)
+pub variant summoner_proto::codec::form_b::ScannedMeta::B(summoner_proto::codec::form_b::FormBMeta)
+pub variant summoner_proto::layout::Kind::Bytes
+pub variant summoner_proto::layout::Kind::F32Bits
+pub variant summoner_proto::layout::Kind::F64Bits
+pub variant summoner_proto::layout::Kind::Reserved32
+pub variant summoner_proto::layout::Kind::Reserved64
+pub variant summoner_proto::layout::Kind::U16
+pub variant summoner_proto::layout::Kind::U32
+pub variant summoner_proto::layout::Kind::U64
+pub variant summoner_proto::plugin::PluginFormat::Au
+pub variant summoner_proto::plugin::PluginFormat::Vst3
+pub variant summoner_proto::plugin::ScanClass::Au(summoner_proto::plugin::AuClass)
+pub variant summoner_proto::plugin::ScanClass::Vst3(summoner_proto::plugin::Vst3Class)
+pub variant summoner_proto::plugin::ScanSource::Factory
+pub variant summoner_proto::plugin::ScanSource::Moduleinfo
+pub variant summoner_proto::state_blob::Blob::Au {}
+pub variant summoner_proto::state_blob::Blob::Builtin {}
+pub variant summoner_proto::state_blob::Blob::Vst3 {}
+pub variant summoner_proto::state_blob::Format::Au
+pub variant summoner_proto::state_blob::Format::Builtin
+pub variant summoner_proto::state_blob::Format::Vst3
+pub variant summoner_proto::state_blob::Refusal::AbsentLength
+pub variant summoner_proto::state_blob::Refusal::Format(u8)
+pub variant summoner_proto::state_blob::Refusal::Magic
+pub variant summoner_proto::state_blob::Refusal::NotBplist
+pub variant summoner_proto::state_blob::Refusal::Overrun
+pub variant summoner_proto::state_blob::Refusal::Present(u8)
+pub variant summoner_proto::state_blob::Refusal::Reserved(u8)
+pub variant summoner_proto::state_blob::Refusal::Short(usize)
+pub variant summoner_proto::state_blob::Refusal::TooLarge(usize)
+pub variant summoner_proto::state_blob::Refusal::Trailing(usize)
+pub variant summoner_proto::state_blob::Refusal::Version(u8)

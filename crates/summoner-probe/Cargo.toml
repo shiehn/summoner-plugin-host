@@ -1,0 +1,26 @@
+[package]
+name = "summoner-probe"
+description = "The scan child's discovery and validation: one lab bundle (VST3 or AU) reported as raw facts (protocol 4.0's ScanClass), then validated (instantiate, prepare, blocks, the state blob round trip, teardown). Only the lab's own bundles"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+summoner-proto.workspace = true
+summoner-proc.workspace = true
+summoner-format-vst3.workspace = true
+summoner-format-au.workspace = true
+summoner-sys = { workspace = true, features = ["au", "vst3"] }
+serde.workspace = true
+serde_json.workspace = true
+
+# The running example (scan a testkit plugin and load it, offline); `cargo test` runs its test too.
+[[example]]
+name = "scan_and_load"
+test = true
+
+[lints.rust]
+# Mutants: RUSTFLAGS="--cfg mutant_<name>" must turn their named test red. (The one-class-per-name mutant is a
+# source patch of the helper now: no hook in its code.)
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_refused_first)"] }

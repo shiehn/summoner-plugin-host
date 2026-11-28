@@ -1,0 +1,563 @@
+# The public API of summoner-rt (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-rt; check: tools/public-api.py check.
+#[doc(hidden)] pub fn summoner_rt::ChainState::fifo_faults_for_tests(&mut self) -> u64
+#[doc(hidden)] pub fn summoner_rt::rt::ChainState::fifo_faults_for_tests(&mut self) -> u64
+#[non_exhaustive] pub enum summoner_rt::midi::Offered
+#[non_exhaustive] pub enum summoner_rt::render::Fault
+#[non_exhaustive] pub enum summoner_rt::render::RenderError
+#[non_exhaustive] pub struct summoner_rt::AudioCounters
+#[non_exhaustive] pub struct summoner_rt::ChainLink
+#[non_exhaustive] pub struct summoner_rt::ChaseNote
+#[non_exhaustive] pub struct summoner_rt::ChaseStats
+#[non_exhaustive] pub struct summoner_rt::region::StatusRecord
+#[non_exhaustive] pub struct summoner_rt::render::BlockOutcome
+#[non_exhaustive] pub struct summoner_rt::render::RenderBlock<'a>
+#[non_exhaustive] pub struct summoner_rt::render::RenderConfig
+#[non_exhaustive] pub struct summoner_rt::render::RenderMemory
+#[non_exhaustive] pub struct summoner_rt::render::RenderRefused
+#[non_exhaustive] pub struct summoner_rt::rt::AudioCounters
+#[non_exhaustive] pub struct summoner_rt::rt::ChainLink
+#[non_exhaustive] pub struct summoner_rt::rt::ChaseNote
+#[non_exhaustive] pub struct summoner_rt::rt::ChaseStats
+#[repr(C)] pub struct summoner_rt::HeldNotes {private fields}
+#[repr(C)] pub struct summoner_rt::rt::HeldNotes {private fields}
+impl core::clone::Clone for summoner_rt::Error
+impl core::clone::Clone for summoner_rt::midi::MidiCarry
+impl core::clone::Clone for summoner_rt::midi::Offered
+impl core::clone::Clone for summoner_rt::region::StatusRecord
+impl core::clone::Clone for summoner_rt::render::BlockOutcome
+impl core::clone::Clone for summoner_rt::render::Fault
+impl core::clone::Clone for summoner_rt::render::RenderConfig
+impl core::clone::Clone for summoner_rt::render::RenderError
+impl core::clone::Clone for summoner_rt::render::RenderMemory
+impl core::clone::Clone for summoner_rt::render::RenderRefused
+impl core::clone::Clone for summoner_rt::rt::ChainState
+impl core::clone::Clone for summoner_rt::rt::ChaseNote
+impl core::clone::Clone for summoner_rt::rt::ChaseStats
+impl core::clone::Clone for summoner_rt::rt::HeldNotes
+impl core::clone::Clone for summoner_rt::rt::Visit
+impl core::clone::TrivialClone for summoner_rt::midi::Offered
+impl core::clone::TrivialClone for summoner_rt::render::BlockOutcome
+impl core::clone::TrivialClone for summoner_rt::render::Fault
+impl core::clone::TrivialClone for summoner_rt::render::RenderConfig
+impl core::clone::TrivialClone for summoner_rt::render::RenderMemory
+impl core::clone::TrivialClone for summoner_rt::rt::ChaseNote
+impl core::clone::TrivialClone for summoner_rt::rt::ChaseStats
+impl core::clone::TrivialClone for summoner_rt::rt::HeldNotes
+impl core::clone::TrivialClone for summoner_rt::rt::Visit
+impl core::cmp::Eq for summoner_rt::Error
+impl core::cmp::Eq for summoner_rt::midi::Offered
+impl core::cmp::Eq for summoner_rt::region::StatusRecord
+impl core::cmp::Eq for summoner_rt::render::BlockOutcome
+impl core::cmp::Eq for summoner_rt::render::Fault
+impl core::cmp::Eq for summoner_rt::render::RenderConfig
+impl core::cmp::Eq for summoner_rt::render::RenderError
+impl core::cmp::Eq for summoner_rt::render::RenderMemory
+impl core::cmp::Eq for summoner_rt::render::RenderRefused
+impl core::cmp::Eq for summoner_rt::rt::ChaseNote
+impl core::cmp::Eq for summoner_rt::rt::ChaseStats
+impl core::cmp::Eq for summoner_rt::rt::HeldNotes
+impl core::cmp::PartialEq for summoner_rt::Error
+impl core::cmp::PartialEq for summoner_rt::midi::Offered
+impl core::cmp::PartialEq for summoner_rt::region::StatusRecord
+impl core::cmp::PartialEq for summoner_rt::render::BlockOutcome
+impl core::cmp::PartialEq for summoner_rt::render::Fault
+impl core::cmp::PartialEq for summoner_rt::render::RenderConfig
+impl core::cmp::PartialEq for summoner_rt::render::RenderError
+impl core::cmp::PartialEq for summoner_rt::render::RenderMemory
+impl core::cmp::PartialEq for summoner_rt::render::RenderRefused
+impl core::cmp::PartialEq for summoner_rt::rt::ChaseNote
+impl core::cmp::PartialEq for summoner_rt::rt::ChaseStats
+impl core::cmp::PartialEq for summoner_rt::rt::HeldNotes
+impl core::convert::From<summoner_rt::Error> for alloc::string::String
+impl core::default::Default for summoner_rt::midi::MidiCarry
+impl core::default::Default for summoner_rt::render::BlockOutcome
+impl core::default::Default for summoner_rt::render::RenderConfig
+impl core::default::Default for summoner_rt::rt::AudioCounters
+impl core::default::Default for summoner_rt::rt::ChaseStats
+impl core::default::Default for summoner_rt::rt::HeldNotes
+impl core::error::Error for summoner_rt::Error
+impl core::error::Error for summoner_rt::render::RenderError
+impl core::error::Error for summoner_rt::render::RenderRefused
+impl core::fmt::Debug for summoner_rt::Error
+impl core::fmt::Debug for summoner_rt::midi::MidiCarry
+impl core::fmt::Debug for summoner_rt::midi::Offered
+impl core::fmt::Debug for summoner_rt::region::ChildPage
+impl core::fmt::Debug for summoner_rt::region::Region
+impl core::fmt::Debug for summoner_rt::region::StatusRecord
+impl core::fmt::Debug for summoner_rt::render::BlockOutcome
+impl core::fmt::Debug for summoner_rt::render::Fault
+impl core::fmt::Debug for summoner_rt::render::RenderConfig
+impl core::fmt::Debug for summoner_rt::render::RenderError
+impl core::fmt::Debug for summoner_rt::render::RenderJob
+impl core::fmt::Debug for summoner_rt::render::RenderMemory
+impl core::fmt::Debug for summoner_rt::render::RenderRefused
+impl core::fmt::Debug for summoner_rt::render::RenderWorker
+impl core::fmt::Debug for summoner_rt::rt::AudioCounters
+impl core::fmt::Debug for summoner_rt::rt::ChainLink
+impl core::fmt::Debug for summoner_rt::rt::ChainState
+impl core::fmt::Debug for summoner_rt::rt::ChaseNote
+impl core::fmt::Debug for summoner_rt::rt::ChaseStats
+impl core::fmt::Debug for summoner_rt::rt::HeldNotes
+impl core::fmt::Debug for summoner_rt::rt::Visit
+impl core::fmt::Display for summoner_rt::Error
+impl core::fmt::Display for summoner_rt::render::RenderError
+impl core::fmt::Display for summoner_rt::render::RenderRefused
+impl core::marker::Copy for summoner_rt::midi::Offered
+impl core::marker::Copy for summoner_rt::render::BlockOutcome
+impl core::marker::Copy for summoner_rt::render::Fault
+impl core::marker::Copy for summoner_rt::render::RenderConfig
+impl core::marker::Copy for summoner_rt::render::RenderMemory
+impl core::marker::Copy for summoner_rt::rt::ChaseNote
+impl core::marker::Copy for summoner_rt::rt::ChaseStats
+impl core::marker::Copy for summoner_rt::rt::HeldNotes
+impl core::marker::Copy for summoner_rt::rt::Visit
+impl core::marker::Send for summoner_rt::Error
+impl core::marker::Send for summoner_rt::midi::MidiCarry
+impl core::marker::Send for summoner_rt::midi::Offered
+impl core::marker::Send for summoner_rt::region::ChildPage
+impl core::marker::Send for summoner_rt::region::Region
+impl core::marker::Send for summoner_rt::region::StatusRecord
+impl core::marker::Send for summoner_rt::render::BlockOutcome
+impl core::marker::Send for summoner_rt::render::Fault
+impl core::marker::Send for summoner_rt::render::RenderConfig
+impl core::marker::Send for summoner_rt::render::RenderError
+impl core::marker::Send for summoner_rt::render::RenderJob
+impl core::marker::Send for summoner_rt::render::RenderMemory
+impl core::marker::Send for summoner_rt::render::RenderRefused
+impl core::marker::Send for summoner_rt::render::RenderWorker
+impl core::marker::Send for summoner_rt::rt::AudioCounters
+impl core::marker::Send for summoner_rt::rt::ChainLink
+impl core::marker::Send for summoner_rt::rt::ChainState
+impl core::marker::Send for summoner_rt::rt::ChaseNote
+impl core::marker::Send for summoner_rt::rt::ChaseStats
+impl core::marker::Send for summoner_rt::rt::HeldNotes
+impl core::marker::Send for summoner_rt::rt::Visit
+impl core::marker::Sync for summoner_rt::Error
+impl core::marker::Sync for summoner_rt::midi::MidiCarry
+impl core::marker::Sync for summoner_rt::midi::Offered
+impl core::marker::Sync for summoner_rt::region::ChildPage
+impl core::marker::Sync for summoner_rt::region::Region
+impl core::marker::Sync for summoner_rt::region::StatusRecord
+impl core::marker::Sync for summoner_rt::render::BlockOutcome
+impl core::marker::Sync for summoner_rt::render::Fault
+impl core::marker::Sync for summoner_rt::render::RenderConfig
+impl core::marker::Sync for summoner_rt::render::RenderError
+impl core::marker::Sync for summoner_rt::render::RenderJob
+impl core::marker::Sync for summoner_rt::render::RenderMemory
+impl core::marker::Sync for summoner_rt::render::RenderRefused
+impl core::marker::Sync for summoner_rt::render::RenderWorker
+impl core::marker::Sync for summoner_rt::rt::AudioCounters
+impl core::marker::Sync for summoner_rt::rt::ChainLink
+impl core::marker::Sync for summoner_rt::rt::ChainState
+impl core::marker::Sync for summoner_rt::rt::ChaseNote
+impl core::marker::Sync for summoner_rt::rt::ChaseStats
+impl core::marker::Sync for summoner_rt::rt::HeldNotes
+impl core::marker::Sync for summoner_rt::rt::Visit
+impl<'a> !core::marker::Send for summoner_rt::rt::Chase<'a>
+impl<'a> !core::marker::Sync for summoner_rt::rt::Chase<'a>
+impl<'a> core::clone::Clone for summoner_rt::region::Slot<'a>
+impl<'a> core::clone::Clone for summoner_rt::render::RenderBlock<'a>
+impl<'a> core::clone::Clone for summoner_rt::rt::Chase<'a>
+impl<'a> core::clone::TrivialClone for summoner_rt::region::Slot<'a>
+impl<'a> core::clone::TrivialClone for summoner_rt::render::RenderBlock<'a>
+impl<'a> core::clone::TrivialClone for summoner_rt::rt::Chase<'a>
+impl<'a> core::default::Default for summoner_rt::rt::Chase<'a>
+impl<'a> core::fmt::Debug for summoner_rt::render::RenderBlock<'a>
+impl<'a> core::marker::Copy for summoner_rt::region::Slot<'a>
+impl<'a> core::marker::Copy for summoner_rt::render::RenderBlock<'a>
+impl<'a> core::marker::Copy for summoner_rt::rt::Chase<'a>
+impl<'a> core::marker::Send for summoner_rt::region::Slot<'a>
+impl<'a> core::marker::Send for summoner_rt::render::RenderBlock<'a>
+impl<'a> core::marker::Sync for summoner_rt::region::Slot<'a>
+impl<'a> core::marker::Sync for summoner_rt::render::RenderBlock<'a>
+pub const summoner_rt::ChainState::FRESH_TAG: u8 = u8::MAX
+pub const summoner_rt::Chase::NONE: summoner_rt::rt::Chase<'static> = _
+pub const summoner_rt::MAX_CHASED_EDGES: u32 = 2
+pub const summoner_rt::midi::CARRY_BOUND: usize = _
+pub const summoner_rt::midi::NOTE_OFF_CAP: u32 = 32
+pub const summoner_rt::render::BLOCK_BUDGET: core::time::Duration = _
+pub const summoner_rt::render::BLOCK_BUDGET_MAX: core::time::Duration = _
+pub const summoner_rt::render::BLOCK_BUDGET_MIN: core::time::Duration = _
+pub const summoner_rt::render::PRESSURE_CRITICAL: u32 = 4
+pub const summoner_rt::render::PRESSURE_WARN: u32 = 2
+pub const summoner_rt::render::RENDER_FLAGS: u32 = _
+pub const summoner_rt::render::RENDER_MAX_FRAMES: u32 = 512
+pub const summoner_rt::render::RENDER_SET_EXTRA: u64 = _
+pub const summoner_rt::render::RENDER_SET_RESERVE: u64 = _
+pub const summoner_rt::render::RENDER_SUSPECT: core::time::Duration = _
+pub const summoner_rt::render::SLICE: core::time::Duration = _
+pub const summoner_rt::rt::ChainState::FRESH_TAG: u8 = u8::MAX
+pub const summoner_rt::rt::Chase::NONE: summoner_rt::rt::Chase<'static> = _
+pub const summoner_rt::rt::MAX_CHASED_EDGES: u32 = 2
+pub field summoner_rt::AudioCounters::breaker_opens: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::chase_skipped: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::doorbell_errors: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::dry_passed: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::late: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::midi_all_notes_off: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::midi_carried: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::midi_dropped: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::non_finite: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::param_deferred: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::ring_ticks_last: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::ring_ticks_max: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::ring_ticks_total: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::rings: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::silenced: core::sync::atomic::AtomicU64
+pub field summoner_rt::AudioCounters::slot_bypassed: core::sync::atomic::AtomicU64
+pub field summoner_rt::ChainLink::depth: u8
+pub field summoner_rt::ChainLink::group: u8
+pub field summoner_rt::ChainLink::monitor: bool
+pub field summoner_rt::ChainLink::page: alloc::rcs::arc::Arc<summoner_rt::region::ChildPage>
+pub field summoner_rt::ChainLink::param_ids: alloc::rcs::arc::Arc<[u32]>
+pub field summoner_rt::ChainLink::plugin_latency: u32
+pub field summoner_rt::ChainLink::region: alloc::rcs::arc::Arc<summoner_rt::region::Region>
+pub field summoner_rt::ChainLink::render: core::option::Option<alloc::rcs::arc::Arc<summoner_rt::render::RenderJob>>
+pub field summoner_rt::Chase::at_start: &'a [summoner_rt::rt::ChaseNote]
+pub field summoner_rt::Chase::edge: bool
+pub field summoner_rt::Chase::index: core::option::Option<&'a dyn summoner_rt::rt::ChaseQuery>
+pub field summoner_rt::ChaseNote::note: u8
+pub field summoner_rt::ChaseNote::velocity: u8
+pub field summoner_rt::ChaseStats::chased: u32
+pub field summoner_rt::ChaseStats::edges: u32
+pub field summoner_rt::ChaseStats::release_steps: u32
+pub field summoner_rt::ChaseStats::skipped: u32
+pub field summoner_rt::Visit::block: u64
+pub field summoner_rt::Visit::block_pos: u64
+pub field summoner_rt::Visit::len: usize
+pub field summoner_rt::Visit::loop_frames: u64
+pub field summoner_rt::Visit::loop_start: u64
+pub field summoner_rt::Visit::offset: usize
+pub field summoner_rt::Visit::playing: bool
+pub field summoner_rt::Visit::pos: u64
+pub field summoner_rt::Visit::release: bool
+pub field summoner_rt::Visit::sample_rate: f64
+pub field summoner_rt::Visit::tempo: orrery_time::Tempo
+pub field summoner_rt::Visit::total: usize
+pub field summoner_rt::region::StatusRecord::chain_key: u64
+pub field summoner_rt::region::StatusRecord::name: alloc::string::String
+pub field summoner_rt::region::StatusRecord::op: u32
+pub field summoner_rt::region::StatusRecord::op_start_ticks: u64
+pub field summoner_rt::region::StatusRecord::slot: u32
+pub field summoner_rt::render::BlockOutcome::non_finite: u32
+pub field summoner_rt::render::BlockOutcome::seq: u64
+pub field summoner_rt::render::BlockOutcome::slices_timed_out: u32
+pub field summoner_rt::render::BlockOutcome::status: u32
+pub field summoner_rt::render::Fault::Cancelled::seq: u64
+pub field summoner_rt::render::Fault::Frames::frames: u32
+pub field summoner_rt::render::Fault::Frames::max: u32
+pub field summoner_rt::render::Fault::Inputs::ch_in: u32
+pub field summoner_rt::render::Fault::Midi::count: u32
+pub field summoner_rt::render::Fault::Midi::max: u32
+pub field summoner_rt::render::Fault::NotARenderSet::flags: u32
+pub field summoner_rt::render::Fault::Params::count: u32
+pub field summoner_rt::render::Fault::Params::max: u32
+pub field summoner_rt::render::Fault::Skipped::seq: u64
+pub field summoner_rt::render::Fault::Skipped::status: u32
+pub field summoner_rt::render::Fault::Threw::seq: u64
+pub field summoner_rt::render::Fault::Threw::status: u32
+pub field summoner_rt::render::Fault::TimedOut::seq: u64
+pub field summoner_rt::render::RenderBlock::frames: usize
+pub field summoner_rt::render::RenderBlock::input: [&'a [f32]; 2]
+pub field summoner_rt::render::RenderBlock::midi: &'a [(u32, summoner_rt::midi::Event3)]
+pub field summoner_rt::render::RenderBlock::params: &'a [(u32, f32)]
+pub field summoner_rt::render::RenderBlock::reset: bool
+pub field summoner_rt::render::RenderBlock::transport: orrery_time::Transport
+pub field summoner_rt::render::RenderConfig::block_budget: core::time::Duration
+pub field summoner_rt::render::RenderConfig::slice: core::time::Duration
+pub field summoner_rt::render::RenderError::Cancelled::seq: u64
+pub field summoner_rt::render::RenderError::NotARenderSet::flags: u32
+pub field summoner_rt::render::RenderError::Skipped::seq: u64
+pub field summoner_rt::render::RenderError::Skipped::status: u32
+pub field summoner_rt::render::RenderError::Threw::seq: u64
+pub field summoner_rt::render::RenderError::Threw::status: u32
+pub field summoner_rt::render::RenderError::TimedOut::budget: core::time::Duration
+pub field summoner_rt::render::RenderError::TimedOut::seq: u64
+pub field summoner_rt::render::RenderMemory::free_physical: u64
+pub field summoner_rt::render::RenderMemory::live_chains: u32
+pub field summoner_rt::render::RenderMemory::live_child_rss: u64
+pub field summoner_rt::render::RenderMemory::render_chains: u32
+pub field summoner_rt::render::RenderRefused::available: u64
+pub field summoner_rt::render::RenderRefused::memory: summoner_rt::render::RenderMemory
+pub field summoner_rt::render::RenderRefused::needed: u64
+pub field summoner_rt::rt::AudioCounters::breaker_opens: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::chase_skipped: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::doorbell_errors: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::dry_passed: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::late: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::midi_all_notes_off: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::midi_carried: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::midi_dropped: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::non_finite: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::param_deferred: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::ring_ticks_last: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::ring_ticks_max: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::ring_ticks_total: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::rings: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::silenced: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::AudioCounters::slot_bypassed: core::sync::atomic::AtomicU64
+pub field summoner_rt::rt::ChainLink::depth: u8
+pub field summoner_rt::rt::ChainLink::group: u8
+pub field summoner_rt::rt::ChainLink::monitor: bool
+pub field summoner_rt::rt::ChainLink::page: alloc::rcs::arc::Arc<summoner_rt::region::ChildPage>
+pub field summoner_rt::rt::ChainLink::param_ids: alloc::rcs::arc::Arc<[u32]>
+pub field summoner_rt::rt::ChainLink::plugin_latency: u32
+pub field summoner_rt::rt::ChainLink::region: alloc::rcs::arc::Arc<summoner_rt::region::Region>
+pub field summoner_rt::rt::ChainLink::render: core::option::Option<alloc::rcs::arc::Arc<summoner_rt::render::RenderJob>>
+pub field summoner_rt::rt::Chase::at_start: &'a [summoner_rt::rt::ChaseNote]
+pub field summoner_rt::rt::Chase::edge: bool
+pub field summoner_rt::rt::Chase::index: core::option::Option<&'a dyn summoner_rt::rt::ChaseQuery>
+pub field summoner_rt::rt::ChaseNote::note: u8
+pub field summoner_rt::rt::ChaseNote::velocity: u8
+pub field summoner_rt::rt::ChaseStats::chased: u32
+pub field summoner_rt::rt::ChaseStats::edges: u32
+pub field summoner_rt::rt::ChaseStats::release_steps: u32
+pub field summoner_rt::rt::ChaseStats::skipped: u32
+pub field summoner_rt::rt::Visit::block: u64
+pub field summoner_rt::rt::Visit::block_pos: u64
+pub field summoner_rt::rt::Visit::len: usize
+pub field summoner_rt::rt::Visit::loop_frames: u64
+pub field summoner_rt::rt::Visit::loop_start: u64
+pub field summoner_rt::rt::Visit::offset: usize
+pub field summoner_rt::rt::Visit::playing: bool
+pub field summoner_rt::rt::Visit::pos: u64
+pub field summoner_rt::rt::Visit::release: bool
+pub field summoner_rt::rt::Visit::sample_rate: f64
+pub field summoner_rt::rt::Visit::tempo: orrery_time::Tempo
+pub field summoner_rt::rt::Visit::total: usize
+pub fn summoner_rt::AudioCounters::get(c: &core::sync::atomic::AtomicU64) -> u64
+pub fn summoner_rt::AudioCounters::named(&self) -> [(&'static str, u64); 11]
+pub fn summoner_rt::ChainLink::for_render(&self, job: alloc::rcs::arc::Arc<summoner_rt::render::RenderJob>) -> summoner_rt::rt::ChainLink
+pub fn summoner_rt::ChainLink::new(region: alloc::rcs::arc::Arc<summoner_rt::region::Region>, page: alloc::rcs::arc::Arc<summoner_rt::region::ChildPage>, group: u8, depth: u8, monitor: bool, plugin_latency: u32, param_ids: alloc::rcs::arc::Arc<[u32]>) -> summoner_rt::rt::ChainLink
+pub fn summoner_rt::ChainLink::pdc_latency(&self, max_block: usize) -> u32
+pub fn summoner_rt::ChainState::breaker_open(&self) -> bool
+pub fn summoner_rt::ChainState::chase_skipped(&self) -> u64
+pub fn summoner_rt::ChainState::chase_stats(&self) -> summoner_rt::rt::ChaseStats
+pub fn summoner_rt::ChainState::clock_tag(&self) -> u8
+pub fn summoner_rt::ChainState::closing(&self) -> bool
+pub fn summoner_rt::ChainState::depth(&self) -> u8
+pub fn summoner_rt::ChainState::held(&self) -> &summoner_rt::rt::HeldNotes
+pub fn summoner_rt::ChainState::instance(&self) -> u64
+pub fn summoner_rt::ChainState::n_params(&self) -> usize
+pub fn summoner_rt::ChainState::new(instance: u64, depth: u8, n_params: usize, max_block: usize, declick: u32) -> summoner_rt::rt::ChainState
+pub fn summoner_rt::ChainState::next_seq(&self) -> u64
+pub fn summoner_rt::ChainState::set_clock_tag(&mut self, tag: u8)
+pub fn summoner_rt::ChainState::suspend(&mut self)
+pub fn summoner_rt::ChainState::visit(&mut self, link: &summoner_rt::rt::ChainLink, v: &summoner_rt::rt::Visit, io: [&mut [f32]; 2], events: &[orrery_time::TimedMidi], params: &[f64], counters: &summoner_rt::rt::AudioCounters) -> bool
+pub fn summoner_rt::ChainState::visit_chased(&mut self, link: &summoner_rt::rt::ChainLink, v: &summoner_rt::rt::Visit, io: [&mut [f32]; 2], events: &[orrery_time::TimedMidi], params: &[f64], counters: &summoner_rt::rt::AudioCounters, chase: &summoner_rt::rt::Chase<'_>) -> bool
+pub fn summoner_rt::ChaseNote::new(note: u8, velocity: u8) -> summoner_rt::rt::ChaseNote
+pub fn summoner_rt::ChaseQuery::sounding(&self, p: u64, eps: u64, f: &mut dyn core::ops::function::FnMut(summoner_rt::rt::ChaseNote))
+pub fn summoner_rt::ChaseStats::new(edges: u32, chased: u32, skipped: u32, release_steps: u32) -> summoner_rt::rt::ChaseStats
+pub fn summoner_rt::ChildPage::bell_transferables(&self) -> core::io::error::Result<alloc::vec::Vec<runecraft_ipc::channel::Transferable>>
+pub fn summoner_rt::ChildPage::clear_status(&self)
+pub fn summoner_rt::ChildPage::create() -> core::io::error::Result<(summoner_rt::region::ChildPage, runecraft_ipc::channel::Transferable)>
+pub fn summoner_rt::ChildPage::hub(&self, group: usize) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::ChildPage::hub_waker(&self, group: usize) -> runecraft_ipc::bridge::Waker<'_>
+pub fn summoner_rt::ChildPage::open(page: runecraft_ipc::channel::Transferable, bells: &mut alloc::vec::Vec<runecraft_ipc::channel::Transferable>) -> core::io::error::Result<summoner_rt::region::ChildPage>
+pub fn summoner_rt::ChildPage::read_status(&self) -> summoner_rt::region::StatusRecord
+pub fn summoner_rt::ChildPage::wire(&self) -> core::result::Result<u64, runecraft_rt::os::LockError>
+pub fn summoner_rt::ChildPage::wired_bytes(&self) -> u64
+pub fn summoner_rt::ChildPage::word32(&self, off: usize) -> &core::sync::atomic::AtomicU32
+pub fn summoner_rt::ChildPage::word64(&self, off: usize) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::ChildPage::write_status(&self, op: u32, chain_key: u64, slot: u32, name: &str, ticks: u64)
+pub fn summoner_rt::Error::as_str(&self) -> &str
+pub fn summoner_rt::HeldNotes::admit(&mut self, event: [u8; 3]) -> bool
+pub fn summoner_rt::HeldNotes::is_empty(&self) -> bool
+pub fn summoner_rt::HeldNotes::is_held(&self, channel: u8, note: u8) -> bool
+pub fn summoner_rt::HeldNotes::is_pedal_down(&self, channel: u8) -> bool
+pub fn summoner_rt::HeldNotes::release(&mut self, stopped: bool, emit: impl core::ops::function::FnMut([u8; 3])) -> u32
+pub fn summoner_rt::HeldNotes::sent(&mut self, event: [u8; 3])
+pub fn summoner_rt::Region::ack(&self) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::Region::ack_waker(&self) -> runecraft_ipc::bridge::Waker<'_>
+pub fn summoner_rt::Region::bell_transferables(&self) -> core::io::error::Result<alloc::vec::Vec<runecraft_ipc::channel::Transferable>>
+pub fn summoner_rt::Region::chain_key(&self) -> u64
+pub fn summoner_rt::Region::create(geo: summoner_proto::layout::Geometry, chain_key: u64, sample_rate: f64, flags: u32) -> core::io::error::Result<(summoner_rt::region::Region, runecraft_ipc::channel::Transferable)>
+pub fn summoner_rt::Region::flags(&self) -> u32
+pub fn summoner_rt::Region::geometry(&self) -> &summoner_proto::layout::Geometry
+pub fn summoner_rt::Region::group(&self) -> &core::sync::atomic::AtomicU32
+pub fn summoner_rt::Region::hist(&self) -> &[core::sync::atomic::AtomicU32]
+pub fn summoner_rt::Region::in_slot(&self) -> &core::sync::atomic::AtomicU32
+pub fn summoner_rt::Region::instance_id(&self) -> u64
+pub fn summoner_rt::Region::open(region: runecraft_ipc::channel::Transferable, bells: &mut alloc::vec::Vec<runecraft_ipc::channel::Transferable>, geo: summoner_proto::layout::Geometry, chain_key: u64) -> core::io::error::Result<summoner_rt::region::Region>
+pub fn summoner_rt::Region::ping(&self) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::Region::pong(&self) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::Region::processed(&self) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::Region::sample_rate(&self) -> f64
+pub fn summoner_rt::Region::seq(&self) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::Region::seq_waker(&self) -> runecraft_ipc::bridge::Waker<'_>
+pub fn summoner_rt::Region::slot(&self, seq: u64) -> summoner_rt::region::Slot<'_>
+pub fn summoner_rt::Region::wire(&self) -> core::result::Result<u64, runecraft_rt::os::LockError>
+pub fn summoner_rt::Region::wired_bytes(&self) -> u64
+pub fn summoner_rt::midi::MidiCarry::drain(&mut self, emit: impl core::ops::function::FnMut(summoner_rt::midi::Event3)) -> usize
+pub fn summoner_rt::midi::MidiCarry::is_empty(&self) -> bool
+pub fn summoner_rt::midi::MidiCarry::len(&self) -> usize
+pub fn summoner_rt::midi::MidiCarry::offer(&mut self, e: summoner_rt::midi::Event3) -> summoner_rt::midi::Offered
+pub fn summoner_rt::midi::is_release(e: summoner_rt::midi::Event3) -> bool
+pub fn summoner_rt::region::ChildPage::bell_transferables(&self) -> core::io::error::Result<alloc::vec::Vec<runecraft_ipc::channel::Transferable>>
+pub fn summoner_rt::region::ChildPage::clear_status(&self)
+pub fn summoner_rt::region::ChildPage::create() -> core::io::error::Result<(summoner_rt::region::ChildPage, runecraft_ipc::channel::Transferable)>
+pub fn summoner_rt::region::ChildPage::hub(&self, group: usize) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::region::ChildPage::hub_waker(&self, group: usize) -> runecraft_ipc::bridge::Waker<'_>
+pub fn summoner_rt::region::ChildPage::open(page: runecraft_ipc::channel::Transferable, bells: &mut alloc::vec::Vec<runecraft_ipc::channel::Transferable>) -> core::io::error::Result<summoner_rt::region::ChildPage>
+pub fn summoner_rt::region::ChildPage::read_status(&self) -> summoner_rt::region::StatusRecord
+pub fn summoner_rt::region::ChildPage::wire(&self) -> core::result::Result<u64, runecraft_rt::os::LockError>
+pub fn summoner_rt::region::ChildPage::wired_bytes(&self) -> u64
+pub fn summoner_rt::region::ChildPage::word32(&self, off: usize) -> &core::sync::atomic::AtomicU32
+pub fn summoner_rt::region::ChildPage::word64(&self, off: usize) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::region::ChildPage::write_status(&self, op: u32, chain_key: u64, slot: u32, name: &str, ticks: u64)
+pub fn summoner_rt::region::Region::ack(&self) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::region::Region::ack_waker(&self) -> runecraft_ipc::bridge::Waker<'_>
+pub fn summoner_rt::region::Region::bell_transferables(&self) -> core::io::error::Result<alloc::vec::Vec<runecraft_ipc::channel::Transferable>>
+pub fn summoner_rt::region::Region::chain_key(&self) -> u64
+pub fn summoner_rt::region::Region::create(geo: summoner_proto::layout::Geometry, chain_key: u64, sample_rate: f64, flags: u32) -> core::io::error::Result<(summoner_rt::region::Region, runecraft_ipc::channel::Transferable)>
+pub fn summoner_rt::region::Region::flags(&self) -> u32
+pub fn summoner_rt::region::Region::geometry(&self) -> &summoner_proto::layout::Geometry
+pub fn summoner_rt::region::Region::group(&self) -> &core::sync::atomic::AtomicU32
+pub fn summoner_rt::region::Region::hist(&self) -> &[core::sync::atomic::AtomicU32]
+pub fn summoner_rt::region::Region::in_slot(&self) -> &core::sync::atomic::AtomicU32
+pub fn summoner_rt::region::Region::instance_id(&self) -> u64
+pub fn summoner_rt::region::Region::open(region: runecraft_ipc::channel::Transferable, bells: &mut alloc::vec::Vec<runecraft_ipc::channel::Transferable>, geo: summoner_proto::layout::Geometry, chain_key: u64) -> core::io::error::Result<summoner_rt::region::Region>
+pub fn summoner_rt::region::Region::ping(&self) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::region::Region::pong(&self) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::region::Region::processed(&self) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::region::Region::sample_rate(&self) -> f64
+pub fn summoner_rt::region::Region::seq(&self) -> &core::sync::atomic::AtomicU64
+pub fn summoner_rt::region::Region::seq_waker(&self) -> runecraft_ipc::bridge::Waker<'_>
+pub fn summoner_rt::region::Region::slot(&self, seq: u64) -> summoner_rt::region::Slot<'_>
+pub fn summoner_rt::region::Region::wire(&self) -> core::result::Result<u64, runecraft_rt::os::LockError>
+pub fn summoner_rt::region::Region::wired_bytes(&self) -> u64
+pub fn summoner_rt::region::Slot::input(&self, c: usize) -> &'a [core::sync::atomic::AtomicU32]
+pub fn summoner_rt::region::Slot::midi(&self, i: usize) -> &'a [core::sync::atomic::AtomicU32]
+pub fn summoner_rt::region::Slot::output(&self, c: usize) -> &'a [core::sync::atomic::AtomicU32]
+pub fn summoner_rt::region::Slot::param(&self, i: usize) -> &'a [core::sync::atomic::AtomicU32]
+pub fn summoner_rt::region::Slot::u32(&self, off: usize) -> &'a core::sync::atomic::AtomicU32
+pub fn summoner_rt::region::Slot::u64(&self, off: usize) -> &'a core::sync::atomic::AtomicU64
+pub fn summoner_rt::region::StatusRecord::new(op: u32, slot: u32, chain_key: u64, op_start_ticks: u64, name: alloc::string::String) -> summoner_rt::region::StatusRecord
+pub fn summoner_rt::render::BlockOutcome::new(seq: u64, status: u32, non_finite: u32, slices_timed_out: u32) -> summoner_rt::render::BlockOutcome
+pub fn summoner_rt::render::RenderBlock::new(frames: usize, input: [&'a [f32]; 2], midi: &'a [(u32, summoner_rt::midi::Event3)], params: &'a [(u32, f32)], transport: orrery_time::Transport, reset: bool) -> summoner_rt::render::RenderBlock<'a>
+pub fn summoner_rt::render::RenderConfig::new(block_budget: core::time::Duration, slice: core::time::Duration) -> summoner_rt::render::RenderConfig
+pub fn summoner_rt::render::RenderConfig::with_budget_setting(setting: core::option::Option<&str>) -> summoner_rt::render::RenderConfig
+pub fn summoner_rt::render::RenderError::retryable(&self) -> bool
+pub fn summoner_rt::render::RenderJob::block(&self, link: &summoner_rt::rt::ChainLink, b: &summoner_rt::render::RenderBlock<'_>, out: [&mut [f32]; 2]) -> core::result::Result<summoner_rt::render::BlockOutcome, summoner_rt::render::Fault>
+pub fn summoner_rt::render::RenderJob::cancel_flag(&self) -> &alloc::rcs::arc::Arc<core::sync::atomic::AtomicBool>
+pub fn summoner_rt::render::RenderJob::fail(&self, f: summoner_rt::render::Fault)
+pub fn summoner_rt::render::RenderJob::fault(&self) -> core::option::Option<summoner_rt::render::RenderError>
+pub fn summoner_rt::render::RenderJob::new(cfg: summoner_rt::render::RenderConfig, cancel: alloc::rcs::arc::Arc<core::sync::atomic::AtomicBool>, params: usize) -> summoner_rt::render::RenderJob
+pub fn summoner_rt::render::RenderJob::param_change(&self, i: usize, v: f32) -> core::option::Option<f32>
+pub fn summoner_rt::render::RenderJob::stats(&self) -> (u64, u64, u64)
+pub fn summoner_rt::render::RenderMemory::new(live_child_rss: u64, live_chains: u32, render_chains: u32, free_physical: u64) -> summoner_rt::render::RenderMemory
+pub fn summoner_rt::render::RenderRefused::new(needed: u64, available: u64, memory: summoner_rt::render::RenderMemory) -> summoner_rt::render::RenderRefused
+pub fn summoner_rt::render::RenderWorker::block(&mut self, b: &summoner_rt::render::RenderBlock<'_>, out: [&mut [f32]; 2], cancel: &core::sync::atomic::AtomicBool) -> core::result::Result<summoner_rt::render::BlockOutcome, summoner_rt::render::RenderError>
+pub fn summoner_rt::render::RenderWorker::link(&self) -> &alloc::rcs::arc::Arc<summoner_rt::rt::ChainLink>
+pub fn summoner_rt::render::RenderWorker::new(link: alloc::rcs::arc::Arc<summoner_rt::rt::ChainLink>, cfg: summoner_rt::render::RenderConfig) -> core::result::Result<summoner_rt::render::RenderWorker, summoner_rt::render::RenderError>
+pub fn summoner_rt::render::RenderWorker::next_seq(&self) -> u64
+pub fn summoner_rt::render::admit_render_set(m: summoner_rt::render::RenderMemory) -> core::result::Result<(), summoner_rt::render::RenderRefused>
+pub fn summoner_rt::render::admit_render_set_at(m: summoner_rt::render::RenderMemory, pressure: core::option::Option<u32>) -> core::result::Result<summoner_rt::render::RenderMemory, summoner_rt::Error>
+pub fn summoner_rt::render::admit_render_set_now(child_pid: u32, live_chains: u32, render_chains: u32) -> core::result::Result<summoner_rt::render::RenderMemory, summoner_rt::Error>
+pub fn summoner_rt::render::parse_block_budget(env: core::option::Option<&str>) -> core::time::Duration
+pub fn summoner_rt::render::render_visit(job: &summoner_rt::render::RenderJob, link: &summoner_rt::rt::ChainLink, v: &summoner_rt::rt::Visit, io: [&mut [f32]; 2], events: &[orrery_time::TimedMidi], params: &[f64]) -> bool
+pub fn summoner_rt::rt::AudioCounters::get(c: &core::sync::atomic::AtomicU64) -> u64
+pub fn summoner_rt::rt::AudioCounters::named(&self) -> [(&'static str, u64); 11]
+pub fn summoner_rt::rt::ChainLink::for_render(&self, job: alloc::rcs::arc::Arc<summoner_rt::render::RenderJob>) -> summoner_rt::rt::ChainLink
+pub fn summoner_rt::rt::ChainLink::new(region: alloc::rcs::arc::Arc<summoner_rt::region::Region>, page: alloc::rcs::arc::Arc<summoner_rt::region::ChildPage>, group: u8, depth: u8, monitor: bool, plugin_latency: u32, param_ids: alloc::rcs::arc::Arc<[u32]>) -> summoner_rt::rt::ChainLink
+pub fn summoner_rt::rt::ChainLink::pdc_latency(&self, max_block: usize) -> u32
+pub fn summoner_rt::rt::ChainState::breaker_open(&self) -> bool
+pub fn summoner_rt::rt::ChainState::chase_skipped(&self) -> u64
+pub fn summoner_rt::rt::ChainState::chase_stats(&self) -> summoner_rt::rt::ChaseStats
+pub fn summoner_rt::rt::ChainState::clock_tag(&self) -> u8
+pub fn summoner_rt::rt::ChainState::closing(&self) -> bool
+pub fn summoner_rt::rt::ChainState::depth(&self) -> u8
+pub fn summoner_rt::rt::ChainState::held(&self) -> &summoner_rt::rt::HeldNotes
+pub fn summoner_rt::rt::ChainState::instance(&self) -> u64
+pub fn summoner_rt::rt::ChainState::n_params(&self) -> usize
+pub fn summoner_rt::rt::ChainState::new(instance: u64, depth: u8, n_params: usize, max_block: usize, declick: u32) -> summoner_rt::rt::ChainState
+pub fn summoner_rt::rt::ChainState::next_seq(&self) -> u64
+pub fn summoner_rt::rt::ChainState::set_clock_tag(&mut self, tag: u8)
+pub fn summoner_rt::rt::ChainState::suspend(&mut self)
+pub fn summoner_rt::rt::ChainState::visit(&mut self, link: &summoner_rt::rt::ChainLink, v: &summoner_rt::rt::Visit, io: [&mut [f32]; 2], events: &[orrery_time::TimedMidi], params: &[f64], counters: &summoner_rt::rt::AudioCounters) -> bool
+pub fn summoner_rt::rt::ChainState::visit_chased(&mut self, link: &summoner_rt::rt::ChainLink, v: &summoner_rt::rt::Visit, io: [&mut [f32]; 2], events: &[orrery_time::TimedMidi], params: &[f64], counters: &summoner_rt::rt::AudioCounters, chase: &summoner_rt::rt::Chase<'_>) -> bool
+pub fn summoner_rt::rt::ChaseNote::new(note: u8, velocity: u8) -> summoner_rt::rt::ChaseNote
+pub fn summoner_rt::rt::ChaseQuery::sounding(&self, p: u64, eps: u64, f: &mut dyn core::ops::function::FnMut(summoner_rt::rt::ChaseNote))
+pub fn summoner_rt::rt::ChaseStats::new(edges: u32, chased: u32, skipped: u32, release_steps: u32) -> summoner_rt::rt::ChaseStats
+pub fn summoner_rt::rt::HeldNotes::admit(&mut self, event: [u8; 3]) -> bool
+pub fn summoner_rt::rt::HeldNotes::is_empty(&self) -> bool
+pub fn summoner_rt::rt::HeldNotes::is_held(&self, channel: u8, note: u8) -> bool
+pub fn summoner_rt::rt::HeldNotes::is_pedal_down(&self, channel: u8) -> bool
+pub fn summoner_rt::rt::HeldNotes::release(&mut self, stopped: bool, emit: impl core::ops::function::FnMut([u8; 3])) -> u32
+pub fn summoner_rt::rt::HeldNotes::sent(&mut self, event: [u8; 3])
+pub fn summoner_rt::rt::ring_group(page: &summoner_rt::region::ChildPage, group: usize, block: u64, counters: &summoner_rt::rt::AudioCounters)
+pub fn summoner_rt::sync::host_ticks() -> u64
+pub mod summoner_rt::midi
+pub mod summoner_rt::region
+pub mod summoner_rt::render
+pub mod summoner_rt::rt
+pub mod summoner_rt::sync
+pub struct summoner_rt::ChainState {private fields}
+pub struct summoner_rt::Chase<'a>
+pub struct summoner_rt::ChildPage {private fields}
+pub struct summoner_rt::Error(_);
+pub struct summoner_rt::Region {private fields}
+pub struct summoner_rt::Visit
+pub struct summoner_rt::midi::MidiCarry {private fields}
+pub struct summoner_rt::region::ChildPage {private fields}
+pub struct summoner_rt::region::Region {private fields}
+pub struct summoner_rt::region::Slot<'a> {private fields}
+pub struct summoner_rt::render::RenderJob {private fields}
+pub struct summoner_rt::render::RenderWorker {private fields}
+pub struct summoner_rt::rt::ChainState {private fields}
+pub struct summoner_rt::rt::Chase<'a>
+pub struct summoner_rt::rt::Visit
+pub trait summoner_rt::ChaseQuery
+pub trait summoner_rt::rt::ChaseQuery
+pub type summoner_rt::midi::Event3 = [u8; 3]
+pub use summoner_rt::AudioCounters = rt::AudioCounters
+pub use summoner_rt::ChainLink = rt::ChainLink
+pub use summoner_rt::ChainState = rt::ChainState
+pub use summoner_rt::Chase = rt::Chase
+pub use summoner_rt::ChaseNote = rt::ChaseNote
+pub use summoner_rt::ChaseQuery = rt::ChaseQuery
+pub use summoner_rt::ChaseStats = rt::ChaseStats
+pub use summoner_rt::ChildPage = region::ChildPage
+pub use summoner_rt::HeldNotes = rt::HeldNotes
+pub use summoner_rt::MAX_CHASED_EDGES = rt::MAX_CHASED_EDGES
+pub use summoner_rt::MidiEvent = rt::MidiEvent
+pub use summoner_rt::Region = region::Region
+pub use summoner_rt::Tempo = rt::Tempo
+pub use summoner_rt::Transport = rt::Transport
+pub use summoner_rt::Visit = rt::Visit
+pub use summoner_rt::chase_frames = rt::chase_frames
+pub use summoner_rt::rt::MidiEvent = orrery_time::TimedMidi
+pub use summoner_rt::rt::Tempo = orrery_time::Tempo
+pub use summoner_rt::rt::Transport = orrery_time::Transport
+pub use summoner_rt::rt::chase_frames = orrery_time::chase_frames
+pub use summoner_rt::sync::AtomicU32 = std::sync::atomic::AtomicU32
+pub use summoner_rt::sync::AtomicU64 = std::sync::atomic::AtomicU64
+pub use summoner_rt::sync::Doorbell = runecraft_ipc::bridge::Doorbell
+pub use summoner_rt::sync::DoorbellKind = runecraft_ipc::bridge::DoorbellKind
+pub use summoner_rt::sync::Mapping = runecraft_ipc::bridge::Mapping
+pub use summoner_rt::sync::Ordering = std::sync::atomic::Ordering
+pub use summoner_rt::sync::Waker = runecraft_ipc::bridge::Waker
+pub use summoner_rt::sync::fence = std::sync::atomic::fence
+pub variant summoner_rt::midi::Offered::AllNotesOff
+pub variant summoner_rt::midi::Offered::Carried
+pub variant summoner_rt::midi::Offered::Dropped
+pub variant summoner_rt::render::Fault::Cancelled {}
+pub variant summoner_rt::render::Fault::Frames {}
+pub variant summoner_rt::render::Fault::Inputs {}
+pub variant summoner_rt::render::Fault::Midi {}
+pub variant summoner_rt::render::Fault::NotARenderSet {}
+pub variant summoner_rt::render::Fault::Params {}
+pub variant summoner_rt::render::Fault::ShortBuffer
+pub variant summoner_rt::render::Fault::Skipped {}
+pub variant summoner_rt::render::Fault::Spent
+pub variant summoner_rt::render::Fault::Split
+pub variant summoner_rt::render::Fault::Threw {}
+pub variant summoner_rt::render::Fault::TimedOut {}
+pub variant summoner_rt::render::RenderError::Cancelled {}
+pub variant summoner_rt::render::RenderError::NotARenderSet {}
+pub variant summoner_rt::render::RenderError::Refused(alloc::string::String)
+pub variant summoner_rt::render::RenderError::Skipped {}
+pub variant summoner_rt::render::RenderError::Spent
+pub variant summoner_rt::render::RenderError::Threw {}
+pub variant summoner_rt::render::RenderError::TimedOut {}

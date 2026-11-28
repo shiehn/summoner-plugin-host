@@ -1,0 +1,239 @@
+# The public API of summoner-proc (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-proc; check: tools/public-api.py check.
+#[non_exhaustive] pub enum summoner_proc::EditorSource
+#[non_exhaustive] pub enum summoner_proc::Notice
+#[non_exhaustive] pub enum summoner_proc::ParentWindow
+#[non_exhaustive] pub enum summoner_proc::SetOutcome
+#[non_exhaustive] pub enum summoner_proc::StateKind
+#[non_exhaustive] pub struct summoner_proc::Chunks
+#[non_exhaustive] pub struct summoner_proc::EditorAttach
+#[non_exhaustive] pub struct summoner_proc::Io
+#[non_exhaustive] pub struct summoner_proc::ParamMeta
+impl core::clone::Clone for summoner_proc::AuUnit
+impl core::clone::Clone for summoner_proc::Chunks
+impl core::clone::Clone for summoner_proc::EditorAttach
+impl core::clone::Clone for summoner_proc::EditorSource
+impl core::clone::Clone for summoner_proc::Error
+impl core::clone::Clone for summoner_proc::HostWindow
+impl core::clone::Clone for summoner_proc::Io
+impl core::clone::Clone for summoner_proc::MidiEvent
+impl core::clone::Clone for summoner_proc::Notice
+impl core::clone::Clone for summoner_proc::ParamMeta
+impl core::clone::Clone for summoner_proc::ParentWindow
+impl core::clone::Clone for summoner_proc::SetOutcome
+impl core::clone::Clone for summoner_proc::StateKind
+impl core::clone::Clone for summoner_proc::Transport
+impl core::clone::TrivialClone for summoner_proc::AuUnit
+impl core::clone::TrivialClone for summoner_proc::EditorAttach
+impl core::clone::TrivialClone for summoner_proc::EditorSource
+impl core::clone::TrivialClone for summoner_proc::HostWindow
+impl core::clone::TrivialClone for summoner_proc::Io
+impl core::clone::TrivialClone for summoner_proc::MidiEvent
+impl core::clone::TrivialClone for summoner_proc::Notice
+impl core::clone::TrivialClone for summoner_proc::ParentWindow
+impl core::clone::TrivialClone for summoner_proc::StateKind
+impl core::clone::TrivialClone for summoner_proc::Transport
+impl core::cmp::Eq for summoner_proc::AuUnit
+impl core::cmp::Eq for summoner_proc::Chunks
+impl core::cmp::Eq for summoner_proc::EditorSource
+impl core::cmp::Eq for summoner_proc::Error
+impl core::cmp::Eq for summoner_proc::HostWindow
+impl core::cmp::Eq for summoner_proc::Io
+impl core::cmp::Eq for summoner_proc::MidiEvent
+impl core::cmp::Eq for summoner_proc::Notice
+impl core::cmp::Eq for summoner_proc::ParentWindow
+impl core::cmp::Eq for summoner_proc::SetOutcome
+impl core::cmp::Eq for summoner_proc::StateKind
+impl core::cmp::PartialEq for summoner_proc::AuUnit
+impl core::cmp::PartialEq for summoner_proc::Chunks
+impl core::cmp::PartialEq for summoner_proc::EditorSource
+impl core::cmp::PartialEq for summoner_proc::Error
+impl core::cmp::PartialEq for summoner_proc::HostWindow
+impl core::cmp::PartialEq for summoner_proc::Io
+impl core::cmp::PartialEq for summoner_proc::MidiEvent
+impl core::cmp::PartialEq for summoner_proc::Notice
+impl core::cmp::PartialEq for summoner_proc::ParamMeta
+impl core::cmp::PartialEq for summoner_proc::ParentWindow
+impl core::cmp::PartialEq for summoner_proc::SetOutcome
+impl core::cmp::PartialEq for summoner_proc::StateKind
+impl core::cmp::PartialEq for summoner_proc::Transport
+impl core::convert::From<&str> for summoner_proc::Error
+impl core::convert::From<alloc::string::String> for summoner_proc::Error
+impl core::convert::From<summoner_proc::Error> for alloc::string::String
+impl core::default::Default for summoner_proc::Chunks
+impl core::default::Default for summoner_proc::Io
+impl core::default::Default for summoner_proc::MidiEvent
+impl core::default::Default for summoner_proc::ParamMeta
+impl core::default::Default for summoner_proc::Transport
+impl core::error::Error for summoner_proc::Error
+impl core::fmt::Debug for summoner_proc::AuUnit
+impl core::fmt::Debug for summoner_proc::Chunks
+impl core::fmt::Debug for summoner_proc::EditorAttach
+impl core::fmt::Debug for summoner_proc::EditorSource
+impl core::fmt::Debug for summoner_proc::Error
+impl core::fmt::Debug for summoner_proc::HostWindow
+impl core::fmt::Debug for summoner_proc::Io
+impl core::fmt::Debug for summoner_proc::MidiEvent
+impl core::fmt::Debug for summoner_proc::Notice
+impl core::fmt::Debug for summoner_proc::ParamMeta
+impl core::fmt::Debug for summoner_proc::ParentWindow
+impl core::fmt::Debug for summoner_proc::SetOutcome
+impl core::fmt::Debug for summoner_proc::StateKind
+impl core::fmt::Debug for summoner_proc::Transport
+impl core::fmt::Display for summoner_proc::Error
+impl core::marker::Copy for summoner_proc::AuUnit
+impl core::marker::Copy for summoner_proc::EditorAttach
+impl core::marker::Copy for summoner_proc::EditorSource
+impl core::marker::Copy for summoner_proc::HostWindow
+impl core::marker::Copy for summoner_proc::Io
+impl core::marker::Copy for summoner_proc::MidiEvent
+impl core::marker::Copy for summoner_proc::Notice
+impl core::marker::Copy for summoner_proc::ParentWindow
+impl core::marker::Copy for summoner_proc::StateKind
+impl core::marker::Copy for summoner_proc::Transport
+impl core::marker::Send for summoner_proc::AuUnit
+impl core::marker::Send for summoner_proc::Chunks
+impl core::marker::Send for summoner_proc::EditorAttach
+impl core::marker::Send for summoner_proc::EditorSource
+impl core::marker::Send for summoner_proc::Error
+impl core::marker::Send for summoner_proc::HostWindow
+impl core::marker::Send for summoner_proc::Io
+impl core::marker::Send for summoner_proc::MidiEvent
+impl core::marker::Send for summoner_proc::Notice
+impl core::marker::Send for summoner_proc::ParamMeta
+impl core::marker::Send for summoner_proc::ParentWindow
+impl core::marker::Send for summoner_proc::SetOutcome
+impl core::marker::Send for summoner_proc::StateKind
+impl core::marker::Send for summoner_proc::Transport
+impl core::marker::Sync for summoner_proc::AuUnit
+impl core::marker::Sync for summoner_proc::Chunks
+impl core::marker::Sync for summoner_proc::EditorAttach
+impl core::marker::Sync for summoner_proc::EditorSource
+impl core::marker::Sync for summoner_proc::Error
+impl core::marker::Sync for summoner_proc::HostWindow
+impl core::marker::Sync for summoner_proc::Io
+impl core::marker::Sync for summoner_proc::MidiEvent
+impl core::marker::Sync for summoner_proc::Notice
+impl core::marker::Sync for summoner_proc::ParamMeta
+impl core::marker::Sync for summoner_proc::ParentWindow
+impl core::marker::Sync for summoner_proc::SetOutcome
+impl core::marker::Sync for summoner_proc::StateKind
+impl core::marker::Sync for summoner_proc::Transport
+impl runecraft_rt::arena::RtMem for summoner_proc::Io
+impl runecraft_rt::arena::RtMem for summoner_proc::MidiEvent
+impl<'a> core::marker::Send for summoner_proc::Block<'a>
+impl<'a> core::marker::Sync for summoner_proc::Block<'a>
+impl<T: core::marker::Copy + runecraft_rt::arena::RtMem> runecraft_rt::arena::RtMem for summoner_proc::RtVec<T>
+impl<T: core::marker::Copy> core::ops::deref::Deref for summoner_proc::RtVec<T>
+impl<T: core::marker::Copy> core::ops::deref::DerefMut for summoner_proc::RtVec<T>
+impl<T> core::marker::Send for summoner_proc::RtVec<T> where runecraft_rt::arena::ArenaSlice<T>: core::marker::Send
+impl<T> core::marker::Sync for summoner_proc::RtVec<T> where runecraft_rt::arena::ArenaSlice<T>: core::marker::Sync
+pub const summoner_proc::Io::STEREO: summoner_proc::Io = _
+pub const summoner_proc::RT_OWNER: runecraft_rt::arena::Owner = runecraft_rt::arena::Owner::Host
+pub field summoner_proc::Block::channels: &'a mut [runecraft_rt::arena::ArenaSlice<f32>]
+pub field summoner_proc::Block::frames: usize
+pub field summoner_proc::Block::midi: &'a [summoner_proc::MidiEvent]
+pub field summoner_proc::Block::transport: &'a summoner_proc::Transport
+pub field summoner_proc::Chunks::first: core::option::Option<alloc::vec::Vec<u8>>
+pub field summoner_proc::Chunks::second: core::option::Option<alloc::vec::Vec<u8>>
+pub field summoner_proc::EditorAttach::host: summoner_proc::HostWindow
+pub field summoner_proc::EditorAttach::parent: summoner_proc::ParentWindow
+pub field summoner_proc::Io::inputs: u32
+pub field summoner_proc::Io::outputs: u32
+pub field summoner_proc::MidiEvent::data: [u8; 16]
+pub field summoner_proc::MidiEvent::len: u8
+pub field summoner_proc::MidiEvent::offset: u32
+pub field summoner_proc::ParamMeta::automatable: bool
+pub field summoner_proc::ParamMeta::default: f32
+pub field summoner_proc::ParamMeta::label: alloc::string::String
+pub field summoner_proc::ParamMeta::order: u32
+pub field summoner_proc::ParamMeta::plugin_id: u32
+pub field summoner_proc::ParamMeta::step_count: u32
+pub field summoner_proc::Transport::bar_start_ppq: f64
+pub field summoner_proc::Transport::bpm: f64
+pub field summoner_proc::Transport::flags: u32
+pub field summoner_proc::Transport::loop_end_ppq: f64
+pub field summoner_proc::Transport::loop_start_ppq: f64
+pub field summoner_proc::Transport::output_host_time: u64
+pub field summoner_proc::Transport::output_host_time_ns: u64
+pub field summoner_proc::Transport::ppq: f64
+pub field summoner_proc::Transport::time_samples: u64
+pub field summoner_proc::Transport::time_seconds: f64
+pub field summoner_proc::Transport::time_sig: u32
+pub fn summoner_proc::AuUnit::from_raw(raw: usize) -> summoner_proc::AuUnit
+pub fn summoner_proc::AuUnit::raw(self) -> usize
+pub fn summoner_proc::Chunks::new(first: core::option::Option<alloc::vec::Vec<u8>>, second: core::option::Option<alloc::vec::Vec<u8>>) -> summoner_proc::Chunks
+pub fn summoner_proc::Dsp::io(&self) -> summoner_proc::Io
+pub fn summoner_proc::Dsp::process(&mut self, block: &mut summoner_proc::Block<'_>) -> bool
+pub fn summoner_proc::Dsp::reactivate(&mut self) -> core::result::Result<(), summoner_proc::Error> {provided}
+pub fn summoner_proc::Dsp::reset(&mut self)
+pub fn summoner_proc::EditorAttach::new(parent: summoner_proc::ParentWindow, host: summoner_proc::HostWindow) -> summoner_proc::EditorAttach
+pub fn summoner_proc::Error::as_str(&self) -> &str
+pub fn summoner_proc::HostWindow::context(self) -> usize
+pub fn summoner_proc::HostWindow::get_size(self) -> usize
+pub fn summoner_proc::HostWindow::new(set_size: usize, get_size: usize, context: usize) -> summoner_proc::HostWindow
+pub fn summoner_proc::HostWindow::set_size(self) -> usize
+pub fn summoner_proc::Io::new(inputs: u32, outputs: u32) -> summoner_proc::Io
+pub fn summoner_proc::MidiEvent::byte(&self, i: usize) -> u8
+pub fn summoner_proc::MidiEvent::short(offset: u32, b: [u8; 3]) -> summoner_proc::MidiEvent
+pub fn summoner_proc::ParamMeta::new(plugin_id: u32, automatable: bool, default: f32, step_count: u32, label: alloc::string::String, order: u32) -> summoner_proc::ParamMeta
+pub fn summoner_proc::ParentWindow::ns_view(self) -> core::result::Result<usize, summoner_proc::Error>
+pub fn summoner_proc::Plugin::dropped_params(&self) -> u64 {provided}
+pub fn summoner_proc::Plugin::editor_attach(&self, _a: summoner_proc::EditorAttach) -> core::result::Result<(), summoner_proc::Error> {provided}
+pub fn summoner_proc::Plugin::editor_close(&self) {provided}
+pub fn summoner_proc::Plugin::editor_create(&self) -> core::option::Option<(u32, u32, bool)> {provided}
+pub fn summoner_proc::Plugin::editor_resize_hook(&self) -> core::option::Option<(summoner_proc::ResizeHookFn, usize)> {provided}
+pub fn summoner_proc::Plugin::editor_source(&self) -> summoner_proc::EditorSource {provided}
+pub fn summoner_proc::Plugin::edits(&self) -> u64 {provided}
+pub fn summoner_proc::Plugin::get_state(&self) -> alloc::vec::Vec<u8>
+pub fn summoner_proc::Plugin::get_state_chunks(&self) -> core::result::Result<summoner_proc::Chunks, summoner_proc::Error> {provided}
+pub fn summoner_proc::Plugin::host_set(&self, plugin_id: u32, _value: f32) -> core::result::Result<f32, summoner_proc::Error> {provided}
+pub fn summoner_proc::Plugin::host_set_pending(&self) -> bool {provided}
+pub fn summoner_proc::Plugin::latency(&self) -> u32
+pub fn summoner_proc::Plugin::name(&self) -> &str
+pub fn summoner_proc::Plugin::notices(&self) -> alloc::vec::Vec<alloc::string::String> {provided}
+pub fn summoner_proc::Plugin::open_editor(&self) -> bool {provided}
+pub fn summoner_proc::Plugin::param_count(&self) -> u32
+pub fn summoner_proc::Plugin::param_meta(&self, index: u32) -> summoner_proc::ParamMeta {provided}
+pub fn summoner_proc::Plugin::param_name(&self, index: u32) -> alloc::string::String
+pub fn summoner_proc::Plugin::param_value(&self, _index: u32) -> f32 {provided}
+pub fn summoner_proc::Plugin::poll(&self) -> summoner_proc::Notice {provided}
+pub fn summoner_proc::Plugin::prepare(&self, rate: f64, max_frames: usize) -> alloc::boxed::Box<dyn summoner_proc::Dsp>
+pub fn summoner_proc::Plugin::prepare_mode(&self, rate: f64, max_frames: usize, offline: bool) -> alloc::boxed::Box<dyn summoner_proc::Dsp> {provided}
+pub fn summoner_proc::Plugin::set_param(&self, index: u32, value: f32)
+pub fn summoner_proc::Plugin::set_state(&self, blob: &[u8]) -> core::result::Result<(), summoner_proc::Error>
+pub fn summoner_proc::Plugin::set_state_chunks(&self, first: core::option::Option<&[u8]>, second: core::option::Option<&[u8]>) -> summoner_proc::SetOutcome {provided}
+pub fn summoner_proc::Plugin::state_kind(&self) -> summoner_proc::StateKind {provided}
+pub fn summoner_proc::RtVec::capacity(&self) -> usize
+pub fn summoner_proc::RtVec::clear(&mut self)
+pub fn summoner_proc::RtVec::new(cap: usize, fill: T) -> summoner_proc::RtVec<T>
+pub fn summoner_proc::RtVec::push(&mut self, v: T) -> bool
+pub fn summoner_proc::RtVec::storage(&self) -> &[T]
+pub fn summoner_proc::rt_line(n: usize) -> runecraft_rt::arena::ArenaSlice<f32>
+pub fn summoner_proc::unwired_channels(n: usize, frames: usize, value: f32) -> alloc::vec::Vec<runecraft_rt::arena::ArenaSlice<f32>>
+pub fn summoner_proc::warm_channels(n: usize, frames: usize)
+pub fn summoner_proc::with_channels<R>(chans: &mut [alloc::vec::Vec<f32>], f: impl core::ops::function::FnOnce(&mut [runecraft_rt::arena::ArenaSlice<f32>]) -> R) -> R
+pub struct summoner_proc::AuUnit(_);
+pub struct summoner_proc::Block<'a>
+pub struct summoner_proc::Error(_);
+pub struct summoner_proc::HostWindow {private fields}
+pub struct summoner_proc::MidiEvent
+pub struct summoner_proc::RtVec<T: core::marker::Copy> {private fields}
+pub struct summoner_proc::Transport
+pub trait summoner_proc::Dsp: core::marker::Send
+pub trait summoner_proc::Plugin: core::marker::Send + core::marker::Sync
+pub type summoner_proc::ResizeHookFn = unsafe extern "C" fn(*mut core::ffi::c_void, i32, *mut f64, *mut f64) -> i32
+pub variant summoner_proc::EditorSource::AuUnit(summoner_proc::AuUnit)
+pub variant summoner_proc::EditorSource::None
+pub variant summoner_proc::Notice::Latency
+pub variant summoner_proc::Notice::None
+pub variant summoner_proc::Notice::Reactivate
+pub variant summoner_proc::ParentWindow::Hwnd(usize)
+pub variant summoner_proc::ParentWindow::NsView(usize)
+pub variant summoner_proc::ParentWindow::X11(u64)
+pub variant summoner_proc::SetOutcome::Applied
+pub variant summoner_proc::SetOutcome::FirstOnly(alloc::string::String)
+pub variant summoner_proc::SetOutcome::Refused(alloc::string::String)
+pub variant summoner_proc::StateKind::Au
+pub variant summoner_proc::StateKind::Builtin
+pub variant summoner_proc::StateKind::Vst3

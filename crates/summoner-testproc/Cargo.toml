@@ -1,0 +1,23 @@
+[package]
+name = "summoner-testproc"
+description = "The lab's in-process test double for a chain slot: the test-double PluginRef's knobs (protocol 4.0), bit-identical to the host application's fake host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+runecraft-rt.workspace = true
+summoner-plugin.workspace = true
+summoner-proto.workspace = true
+summoner-proc = { workspace = true, features = ["test-hooks"] }
+summoner-sys = { workspace = true, features = ["lab-deaths"] }
+
+[dev-dependencies]
+serde_json.workspace = true
+
+# The README quick start (the examples/*_quickstart.rs file, shown byte for byte in README.md; tests/readme.rs checks it);
+# `test = true`, so `cargo test` runs it too.
+[[example]]
+name = "summoner_testproc_quickstart"
+test = true

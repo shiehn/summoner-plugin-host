@@ -1,0 +1,42 @@
+# The public API of summoner-format-vst3 (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-format-vst3; check: tools/public-api.py check.
+#[non_exhaustive] pub struct summoner_format_vst3::desc::Description
+impl core::clone::Clone for summoner_format_vst3::Error
+impl core::clone::Clone for summoner_format_vst3::desc::Description
+impl core::cmp::Eq for summoner_format_vst3::Error
+impl core::cmp::Eq for summoner_format_vst3::desc::Description
+impl core::cmp::PartialEq for summoner_format_vst3::Error
+impl core::cmp::PartialEq for summoner_format_vst3::desc::Description
+impl core::convert::From<&str> for summoner_format_vst3::Error
+impl core::convert::From<alloc::string::String> for summoner_format_vst3::Error
+impl core::convert::From<summoner_format_vst3::Error> for alloc::string::String
+impl core::error::Error for summoner_format_vst3::Error
+impl core::fmt::Debug for summoner_format_vst3::Error
+impl core::fmt::Debug for summoner_format_vst3::desc::Description
+impl core::fmt::Display for summoner_format_vst3::Error
+impl core::marker::Send for summoner_format_vst3::Error
+impl core::marker::Send for summoner_format_vst3::Vst3Plugin
+impl core::marker::Send for summoner_format_vst3::desc::Description
+impl core::marker::Sync for summoner_format_vst3::Error
+impl core::marker::Sync for summoner_format_vst3::Vst3Plugin
+impl core::marker::Sync for summoner_format_vst3::desc::Description
+impl summoner_proc::Plugin for summoner_format_vst3::Vst3Plugin
+pub const summoner_format_vst3::desc::AUDIO_MODULE_CLASS: &str = "Audio Module Class"
+pub field summoner_format_vst3::desc::Description::class_id: [u8; 16]
+pub field summoner_format_vst3::desc::Description::file: alloc::string::String
+pub field summoner_format_vst3::desc::Description::name: alloc::string::String
+pub fn summoner_format_vst3::Error::as_str(&self) -> &str
+pub fn summoner_format_vst3::Vst3Plugin::buses(&self) -> summoner_sys::vst3::Buses
+pub fn summoner_format_vst3::Vst3Plugin::chunk(&self, which: i32) -> core::result::Result<alloc::vec::Vec<u8>, summoner_sys::vst3::Error>
+pub fn summoner_format_vst3::Vst3Plugin::set_chunk(&self, which: i32, bytes: &[u8]) -> core::result::Result<(), summoner_sys::vst3::Error>
+pub fn summoner_format_vst3::Vst3Plugin::take_restart(&self) -> i32
+pub fn summoner_format_vst3::desc::Description::new(name: alloc::string::String, file: alloc::string::String, class_id: [u8; 16]) -> summoner_format_vst3::desc::Description
+pub fn summoner_format_vst3::desc::class_id_hex(cid: &[u8; 16]) -> alloc::string::String
+pub fn summoner_format_vst3::desc::match_class(classes: &[summoner_sys::vst3::ClassInfo], d: &summoner_format_vst3::desc::Description) -> core::option::Option<usize>
+pub fn summoner_format_vst3::desc::of_ref(r: &summoner_proto::plugin::PluginRef) -> core::option::Option<summoner_format_vst3::desc::Description>
+pub fn summoner_format_vst3::desc::parse_class_id(s: &str) -> core::option::Option<[u8; 16]>
+pub fn summoner_format_vst3::load(d: &summoner_format_vst3::desc::Description, ch_in: u32, ch_out: u32) -> core::result::Result<summoner_format_vst3::Vst3Plugin, summoner_format_vst3::Error>
+pub fn summoner_format_vst3::set_latency_no_cycle(on: bool)
+pub mod summoner_format_vst3::desc
+pub struct summoner_format_vst3::Error(_);
+pub struct summoner_format_vst3::Vst3Plugin(_);

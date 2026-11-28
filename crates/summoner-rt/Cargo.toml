@@ -1,0 +1,41 @@
+[package]
+name = "summoner-rt"
+description = "The plugin host's realtime exchange, host side: typed atomic views of a region and the child page, the callback's collect / publish / breaker / ring, the held notes and the chase, the MIDI carry, the render worker's synchronous exchange; safe code only"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+# The region layout, the codec's types the render worker names.
+summoner-proto.workspace = true
+# The clock arithmetic rt.rs re-exports (Tempo, Transport, chase_frames, the timed MIDI event).
+orrery-time.workspace = true
+# The realtime floor (handoff rings, rt_lock, prefault, memory queries, the stderr writer).
+runecraft-rt.workspace = true
+# The cross-process floor (the mapping, the doorbell and the waits, the instance id).
+runecraft-ipc.workspace = true
+
+# The loom model of the region handoff (the host application's) runs this crate's region + rt code. Only
+# under RUSTFLAGS="--cfg loom"; never in a normal build, so never in a shipped binary.
+[target.'cfg(loom)'.dependencies]
+loom = "0.7"
+
+# The mutation checks of the moved modules (RUSTFLAGS="--cfg <mutant>" in a separate target dir; never in a normal
+# build: all are cfgs nothing sets). src/rt.rs: the chase mutants mutant_no_wrap_chase,
+# mutant_chase_before_release and mutant_chase_skips_held fail the host application's chase-visit tests (no_wrap_chase also
+# its end-to-end chase); mutant_chase_raw_pos, mutant_double_chase, mutant_chase_skip_uncounted
+# and mutant_chase_unbounded_edges fail its other chase-visit and chase-allocation tests; the release
+# mutants mutant_release_resume_zero, mutant_release_omitted, mutant_release_early, mutant_bypassed_uncounted and
+# mutant_monitor_silent_on_miss are the exchange's mutants. src/render.rs: mutant_render_visit_skipped (the graph's render op passes
+# its input through, no exchange) fails the host application's render tests; mutant_render_status_ignored (a skipped
+# or threw block accepted) fails its render-status tests. lint_probe builds the lint probe (rt.rs), only to show
+# clippy refuses it.
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(loom)", "cfg(lint_probe)", "cfg(mutant_bypassed_uncounted)", "cfg(mutant_render_status_ignored)", "cfg(mutant_render_visit_skipped)", "cfg(mutant_monitor_silent_on_miss)", "cfg(mutant_release_early)", "cfg(mutant_release_omitted)", "cfg(mutant_release_resume_zero)", "cfg(mutant_chase_before_release)", "cfg(mutant_chase_raw_pos)", "cfg(mutant_chase_skips_held)", "cfg(mutant_double_chase)", "cfg(mutant_no_wrap_chase)", "cfg(mutant_chase_skip_uncounted)", "cfg(mutant_chase_unbounded_edges)"] }
+
+# The README's quick start (`cargo run -p summoner-rt --example summoner_rt_quickstart`); `test = true`, so `cargo test`
+# runs it too.
+[[example]]
+name = "summoner_rt_quickstart"
+test = true

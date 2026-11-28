@@ -1,0 +1,24 @@
+[package]
+name = "summoner-testkit"
+description = "The plugin host's test double: a child that speaks the real protocol (descriptor 3, the mach route, the region, the codec, the scan mode) over trivial DSP, its behaviour set by knobs; safe code only, never in a shipped build"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+summoner-proto.workspace = true
+summoner-rt.workspace = true
+summoner-plugin.workspace = true
+# CHILD_LOG_DIR_FLAG only.
+summoner.workspace = true
+runecraft-rt.workspace = true
+runecraft-ipc.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+# The fake host's parent watch (src/fake_host.rs): mutant_fake_parent_read_late (the parent read after set-up) and
+# mutant_fake_parent_launchd_alive (launchd as the parent not gone) each fail the host application's orphan-watch before-main
+# cases (RUSTFLAGS="--cfg <mutant>" in a separate target dir; never in a normal build).
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_fake_parent_read_late)", "cfg(mutant_fake_parent_launchd_alive)"] }

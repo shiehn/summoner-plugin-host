@@ -1,0 +1,134 @@
+# The public API of summoner-plugin (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-plugin; check: tools/public-api.py check.
+#[non_exhaustive] pub enum summoner_plugin::handover::TakeError
+#[non_exhaustive] pub struct summoner_plugin::handover::Attempt<'a, P>
+#[non_exhaustive] pub struct summoner_plugin::handover::Begin<'a, P>
+#[non_exhaustive] pub struct summoner_plugin::handover::Mix
+#[non_exhaustive] pub struct summoner_plugin::handover::Taken<'a, P>
+impl core::clone::Clone for summoner_plugin::handover::ChainSide
+impl core::clone::Clone for summoner_plugin::handover::DelayLine
+impl core::clone::Clone for summoner_plugin::handover::Fade
+impl core::clone::Clone for summoner_plugin::handover::Mix
+impl core::clone::Clone for summoner_plugin::handover::TakeError
+impl core::clone::TrivialClone for summoner_plugin::handover::ChainSide
+impl core::clone::TrivialClone for summoner_plugin::handover::Mix
+impl core::clone::TrivialClone for summoner_plugin::handover::TakeError
+impl core::cmp::Eq for summoner_plugin::handover::Mix
+impl core::cmp::Eq for summoner_plugin::handover::TakeError
+impl core::cmp::PartialEq for summoner_plugin::handover::Mix
+impl core::cmp::PartialEq for summoner_plugin::handover::TakeError
+impl core::default::Default for summoner_plugin::handover::ChainSide
+impl core::default::Default for summoner_plugin::handover::Fade
+impl core::default::Default for summoner_plugin::handover::Turn
+impl core::error::Error for summoner_plugin::handover::TakeError
+impl core::fmt::Debug for summoner_plugin::handover::ChainSide
+impl core::fmt::Debug for summoner_plugin::handover::DelayLine
+impl core::fmt::Debug for summoner_plugin::handover::Fade
+impl core::fmt::Debug for summoner_plugin::handover::Mix
+impl core::fmt::Debug for summoner_plugin::handover::TakeError
+impl core::fmt::Debug for summoner_plugin::handover::Turn
+impl core::fmt::Display for summoner_plugin::handover::TakeError
+impl core::marker::Copy for summoner_plugin::handover::ChainSide
+impl core::marker::Copy for summoner_plugin::handover::Mix
+impl core::marker::Copy for summoner_plugin::handover::TakeError
+impl core::marker::Send for summoner_plugin::handover::ChainSide
+impl core::marker::Send for summoner_plugin::handover::DelayLine
+impl core::marker::Send for summoner_plugin::handover::Fade
+impl core::marker::Send for summoner_plugin::handover::Mix
+impl core::marker::Send for summoner_plugin::handover::TakeError
+impl core::marker::Send for summoner_plugin::handover::Turn
+impl core::marker::Sync for summoner_plugin::handover::ChainSide
+impl core::marker::Sync for summoner_plugin::handover::DelayLine
+impl core::marker::Sync for summoner_plugin::handover::Fade
+impl core::marker::Sync for summoner_plugin::handover::Mix
+impl core::marker::Sync for summoner_plugin::handover::TakeError
+impl core::marker::Sync for summoner_plugin::handover::Turn
+impl<'a, P> core::marker::Send for summoner_plugin::handover::Attempt<'a, P> where core::option::Option<runecraft_rt::rt_lock::WiredLockGuard<'a, P>>: core::marker::Send
+impl<'a, P> core::marker::Send for summoner_plugin::handover::Begin<'a, P> where core::option::Option<runecraft_rt::rt_lock::WiredLockGuard<'a, P>>: core::marker::Send
+impl<'a, P> core::marker::Send for summoner_plugin::handover::Taken<'a, P> where runecraft_rt::rt_lock::WiredLockGuard<'a, P>: core::marker::Send
+impl<'a, P> core::marker::Sync for summoner_plugin::handover::Attempt<'a, P> where core::option::Option<runecraft_rt::rt_lock::WiredLockGuard<'a, P>>: core::marker::Sync
+impl<'a, P> core::marker::Sync for summoner_plugin::handover::Begin<'a, P> where core::option::Option<runecraft_rt::rt_lock::WiredLockGuard<'a, P>>: core::marker::Sync
+impl<'a, P> core::marker::Sync for summoner_plugin::handover::Taken<'a, P> where runecraft_rt::rt_lock::WiredLockGuard<'a, P>: core::marker::Sync
+impl<P: core::fmt::Debug> core::fmt::Debug for summoner_plugin::handover::Cell<P>
+impl<P> core::marker::Send for summoner_plugin::handover::Cell<P> where runecraft_rt::rt_lock::WiredLock<P>: core::marker::Send
+impl<P> core::marker::Sync for summoner_plugin::handover::Cell<P> where runecraft_rt::rt_lock::WiredLock<P>: core::marker::Sync
+pub const fn summoner_plugin::handover::child_bypass_lag_blocks(block_frames: u32) -> u32
+pub const summoner_plugin::handover::DELAY_MIN_CAPACITY: usize = 16_384
+pub const summoner_plugin::handover::DRAINING: u32 = 1
+pub const summoner_plugin::handover::FADE: u32 = 144
+pub const summoner_plugin::handover::FADING: u32 = 2
+pub const summoner_plugin::handover::HOSTED: u32 = 0
+pub const summoner_plugin::handover::K_LATENCY_CHANGED: u32 = _
+pub const summoner_plugin::handover::Mix::PLUGIN: summoner_plugin::handover::Mix = _
+pub const summoner_plugin::handover::OUT: u32 = 3
+pub const summoner_plugin::handover::RETURNING: u32 = 4
+pub const summoner_plugin::handover::TAKE_GIVE_UP: core::time::Duration = _
+pub const summoner_plugin::handover::TAKE_HORIZON: core::time::Duration = _
+pub const summoner_plugin::handover::TAKE_HORIZON_RENDER: core::time::Duration = _
+pub const summoner_plugin::params::LABEL_CHARS: usize = 64
+pub const summoner_plugin::params::NAME_CHARS: usize = 1024
+pub const summoner_plugin::params::NOT_IN_TREE: u32 = u32::MAX
+pub const summoner_plugin::params::PAGE_BYTES: usize = _
+pub const summoner_plugin::params::VST3_ROOT_UNIT: i32 = 0
+pub field summoner_plugin::handover::Attempt::forced: bool
+pub field summoner_plugin::handover::Attempt::guard: core::option::Option<runecraft_rt::rt_lock::WiredLockGuard<'a, P>>
+pub field summoner_plugin::handover::Attempt::waits: u32
+pub field summoner_plugin::handover::Begin::fault: bool
+pub field summoner_plugin::handover::Begin::guard: core::option::Option<runecraft_rt::rt_lock::WiredLockGuard<'a, P>>
+pub field summoner_plugin::handover::Begin::mix: summoner_plugin::handover::Mix
+pub field summoner_plugin::handover::Begin::word: u32
+pub field summoner_plugin::handover::Mix::bin: u32
+pub field summoner_plugin::handover::Mix::dir: i32
+pub field summoner_plugin::handover::Mix::pass: bool
+pub field summoner_plugin::handover::Mix::xf: u32
+pub field summoner_plugin::handover::Taken::contended: u32
+pub field summoner_plugin::handover::Taken::forced: bool
+pub field summoner_plugin::handover::Taken::guard: runecraft_rt::rt_lock::WiredLockGuard<'a, P>
+pub field summoner_plugin::handover::Taken::waited: core::time::Duration
+pub fn summoner_plugin::channels::channel_rule_after<B: core::ops::deref::DerefMut<Target = [f32]>>(inputs: u32, outputs: u32, bufs: &mut [B], frames: usize)
+pub fn summoner_plugin::channels::channel_rule_before<B: core::ops::deref::DerefMut<Target = [f32]>>(inputs: u32, outputs: u32, bufs: &mut [B], frames: usize)
+pub fn summoner_plugin::handover::Attempt::new(guard: core::option::Option<runecraft_rt::rt_lock::WiredLockGuard<'a, P>>, forced: bool, waits: u32) -> summoner_plugin::handover::Attempt<'a, P>
+pub fn summoner_plugin::handover::Begin::new(guard: core::option::Option<runecraft_rt::rt_lock::WiredLockGuard<'a, P>>, mix: summoner_plugin::handover::Mix, fault: bool, word: u32) -> summoner_plugin::handover::Begin<'a, P>
+pub fn summoner_plugin::handover::Cell::announce(&self) -> bool
+pub fn summoner_plugin::handover::Cell::force(&self) -> core::result::Result<(), u32>
+pub fn summoner_plugin::handover::Cell::give_back(&self, g: runecraft_rt::rt_lock::WiredLockGuard<'_, P>) -> bool
+pub fn summoner_plugin::handover::Cell::into_inner(self) -> P
+pub fn summoner_plugin::handover::Cell::new(p: P) -> summoner_plugin::handover::Cell<P>
+pub fn summoner_plugin::handover::Cell::state(&self) -> u32
+pub fn summoner_plugin::handover::Cell::take(&self) -> core::result::Result<runecraft_rt::rt_lock::WiredLockGuard<'_, P>, summoner_plugin::handover::TakeError>
+pub fn summoner_plugin::handover::Cell::take_blocking(&self, bound: core::time::Duration, poll: core::time::Duration, give_up: core::time::Duration) -> core::result::Result<summoner_plugin::handover::Taken<'_, P>, summoner_plugin::handover::TakeError>
+pub fn summoner_plugin::handover::Cell::try_take(&self, past_bound: bool) -> summoner_plugin::handover::Attempt<'_, P>
+pub fn summoner_plugin::handover::ChainSide::begin<'a, P>(&mut self, cell: &'a summoner_plugin::handover::Cell<P>) -> summoner_plugin::handover::Begin<'a, P>
+pub fn summoner_plugin::handover::ChainSide::end<P>(&mut self, cell: &summoner_plugin::handover::Cell<P>, frames: usize, begun: summoner_plugin::handover::Begin<'_, P>) -> bool
+pub fn summoner_plugin::handover::DelayLine::advance(&mut self, frames: usize)
+pub fn summoner_plugin::handover::DelayLine::capacity(&self) -> usize
+pub fn summoner_plugin::handover::DelayLine::new(channels: usize, latency: usize, max_frames: usize) -> summoner_plugin::handover::DelayLine
+pub fn summoner_plugin::handover::DelayLine::read(&self, c: usize, latency: usize, out: &mut [f32]) -> bool
+pub fn summoner_plugin::handover::DelayLine::write(&mut self, c: usize, x: &[f32])
+pub fn summoner_plugin::handover::Fade::g(&self, n: u32) -> f32
+pub fn summoner_plugin::handover::Mix::apply(&self, fade: &summoner_plugin::handover::Fade, out: &mut [f32], b: &[f32])
+pub fn summoner_plugin::handover::Mix::at(&self, i: usize) -> (u32, u32)
+pub fn summoner_plugin::handover::Mix::bypassed(&self) -> bool
+pub fn summoner_plugin::handover::Mix::new(xf: u32, bin: u32, dir: i32, pass: bool) -> summoner_plugin::handover::Mix
+pub fn summoner_plugin::handover::Taken::new(guard: runecraft_rt::rt_lock::WiredLockGuard<'a, P>, forced: bool, contended: u32, waited: core::time::Duration) -> summoner_plugin::handover::Taken<'a, P>
+pub fn summoner_plugin::handover::Turn::may_wait(&self) -> bool
+pub fn summoner_plugin::handover::Turn::new() -> summoner_plugin::handover::Turn
+pub fn summoner_plugin::handover::Turn::record_waits(&mut self, n: u32)
+pub fn summoner_plugin::handover::Turn::waits(&self) -> u32
+pub fn summoner_plugin::handover::cycle_budget(max_frames: u32, rate: f64) -> core::time::Duration
+pub fn summoner_plugin::handover::state_name(w: u32) -> &'static str
+pub fn summoner_plugin::handover::take_bound(max_frames: u32, rate: f64) -> core::time::Duration
+pub fn summoner_plugin::handover::take_horizon(render: bool) -> core::time::Duration
+pub fn summoner_plugin::params::au_clump_order(clumps: &[core::option::Option<u32>]) -> alloc::vec::Vec<u32>
+pub fn summoner_plugin::params::cut_chars(s: alloc::string::String, max: usize) -> alloc::string::String
+pub fn summoner_plugin::params::vst3_unit_order(units: &[(i32, i32)], param_units: &[i32]) -> alloc::vec::Vec<u32>
+pub mod summoner_plugin::channels
+pub mod summoner_plugin::handover
+pub mod summoner_plugin::params
+pub struct summoner_plugin::handover::Cell<P> {private fields}
+pub struct summoner_plugin::handover::ChainSide {private fields}
+pub struct summoner_plugin::handover::DelayLine {private fields}
+pub struct summoner_plugin::handover::Fade {private fields}
+pub struct summoner_plugin::handover::Turn {private fields}
+pub variant summoner_plugin::handover::TakeError::Contended
+pub variant summoner_plugin::handover::TakeError::NotOut(u32)

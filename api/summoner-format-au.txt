@@ -1,0 +1,45 @@
+# The public API of summoner-format-au (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-format-au; check: tools/public-api.py check.
+#[non_exhaustive] pub struct summoner_format_au::desc::Description
+impl core::clone::Clone for summoner_format_au::Error
+impl core::clone::Clone for summoner_format_au::desc::Description
+impl core::cmp::Eq for summoner_format_au::Error
+impl core::cmp::Eq for summoner_format_au::desc::Description
+impl core::cmp::PartialEq for summoner_format_au::Error
+impl core::cmp::PartialEq for summoner_format_au::desc::Description
+impl core::convert::From<&str> for summoner_format_au::Error
+impl core::convert::From<alloc::string::String> for summoner_format_au::Error
+impl core::convert::From<summoner_format_au::Error> for alloc::string::String
+impl core::error::Error for summoner_format_au::Error
+impl core::fmt::Debug for summoner_format_au::Error
+impl core::fmt::Debug for summoner_format_au::desc::Description
+impl core::fmt::Display for summoner_format_au::Error
+impl core::marker::Send for summoner_format_au::AuPlugin
+impl core::marker::Send for summoner_format_au::Error
+impl core::marker::Send for summoner_format_au::desc::Description
+impl core::marker::Sync for summoner_format_au::AuPlugin
+impl core::marker::Sync for summoner_format_au::Error
+impl core::marker::Sync for summoner_format_au::desc::Description
+impl summoner_proc::Plugin for summoner_format_au::AuPlugin
+pub const summoner_format_au::desc::CODE_NAMES: [&str; 3] = _
+pub field summoner_format_au::desc::Description::codes: [u32; 3]
+pub field summoner_format_au::desc::Description::file: alloc::string::String
+pub field summoner_format_au::desc::Description::name: alloc::string::String
+pub fn summoner_format_au::AuPlugin::codes(&self) -> alloc::string::String
+pub fn summoner_format_au::AuPlugin::input_lines(&self) -> u32
+pub fn summoner_format_au::AuPlugin::inputs_refused(&self) -> bool
+pub fn summoner_format_au::AuPlugin::listening(&self) -> bool
+pub fn summoner_format_au::AuPlugin::raw_param(&self, id: u32) -> core::option::Option<f32>
+pub fn summoner_format_au::Error::as_str(&self) -> &str
+pub fn summoner_format_au::desc::Description::new(name: alloc::string::String, file: alloc::string::String, codes: [u32; 3]) -> summoner_format_au::desc::Description
+pub fn summoner_format_au::desc::check_codes(codes: [u32; 3]) -> core::result::Result<(), summoner_format_au::Error>
+pub fn summoner_format_au::desc::codes_of(d: &summoner_sys::au::Desc) -> [u32; 3]
+pub fn summoner_format_au::desc::codes_string(d: &summoner_sys::au::Desc) -> alloc::string::String
+pub fn summoner_format_au::desc::name_and_manufacturer(full: &str) -> (alloc::string::String, alloc::string::String)
+pub fn summoner_format_au::desc::of_ref(r: &summoner_proto::plugin::PluginRef) -> core::option::Option<summoner_format_au::desc::Description>
+pub fn summoner_format_au::desc::wants_midi(d: &summoner_sys::au::Desc) -> bool
+pub fn summoner_format_au::load(d: &summoner_format_au::desc::Description, ch_in: u32, ch_out: u32) -> core::result::Result<summoner_format_au::AuPlugin, summoner_format_au::Error>
+pub fn summoner_format_au::pick_by_triple(codes: &[[u32; 3]], t: [u32; 3]) -> core::result::Result<usize, summoner_format_au::Error>
+pub mod summoner_format_au::desc
+pub struct summoner_format_au::AuPlugin(_);
+pub struct summoner_format_au::Error(_);

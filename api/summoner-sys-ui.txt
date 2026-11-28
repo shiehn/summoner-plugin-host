@@ -1,0 +1,2 @@
+# The public API of summoner-sys-ui (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-sys-ui; check: tools/public-api.py check.

@@ -1,0 +1,189 @@
+# The public API of summoner-scan (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-scan; check: tools/public-api.py check.
+#[non_exhaustive] pub enum summoner_scan::scan::ScanEnd<D = summoner_proto::plugin::ScanClass>
+#[non_exhaustive] pub struct summoner_scan::scan::Captured
+#[non_exhaustive] pub struct summoner_scan::scan::Fault
+#[non_exhaustive] pub struct summoner_scan::scan::OverBudget
+#[non_exhaustive] pub struct summoner_scan::scan::ScanCounters
+#[non_exhaustive] pub struct summoner_scan::scan::ScanReport
+impl core::clone::Clone for summoner_scan::Error
+impl core::clone::Clone for summoner_scan::scan::Captured
+impl core::clone::Clone for summoner_scan::scan::Fault
+impl core::clone::Clone for summoner_scan::scan::OverBudget
+impl core::clone::Clone for summoner_scan::scan::ScanConfig
+impl core::clone::TrivialClone for summoner_scan::scan::OverBudget
+impl core::cmp::Eq for summoner_scan::Error
+impl core::cmp::Eq for summoner_scan::scan::Captured
+impl core::cmp::Eq for summoner_scan::scan::Fault
+impl core::cmp::Eq for summoner_scan::scan::OverBudget
+impl core::cmp::PartialEq for summoner_scan::Error
+impl core::cmp::PartialEq for summoner_scan::scan::Captured
+impl core::cmp::PartialEq for summoner_scan::scan::Fault
+impl core::cmp::PartialEq for summoner_scan::scan::OverBudget
+impl core::convert::From<summoner_scan::Error> for alloc::string::String
+impl core::default::Default for summoner_scan::scan::Captured
+impl core::default::Default for summoner_scan::scan::ScanCounters
+impl core::error::Error for summoner_scan::Error
+impl core::fmt::Debug for summoner_scan::Error
+impl core::fmt::Debug for summoner_scan::scan::Captured
+impl core::fmt::Debug for summoner_scan::scan::Fault
+impl core::fmt::Debug for summoner_scan::scan::OverBudget
+impl core::fmt::Debug for summoner_scan::scan::ScanConfig
+impl core::fmt::Debug for summoner_scan::scan::ScanCounters
+impl core::fmt::Debug for summoner_scan::scan::ScanReport
+impl core::fmt::Display for summoner_scan::Error
+impl core::marker::Copy for summoner_scan::scan::OverBudget
+impl core::marker::Send for summoner_scan::Error
+impl core::marker::Send for summoner_scan::scan::Bounded
+impl core::marker::Send for summoner_scan::scan::Captured
+impl core::marker::Send for summoner_scan::scan::Fault
+impl core::marker::Send for summoner_scan::scan::OverBudget
+impl core::marker::Send for summoner_scan::scan::ScanConfig
+impl core::marker::Send for summoner_scan::scan::ScanCounters
+impl core::marker::Send for summoner_scan::scan::ScanReport
+impl core::marker::Send for summoner_scan::scan::ScanSupervisor
+impl core::marker::Sync for summoner_scan::Error
+impl core::marker::Sync for summoner_scan::scan::Bounded
+impl core::marker::Sync for summoner_scan::scan::Captured
+impl core::marker::Sync for summoner_scan::scan::Fault
+impl core::marker::Sync for summoner_scan::scan::OverBudget
+impl core::marker::Sync for summoner_scan::scan::ScanConfig
+impl core::marker::Sync for summoner_scan::scan::ScanCounters
+impl core::marker::Sync for summoner_scan::scan::ScanReport
+impl core::marker::Sync for summoner_scan::scan::ScanSupervisor
+impl<D: core::clone::Clone> core::clone::Clone for summoner_scan::scan::ScanEnd<D>
+impl<D: core::cmp::Eq> core::cmp::Eq for summoner_scan::scan::ScanEnd<D>
+impl<D: core::cmp::PartialEq> core::cmp::PartialEq for summoner_scan::scan::ScanEnd<D>
+impl<D: core::fmt::Debug> core::fmt::Debug for summoner_scan::scan::ScanEnd<D>
+impl<D> core::marker::Send for summoner_scan::scan::ScanEnd<D> where summoner_proto::codec::ScanVerdict<D>: core::marker::Send
+impl<D> core::marker::Sync for summoner_scan::scan::ScanEnd<D> where summoner_proto::codec::ScanVerdict<D>: core::marker::Sync
+pub const summoner_scan::scan::BLOB_OVER_BUDGET: &str = "an engine-side limit: the scan reader's blob budget"
+pub const summoner_scan::scan::BUDGET: core::time::Duration = _
+pub const summoner_scan::scan::BUDGET_AU: core::time::Duration = _
+pub const summoner_scan::scan::CRASH_LOG_CAP: usize = STDERR_CAP
+pub const summoner_scan::scan::DRAIN: core::time::Duration = _
+pub const summoner_scan::scan::EXIT_ORPHANED: i32 = 3
+pub const summoner_scan::scan::EXIT_PROTOCOL: i32 = 4
+pub const summoner_scan::scan::EXIT_STEP_DEADLINE: i32 = 75
+pub const summoner_scan::scan::EXIT_USAGE: i32 = 2
+pub const summoner_scan::scan::HEAD: usize = _
+pub const summoner_scan::scan::INBOUND_BOUND: usize = 32
+pub const summoner_scan::scan::OUTER_LIMIT: core::time::Duration = _
+pub const summoner_scan::scan::OVERSIZED_SCANNED: &str = "an engine-side limit after the scan's receipt"
+pub const summoner_scan::scan::REKILL: core::time::Duration = _
+pub const summoner_scan::scan::SCAN_BLOB_BUDGET: u64 = _
+pub const summoner_scan::scan::SEAM_HOLD_MAX: core::time::Duration = _
+pub const summoner_scan::scan::SEND_TIMEOUT: core::time::Duration = _
+pub const summoner_scan::scan::STDERR_CAP: usize = _
+pub const summoner_scan::scan::STDERR_GRACE: core::time::Duration = _
+pub const summoner_scan::scan::STEP: core::time::Duration = _
+pub const summoner_scan::scan::STEP_AU: core::time::Duration = _
+pub const summoner_scan::scan::STEP_MAX: core::time::Duration = _
+pub const summoner_scan::scan::TREE_POLL: core::time::Duration = _
+pub field summoner_scan::scan::Captured::bytes: alloc::vec::Vec<u8>
+pub field summoner_scan::scan::Captured::cut: bool
+pub field summoner_scan::scan::Captured::open: bool
+pub field summoner_scan::scan::Captured::total: u64
+pub field summoner_scan::scan::Fault::after_receipt: bool
+pub field summoner_scan::scan::Fault::over_budget: core::option::Option<summoner_scan::scan::OverBudget>
+pub field summoner_scan::scan::Fault::oversized_scanned: core::option::Option<u32>
+pub field summoner_scan::scan::Fault::scanned_limit: core::option::Option<alloc::string::String>
+pub field summoner_scan::scan::Fault::why: alloc::string::String
+pub field summoner_scan::scan::OverBudget::admitted: u64
+pub field summoner_scan::scan::OverBudget::budget: u64
+pub field summoner_scan::scan::OverBudget::header: summoner_proto::codec::Header
+pub field summoner_scan::scan::ScanConfig::au_budget: core::time::Duration
+pub field summoner_scan::scan::ScanConfig::au_step: core::time::Duration
+pub field summoner_scan::scan::ScanConfig::blob_budget: u64
+pub field summoner_scan::scan::ScanConfig::budget: core::time::Duration
+pub field summoner_scan::scan::ScanConfig::child_id: alloc::string::String
+pub field summoner_scan::scan::ScanConfig::crash_log: core::option::Option<std::path::PathBuf>
+pub field summoner_scan::scan::ScanConfig::drain: core::time::Duration
+pub field summoner_scan::scan::ScanConfig::env: alloc::vec::Vec<(std::ffi::os_str::OsString, std::ffi::os_str::OsString)>
+pub field summoner_scan::scan::ScanConfig::levels: alloc::rcs::arc::Arc<dyn summoner::supervisor::LevelSource>
+pub field summoner_scan::scan::ScanConfig::log: alloc::rcs::arc::Arc<dyn runecraft_contracts::log::LogSink>
+pub field summoner_scan::scan::ScanConfig::log_area: runecraft_contracts::log::AreaKey
+pub field summoner_scan::scan::ScanConfig::names: summoner::supervisor::Names
+pub field summoner_scan::scan::ScanConfig::outer_limit: core::time::Duration
+pub field summoner_scan::scan::ScanConfig::program: std::path::PathBuf
+pub field summoner_scan::scan::ScanConfig::step: core::time::Duration
+pub field summoner_scan::scan::ScanCounters::blob_over_budget: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::budget_kills: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::child_protocol: core::sync::atomic::AtomicU32
+pub field summoner_scan::scan::ScanCounters::core_faults: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::drain_timeouts: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::engine_faults: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::escapees: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::leftovers: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::not_run: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::outer_limits: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::oversized_scanned: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::protocol_errors: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::scans: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::stderr_held_open: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::strikes: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanCounters::verdicts: core::sync::atomic::AtomicU64
+pub field summoner_scan::scan::ScanEnd::CoreFault::exit_code: i32
+pub field summoner_scan::scan::ScanEnd::EngineFault::why: alloc::string::String
+pub field summoner_scan::scan::ScanEnd::NotRun::why: alloc::string::String
+pub field summoner_scan::scan::ScanReport::crash_log: core::option::Option<summoner_scan::scan::Captured>
+pub field summoner_scan::scan::ScanReport::discovered: alloc::vec::Vec<summoner_proto::plugin::ScanClass>
+pub field summoner_scan::scan::ScanReport::drain: core::option::Option<core::time::Duration>
+pub field summoner_scan::scan::ScanReport::drain_timeout: bool
+pub field summoner_scan::scan::ScanReport::elapsed: core::time::Duration
+pub field summoner_scan::scan::ScanReport::end: summoner_scan::scan::ScanEnd
+pub field summoner_scan::scan::ScanReport::escapees: alloc::vec::Vec<u32>
+pub field summoner_scan::scan::ScanReport::exit: core::option::Option<runecraft_ipc::process::ChildExit>
+pub field summoner_scan::scan::ScanReport::half_frame: bool
+pub field summoner_scan::scan::ScanReport::leftovers: u32
+pub field summoner_scan::scan::ScanReport::outer_limit: bool
+pub field summoner_scan::scan::ScanReport::pedal_error: core::option::Option<alloc::string::String>
+pub field summoner_scan::scan::ScanReport::pending_at: core::option::Option<std::time::Instant>
+pub field summoner_scan::scan::ScanReport::pgid: core::option::Option<u32>
+pub field summoner_scan::scan::ScanReport::pid: core::option::Option<u32>
+pub field summoner_scan::scan::ScanReport::reader_blob_bytes: u64
+pub field summoner_scan::scan::ScanReport::scan: summoner_proto::codec::Scan
+pub field summoner_scan::scan::ScanReport::scan_sent: bool
+pub field summoner_scan::scan::ScanReport::scanned: core::option::Option<summoner_proto::codec::Scanned>
+pub field summoner_scan::scan::ScanReport::spawned_at: core::option::Option<std::time::Instant>
+pub field summoner_scan::scan::ScanReport::stderr: summoner_scan::scan::Captured
+pub field summoner_scan::scan::ScanReport::sweep: core::option::Option<core::result::Result<(), runecraft_ipc::process::GroupKillError>>
+pub field summoner_scan::scan::ScanReport::we_sent: bool
+pub fn summoner_scan::Error::as_str(&self) -> &str
+pub fn summoner_scan::scan::Bounded::finish(self, open: bool) -> summoner_scan::scan::Captured
+pub fn summoner_scan::scan::Bounded::new(cap: usize, head: usize) -> summoner_scan::scan::Bounded
+pub fn summoner_scan::scan::Bounded::push(&mut self, data: &[u8])
+pub fn summoner_scan::scan::Bounded::stderr() -> summoner_scan::scan::Bounded
+pub fn summoner_scan::scan::Captured::new(bytes: alloc::vec::Vec<u8>, total: u64, cut: bool, open: bool) -> summoner_scan::scan::Captured
+pub fn summoner_scan::scan::Captured::text(&self) -> alloc::string::String
+pub fn summoner_scan::scan::Fault::new(why: alloc::string::String, after_receipt: bool, oversized_scanned: core::option::Option<u32>, over_budget: core::option::Option<summoner_scan::scan::OverBudget>, scanned_limit: core::option::Option<alloc::string::String>) -> summoner_scan::scan::Fault
+pub fn summoner_scan::scan::OverBudget::new(header: summoner_proto::codec::Header, admitted: u64, budget: u64) -> summoner_scan::scan::OverBudget
+pub fn summoner_scan::scan::Pedal::pending(&mut self, scan: &summoner_proto::codec::Scan) -> core::io::error::Result<()>
+pub fn summoner_scan::scan::Pedal::settle(&mut self, report: &summoner_scan::scan::ScanReport) -> core::io::error::Result<()>
+pub fn summoner_scan::scan::ScanConfig::args(&self, parent: u32) -> alloc::vec::Vec<std::ffi::os_str::OsString>
+pub fn summoner_scan::scan::ScanConfig::args_for(&self, parent: u32, format: summoner_proto::codec::ScanFormat) -> alloc::vec::Vec<std::ffi::os_str::OsString>
+pub fn summoner_scan::scan::ScanConfig::budget_for(&self, format: summoner_proto::codec::ScanFormat) -> core::time::Duration
+pub fn summoner_scan::scan::ScanConfig::check_step(&self) -> core::result::Result<(), summoner_scan::Error>
+pub fn summoner_scan::scan::ScanConfig::new(program: std::path::PathBuf, env: alloc::vec::Vec<(std::ffi::os_str::OsString, std::ffi::os_str::OsString)>) -> summoner_scan::scan::ScanConfig
+pub fn summoner_scan::scan::ScanConfig::step_for(&self, format: summoner_proto::codec::ScanFormat) -> core::time::Duration
+pub fn summoner_scan::scan::ScanEnd::is_strike(&self) -> bool
+pub fn summoner_scan::scan::ScanEnd::map_classes<E>(self, f: impl core::ops::function::FnOnce(summoner_proto::codec::ScanVerdict<D>) -> summoner_proto::codec::ScanVerdict<E>) -> summoner_scan::scan::ScanEnd<E>
+pub fn summoner_scan::scan::ScanEnd::verdict(&self) -> core::option::Option<&summoner_proto::codec::ScanVerdict<D>>
+pub fn summoner_scan::scan::ScanSupervisor::config(&self) -> &summoner_scan::scan::ScanConfig
+pub fn summoner_scan::scan::ScanSupervisor::counters(&self) -> &alloc::rcs::arc::Arc<summoner_scan::scan::ScanCounters>
+pub fn summoner_scan::scan::ScanSupervisor::new(cfg: summoner_scan::scan::ScanConfig) -> summoner_scan::scan::ScanSupervisor
+pub fn summoner_scan::scan::ScanSupervisor::scan(&mut self, scan: &summoner_proto::codec::Scan, pedal: &mut dyn summoner_scan::scan::Pedal) -> summoner_scan::scan::ScanReport
+pub fn summoner_scan::scan::judge(fault: core::option::Option<summoner_scan::scan::Fault>, scan_sent: bool, we_sent: bool, exit: core::option::Option<runecraft_ipc::process::ChildExit>, scanned: core::option::Option<&summoner_proto::codec::Scanned>) -> summoner_scan::scan::ScanEnd
+pub fn summoner_scan::scan::marker(cut: u64) -> alloc::string::String
+pub fn summoner_scan::scan::read_crash_log(dir: &std::path::Path, pid: u32) -> core::option::Option<summoner_scan::scan::Captured>
+pub fn summoner_scan::scan::spawn_stderr_reader(src: std::io::pipe::PipeReader, reaped: alloc::rcs::arc::Arc<core::sync::atomic::AtomicBool>, thread_word: &str) -> core::io::error::Result<std::thread::join_handle::JoinHandle<summoner_scan::scan::Captured>>
+pub mod summoner_scan::scan
+pub struct summoner_scan::Error(_);
+pub struct summoner_scan::scan::Bounded {private fields}
+pub struct summoner_scan::scan::ScanConfig {private fields}
+pub struct summoner_scan::scan::ScanSupervisor {private fields}
+pub trait summoner_scan::scan::Pedal
+pub variant summoner_scan::scan::ScanEnd::CoreFault {}
+pub variant summoner_scan::scan::ScanEnd::EngineFault {}
+pub variant summoner_scan::scan::ScanEnd::NotRun {}
+pub variant summoner_scan::scan::ScanEnd::Verdict(summoner_proto::codec::ScanVerdict<D>)

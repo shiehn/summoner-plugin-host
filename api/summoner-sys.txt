@@ -1,0 +1,163 @@
+# The public API of summoner-sys (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-sys; check: tools/public-api.py check.
+#[non_exhaustive] pub enum summoner_sys::bundle::Format
+#[non_exhaustive] pub enum summoner_sys::bundle::Refusal
+#[non_exhaustive] pub enum summoner_sys::qos::Qos
+impl !core::marker::Send for summoner_sys::workgroup::JoinToken
+impl !core::marker::Sync for summoner_sys::workgroup::JoinToken
+impl core::clone::Clone for summoner_sys::Error
+impl core::clone::Clone for summoner_sys::alloc_count::Counter
+impl core::clone::Clone for summoner_sys::bundle::Bundle
+impl core::clone::Clone for summoner_sys::bundle::Format
+impl core::clone::Clone for summoner_sys::bundle::PluginRoot
+impl core::clone::Clone for summoner_sys::bundle::Refusal
+impl core::clone::Clone for summoner_sys::images::ForeignImages
+impl core::clone::Clone for summoner_sys::qos::Qos
+impl core::clone::Clone for summoner_sys::workgroup::Workgroup
+impl core::clone::TrivialClone for summoner_sys::alloc_count::Counter
+impl core::clone::TrivialClone for summoner_sys::bundle::Format
+impl core::clone::TrivialClone for summoner_sys::qos::Qos
+impl core::cmp::Eq for summoner_sys::Error
+impl core::cmp::Eq for summoner_sys::bundle::Format
+impl core::cmp::Eq for summoner_sys::bundle::Refusal
+impl core::cmp::Eq for summoner_sys::images::ForeignImages
+impl core::cmp::Eq for summoner_sys::qos::Qos
+impl core::cmp::PartialEq for summoner_sys::Error
+impl core::cmp::PartialEq for summoner_sys::bundle::Format
+impl core::cmp::PartialEq for summoner_sys::bundle::Refusal
+impl core::cmp::PartialEq for summoner_sys::images::ForeignImages
+impl core::cmp::PartialEq for summoner_sys::qos::Qos
+impl core::convert::From<&str> for summoner_sys::Error
+impl core::convert::From<alloc::string::String> for summoner_sys::Error
+impl core::convert::From<summoner_sys::Error> for alloc::string::String
+impl core::default::Default for summoner_sys::images::ForeignImages
+impl core::error::Error for summoner_sys::Error
+impl core::fmt::Debug for summoner_sys::Error
+impl core::fmt::Debug for summoner_sys::bundle::Bundle
+impl core::fmt::Debug for summoner_sys::bundle::Format
+impl core::fmt::Debug for summoner_sys::bundle::PluginRoot
+impl core::fmt::Debug for summoner_sys::bundle::Refusal
+impl core::fmt::Debug for summoner_sys::images::ForeignImages
+impl core::fmt::Debug for summoner_sys::qos::Qos
+impl core::fmt::Debug for summoner_sys::workgroup::JoinToken
+impl core::fmt::Debug for summoner_sys::workgroup::Workgroup
+impl core::fmt::Display for summoner_sys::Error
+impl core::fmt::Display for summoner_sys::bundle::Refusal
+impl core::fmt::Display for summoner_sys::images::ForeignImages
+impl core::marker::Copy for summoner_sys::alloc_count::Counter
+impl core::marker::Copy for summoner_sys::bundle::Format
+impl core::marker::Copy for summoner_sys::qos::Qos
+impl core::marker::Send for summoner_sys::Error
+impl core::marker::Send for summoner_sys::alloc_count::Counter
+impl core::marker::Send for summoner_sys::bundle::Bundle
+impl core::marker::Send for summoner_sys::bundle::Format
+impl core::marker::Send for summoner_sys::bundle::LoadCheck
+impl core::marker::Send for summoner_sys::bundle::PluginRoot
+impl core::marker::Send for summoner_sys::bundle::Refusal
+impl core::marker::Send for summoner_sys::exit_watch::ExitWatch
+impl core::marker::Send for summoner_sys::images::ForeignImages
+impl core::marker::Send for summoner_sys::qos::Qos
+impl core::marker::Send for summoner_sys::workgroup::Workgroup
+impl core::marker::Sync for summoner_sys::Error
+impl core::marker::Sync for summoner_sys::alloc_count::Counter
+impl core::marker::Sync for summoner_sys::bundle::Bundle
+impl core::marker::Sync for summoner_sys::bundle::Format
+impl core::marker::Sync for summoner_sys::bundle::LoadCheck
+impl core::marker::Sync for summoner_sys::bundle::PluginRoot
+impl core::marker::Sync for summoner_sys::bundle::Refusal
+impl core::marker::Sync for summoner_sys::exit_watch::ExitWatch
+impl core::marker::Sync for summoner_sys::images::ForeignImages
+impl core::marker::Sync for summoner_sys::qos::Qos
+impl core::marker::Sync for summoner_sys::workgroup::Workgroup
+impl core::ops::drop::Drop for summoner_sys::workgroup::JoinToken
+impl core::ops::drop::Drop for summoner_sys::workgroup::Workgroup
+pub const summoner_sys::bundle::REFUSED: &str = "not a development plugin bundle"
+pub fn summoner_sys::Error::as_str(&self) -> &str
+pub fn summoner_sys::alloc_count::Counter::arm(&self)
+pub fn summoner_sys::alloc_count::Counter::disarm(&self) -> u64
+pub fn summoner_sys::alloc_count::Counter::resolve() -> core::option::Option<summoner_sys::alloc_count::Counter>
+pub fn summoner_sys::alloc_count::arm() -> bool
+pub fn summoner_sys::alloc_count::disarm() -> core::option::Option<u64>
+pub fn summoner_sys::bundle::Bundle::check(path: &std::path::Path, format: summoner_sys::bundle::Format) -> core::result::Result<summoner_sys::bundle::Bundle, summoner_sys::bundle::Refusal>
+pub fn summoner_sys::bundle::Bundle::check_dev(path: &std::path::Path, format: summoner_sys::bundle::Format) -> core::result::Result<summoner_sys::bundle::Bundle, summoner_sys::bundle::Refusal>
+pub fn summoner_sys::bundle::Bundle::format(&self) -> summoner_sys::bundle::Format
+pub fn summoner_sys::bundle::Bundle::path(&self) -> &std::path::Path
+pub fn summoner_sys::bundle::LoadCheck::begin() -> core::result::Result<summoner_sys::bundle::LoadCheck, summoner_sys::Error>
+pub fn summoner_sys::bundle::LoadCheck::finish(self, b: &summoner_sys::bundle::Bundle) -> core::result::Result<(), summoner_sys::Error>
+pub fn summoner_sys::bundle::PluginRoot::admits(&self, file: impl core::convert::AsRef<std::path::Path>) -> core::result::Result<(), summoner_sys::Error>
+pub fn summoner_sys::bundle::PluginRoot::bundle(&self, file: impl core::convert::AsRef<std::path::Path>) -> core::result::Result<summoner_sys::bundle::Bundle, summoner_sys::Error>
+pub fn summoner_sys::bundle::PluginRoot::check(value: impl core::convert::AsRef<std::path::Path>) -> core::result::Result<summoner_sys::bundle::PluginRoot, summoner_sys::Error>
+pub fn summoner_sys::bundle::PluginRoot::path(&self) -> &std::path::Path
+pub fn summoner_sys::bundle::allowed_root(format: summoner_sys::bundle::Format) -> core::option::Option<std::path::PathBuf>
+pub fn summoner_sys::bundle::allowed_root_in(fence: &str, repo: &str, format: summoner_sys::bundle::Format) -> core::option::Option<std::path::PathBuf>
+pub fn summoner_sys::bundle::dev_fence() -> core::option::Option<&'static str>
+pub fn summoner_sys::bundle::dev_repo() -> core::option::Option<&'static str>
+pub fn summoner_sys::bundle::foreign_images() -> u64
+pub fn summoner_sys::bundle::pinned_root() -> core::option::Option<std::path::PathBuf>
+pub fn summoner_sys::bundle::process_images_clean() -> core::result::Result<(), summoner_sys::images::ForeignImages>
+pub fn summoner_sys::bundle::shipped_build() -> bool
+pub fn summoner_sys::bundle::stops() -> u64
+pub fn summoner_sys::crash::clear_breadcrumb()
+pub fn summoner_sys::crash::install(log_dir: &std::path::Path) -> core::result::Result<(), summoner_sys::Error>
+pub fn summoner_sys::crash::install_to_stderr()
+pub fn summoner_sys::crash::raise_segv() -> never
+pub fn summoner_sys::crash::set_breadcrumb(op: &str, detail: &str)
+pub fn summoner_sys::crash::set_diag_file(path: &std::path::Path)
+pub fn summoner_sys::crash::set_diag_seq_source(f: fn() -> u64)
+pub fn summoner_sys::dyld::images() -> alloc::vec::Vec<alloc::string::String>
+pub fn summoner_sys::exit_watch::ExitWatch::new(pid: u32) -> core::io::error::Result<summoner_sys::exit_watch::ExitWatch>
+pub fn summoner_sys::exit_watch::ExitWatch::wait(&self, timeout: core::option::Option<core::time::Duration>) -> core::io::error::Result<bool>
+pub fn summoner_sys::images::ForeignImages::is_empty(&self) -> bool
+pub fn summoner_sys::images::is_system_image(p: &std::path::Path) -> bool
+pub fn summoner_sys::images::loaded() -> alloc::vec::Vec<std::path::PathBuf>
+pub fn summoner_sys::num::strtof_strict(s: &[u8]) -> core::option::Option<f32>
+pub fn summoner_sys::proc_exit::exit_now(code: i32) -> never
+pub fn summoner_sys::proc_exit::set_pre_exit(f: fn())
+pub fn summoner_sys::qos::current() -> core::io::error::Result<(summoner_sys::qos::Qos, i32)>
+pub fn summoner_sys::sha256::digest(data: &[u8]) -> [u8; 32]
+pub fn summoner_sys::sha256::hex(data: &[u8]) -> alloc::string::String
+pub fn summoner_sys::workgroup::JoinToken::leave(self)
+pub fn summoner_sys::workgroup::JoinToken::workgroup(&self) -> &summoner_sys::workgroup::Workgroup
+pub fn summoner_sys::workgroup::Workgroup::cancel(&self)
+pub fn summoner_sys::workgroup::Workgroup::copy_port(&self) -> core::result::Result<u32, i32>
+pub fn summoner_sys::workgroup::Workgroup::from_port(name: &core::ffi::c_str::CStr, port: u32) -> core::option::Option<summoner_sys::workgroup::Workgroup>
+pub fn summoner_sys::workgroup::Workgroup::is_cancelled(&self) -> bool
+pub fn summoner_sys::workgroup::Workgroup::join(&self) -> core::result::Result<summoner_sys::workgroup::JoinToken, i32>
+pub fn summoner_sys::workgroup::Workgroup::parallel(name: &core::ffi::c_str::CStr) -> core::option::Option<summoner_sys::workgroup::Workgroup>
+pub fn summoner_sys::workgroup::deallocate_port(port: u32) -> core::result::Result<(), i32>
+pub mod summoner_sys::alloc_count
+pub mod summoner_sys::bundle
+pub mod summoner_sys::crash
+pub mod summoner_sys::dyld
+pub mod summoner_sys::exit_watch
+pub mod summoner_sys::images
+pub mod summoner_sys::num
+pub mod summoner_sys::proc_exit
+pub mod summoner_sys::qos
+pub mod summoner_sys::sha256
+pub mod summoner_sys::workgroup
+pub struct summoner_sys::Error(_);
+pub struct summoner_sys::alloc_count::Counter {private fields}
+pub struct summoner_sys::bundle::Bundle {private fields}
+pub struct summoner_sys::bundle::LoadCheck {private fields}
+pub struct summoner_sys::bundle::PluginRoot {private fields}
+pub struct summoner_sys::exit_watch::ExitWatch {private fields}
+pub struct summoner_sys::images::ForeignImages(pub alloc::vec::Vec<std::path::PathBuf>);
+pub struct summoner_sys::workgroup::JoinToken {private fields}
+pub struct summoner_sys::workgroup::Workgroup(_);
+pub variant summoner_sys::bundle::Format::Au
+pub variant summoner_sys::bundle::Format::Vst3
+pub variant summoner_sys::bundle::Refusal::HardLink(std::path::PathBuf)
+pub variant summoner_sys::bundle::Refusal::NoRoots
+pub variant summoner_sys::bundle::Refusal::NotABundle(std::path::PathBuf)
+pub variant summoner_sys::bundle::Refusal::NotLexical
+pub variant summoner_sys::bundle::Refusal::OutsideRoot
+pub variant summoner_sys::bundle::Refusal::PinMismatch(std::path::PathBuf)
+pub variant summoner_sys::bundle::Refusal::Symlink(std::path::PathBuf)
+pub variant summoner_sys::qos::Qos::Background
+pub variant summoner_sys::qos::Qos::Default
+pub variant summoner_sys::qos::Qos::Other(u32)
+pub variant summoner_sys::qos::Qos::Unspecified
+pub variant summoner_sys::qos::Qos::UserInitiated
+pub variant summoner_sys::qos::Qos::UserInteractive
+pub variant summoner_sys::qos::Qos::Utility

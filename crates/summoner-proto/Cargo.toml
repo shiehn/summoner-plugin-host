@@ -1,0 +1,49 @@
+[package]
+name = "summoner-proto"
+description = "The plugin-host child protocol: the region layout and its C header's generator, the control-channel codec (frames, the streaming decoder, the typed meta), the plugin ref and scan class, the state blob framing; safe code only"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+# The log contract the codec checks a log.set word and a correlation id against (levels, the corr grammar).
+runecraft-contracts.workspace = true
+# The transport bits of `blockFlags` (layout.rs re-exports them from the transport that sets them).
+orrery-time.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[features]
+# Building a test double's PluginRef from Rust code (`PluginRef::fake`). Decoding one needs no feature: a host that is
+# not built for tests decodes a `{"format":"fake",…}` ref and refuses that slot only. A build with it carries
+# `plugin::TEST_DOUBLE_MARKER`, so a shipped binary can be checked for it.
+test-double = []
+
+# The mutation checks of the moved modules (each built with `cargo rustc -p summoner-proto --lib --profile test --
+# --cfg <mutant>`, or RUSTFLAGS in a separate target dir; never in a normal build: all are cfgs nothing sets):
+# src/codec.rs: mutant_scanned_flags_ignored / mutant_scan_flags_ignored (the flag rule skipped for
+# `scanned` or `scan`) fail the codec's negative flag cases; mutant_class_id_unchecked (the classId grammar check
+# removed) fails codec's `a_malformed_class_id_is_refused` (and the compat crate's description test);
+# mutant_oversized_blob_struck (a header refused for its blob size left unclassified) fails form B's L1 test;
+# mutant_log_set_no_s7 and mutant_corr_no_cap fail the codec's log.set and corr cap tests.
+# src/codec/form_b.rs: the scanned wire's codec half; the test that fails on each is named at the head of form_b.rs's
+# tests (mutant_scan_descriptions_uncapped, _scan_line_uncapped, _scan_blob_count_unchecked,
+# _scan_line_seq_accepted, _scan_line_size_after_parse, _discovered_dropped, _scan_encode_count_unchecked,
+# _scan_encode_line_unchecked, _scan_encode_blob_unchecked, _scan_line_canon_unchecked; mutant_scan_form_label_on_wire
+# writes the blob format's label as a meta key and fails the label tests T1 and T2).
+# src/plugin.rs (protocol 4.0's PluginRef): mutant_plugin_ref_uncapped (no 4 KiB bound),
+# mutant_plugin_ref_au_values_unchecked (an AU ref's code values unchecked) and
+# mutant_plugin_ref_unknown_accepted (no deny_unknown_fields) fail plugin's `bad_refs_are_refused`;
+# mutant_scan_class_unknown_refused (a ScanClass with an unknown field refused again) fails plugin's
+# `a_scan_class_with_an_unknown_field_is_accepted` and the compat crate's describe test.
+# mutant_fake_ctor_ungated (`PluginRef::fake` without the `test-double` feature) fails the doc test on
+# `plugin::FakeRef` that must not compile (RUSTFLAGS and RUSTDOCFLAGS both carry the cfg).
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_ref_ctor_unchecked)", "cfg(mutant_fake_ctor_ungated)", "cfg(mutant_class_id_unchecked)", "cfg(mutant_corr_no_cap)", "cfg(mutant_log_set_no_s7)", "cfg(mutant_oversized_blob_struck)", "cfg(mutant_scan_flags_ignored)", "cfg(mutant_scanned_flags_ignored)", "cfg(mutant_discovered_dropped)", "cfg(mutant_scan_blob_count_unchecked)", "cfg(mutant_scan_descriptions_uncapped)", "cfg(mutant_scan_encode_blob_unchecked)", "cfg(mutant_scan_encode_count_unchecked)", "cfg(mutant_scan_encode_line_unchecked)", "cfg(mutant_scan_line_canon_unchecked)", "cfg(mutant_scan_line_seq_accepted)", "cfg(mutant_scan_line_size_after_parse)", "cfg(mutant_scan_line_uncapped)", "cfg(mutant_plugin_ref_au_values_unchecked)", "cfg(mutant_plugin_ref_uncapped)", "cfg(mutant_plugin_ref_unknown_accepted)", "cfg(mutant_scan_class_unknown_refused)", "cfg(mutant_scan_form_label_on_wire)", "cfg(mutant_fan_slot_always)", "cfg(mutant_editor_window_always)", "cfg(mutant_crash_name_stored)", "cfg(mutant_path_relative_ok)"] }
+
+# The README's quick start (`cargo run -p summoner-proto --example summoner_proto_quickstart`); `test = true`, so
+# `cargo test` runs it too.
+[[example]]
+name = "summoner_proto_quickstart"
+test = true

@@ -1,0 +1,38 @@
+[workspace]
+resolver = "3"
+members = ["crates/summoner-proto", "crates/summoner-rt", "crates/summoner-plugin", "crates/summoner", "crates/summoner-scan", "crates/summoner-testkit", "crates/summoner-sys", "crates/summoner-sys-ui", "crates/summoner-proc", "crates/summoner-format-vst3", "crates/summoner-format-au", "crates/summoner-probe", "crates/summoner-probe-bin", "crates/summoner-testproc", "crates/summoner-host"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99.1"
+license = "MIT"
+repository = "https://github.com/shiehn/summoner-plugin-host"
+publish = false
+
+[workspace.dependencies]
+summoner-proto = { path = "crates/summoner-proto" }
+summoner-rt = { path = "crates/summoner-rt" }
+summoner-plugin = { path = "crates/summoner-plugin" }
+summoner = { path = "crates/summoner" }
+summoner-scan = { path = "crates/summoner-scan" }
+summoner-testkit = { path = "crates/summoner-testkit" }
+summoner-sys = { path = "crates/summoner-sys" }
+summoner-sys-ui = { path = "crates/summoner-sys-ui" }
+summoner-proc = { path = "crates/summoner-proc" }
+summoner-format-vst3 = { path = "crates/summoner-format-vst3" }
+summoner-format-au = { path = "crates/summoner-format-au" }
+summoner-probe = { path = "crates/summoner-probe" }
+summoner-probe-bin = { path = "crates/summoner-probe-bin" }
+summoner-testproc = { path = "crates/summoner-testproc" }
+summoner-host = { path = "crates/summoner-host" }
+orrery-time = { git = "https://github.com/shiehn/orrery-musical-time.git", rev = "efd3fa8901001ac4bb174aea46bce33d7806f2a2" }
+runecraft-contracts = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "8f396e411b8a18c3e46f0d38ed3bba266dbd7397" }
+runecraft-ipc = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "8f396e411b8a18c3e46f0d38ed3bba266dbd7397" }
+runecraft-log = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "8f396e411b8a18c3e46f0d38ed3bba266dbd7397" }
+runecraft-rt = { git = "https://github.com/shiehn/runecraft-audio-core.git", rev = "8f396e411b8a18c3e46f0d38ed3bba266dbd7397" }
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+sha2 = "0.10"
+windows-sys = "0.61"

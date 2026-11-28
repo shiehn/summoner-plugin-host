@@ -1,0 +1,57 @@
+# The public API of summoner-testproc (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-testproc; check: tools/public-api.py check.
+impl core::clone::Clone for summoner_testproc::Config
+impl core::clone::Clone for summoner_testproc::Write
+impl core::clone::Clone for summoner_testproc::XParam
+impl core::clone::TrivialClone for summoner_testproc::Write
+impl core::cmp::Eq for summoner_testproc::Write
+impl core::cmp::PartialEq for summoner_testproc::Config
+impl core::cmp::PartialEq for summoner_testproc::Write
+impl core::cmp::PartialEq for summoner_testproc::XParam
+impl core::default::Default for summoner_testproc::Write
+impl core::fmt::Debug for summoner_testproc::Config
+impl core::fmt::Debug for summoner_testproc::Write
+impl core::fmt::Debug for summoner_testproc::XParam
+impl core::marker::Copy for summoner_testproc::Write
+impl core::marker::Send for summoner_testproc::Config
+impl core::marker::Send for summoner_testproc::TestPlugin
+impl core::marker::Send for summoner_testproc::Write
+impl core::marker::Send for summoner_testproc::XParam
+impl core::marker::Sync for summoner_testproc::Config
+impl core::marker::Sync for summoner_testproc::TestPlugin
+impl core::marker::Sync for summoner_testproc::Write
+impl core::marker::Sync for summoner_testproc::XParam
+impl summoner_proc::Plugin for summoner_testproc::TestPlugin
+impl summoner_proc::TestHooks for summoner_testproc::TestPlugin
+pub enum summoner_testproc::Write
+pub field summoner_testproc::Config::crash_load: bool
+pub field summoner_testproc::Config::delay: usize
+pub field summoner_testproc::Config::echo: usize
+pub field summoner_testproc::Config::exit_load: core::option::Option<i32>
+pub field summoner_testproc::Config::feedback: f32
+pub field summoner_testproc::Config::gain: f32
+pub field summoner_testproc::Config::ignore_cc123: bool
+pub field summoner_testproc::Config::io: summoner_proc::Io
+pub field summoner_testproc::Config::latency: u32
+pub field summoner_testproc::Config::name: alloc::string::String
+pub field summoner_testproc::Config::probe: bool
+pub field summoner_testproc::Config::sustain: bool
+pub field summoner_testproc::Config::synth: bool
+pub field summoner_testproc::Config::write: summoner_testproc::Write
+pub field summoner_testproc::Config::xparams: alloc::vec::Vec<summoner_testproc::XParam>
+pub field summoner_testproc::XParam::automatable: bool
+pub field summoner_testproc::XParam::clump: core::option::Option<u32>
+pub field summoner_testproc::XParam::default: f32
+pub field summoner_testproc::XParam::label: alloc::string::String
+pub field summoner_testproc::XParam::name: alloc::string::String
+pub field summoner_testproc::XParam::steps: u32
+pub fn summoner_testproc::Config::from_ref(r: &summoner_proto::plugin::PluginRef, slot: usize) -> core::option::Option<summoner_testproc::Config>
+pub fn summoner_testproc::TestPlugin::new(cfg: summoner_testproc::Config) -> summoner_testproc::TestPlugin
+pub fn summoner_testproc::make(cfg: summoner_testproc::Config) -> alloc::rcs::arc::Arc<dyn summoner_proc::Plugin>
+pub struct summoner_testproc::Config
+pub struct summoner_testproc::TestPlugin(_);
+pub struct summoner_testproc::XParam
+pub variant summoner_testproc::Write::Add
+pub variant summoner_testproc::Write::All
+pub variant summoner_testproc::Write::Ch0
+pub variant summoner_testproc::Write::None

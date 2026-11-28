@@ -1,0 +1,14 @@
+# The public crates whose surface is snapshotted (tools/public-api.py; one package per line).
+summoner-proto
+summoner-rt
+summoner-plugin
+summoner
+summoner-scan
+summoner-testkit
+summoner-sys
+summoner-sys-ui
+summoner-proc
+summoner-format-vst3
+summoner-format-au
+summoner-probe
+summoner-testproc

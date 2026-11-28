@@ -1,0 +1,46 @@
+# N1: what the realtime exchange (`src/rt.rs`, `src/midi.rs`, `src/region.rs`) must never use. The
+# list applies to the whole crate; control-side modules (the render worker) opt out with a module-level allow, so in
+# effect it binds the code the callback runs.
+# The allocator guard (alloc_guard::RealtimeScope) covers allocation at run time; this list covers locks, blocking and growth at review time.
+# Trait methods (`Clone::clone` of an Arc, `From`) cannot be listed by path; review and the guard cover them.
+# Test code may print; non-test code uses runecraft_rt::safe_eprintln! (crate roots
+# deny clippy::print_stderr / print_stdout).
+allow-print-in-tests = true
+disallowed-types = [
+    { path = "std::sync::Mutex", reason = "N1: no locks in the callback" },
+    { path = "std::sync::RwLock", reason = "N1: no locks in the callback" },
+    { path = "std::sync::Condvar", reason = "N1: no blocking in the callback" },
+    { path = "std::sync::Barrier", reason = "N1: no blocking in the callback" },
+    { path = "std::sync::mpsc::Sender", reason = "N1: std channels lock and allocate; use runecraft_rt::handoff rings" },
+    { path = "std::sync::mpsc::Receiver", reason = "N1: std channels lock and allocate; use runecraft_rt::handoff rings" },
+    { path = "std::sync::mpsc::SyncSender", reason = "N1: std channels lock and allocate" },
+    { path = "std::collections::HashMap", reason = "N1: hashing containers allocate; control-side only" },
+    { path = "std::collections::BTreeMap", reason = "N1: allocates; control-side only" },
+]
+disallowed-methods = [
+    { path = "runecraft_ipc::bridge::Waker::wait", reason = "N1: the callback never waits on the child" },
+    { path = "runecraft_ipc::bridge::FanOutEndpoint::wait", reason = "N1: the callback never waits on the child" },
+    { path = "runecraft_ipc::bridge::Waker::wake_all", reason = "the realtime handle only rings (Waker::ring)" },
+    { path = "std::thread::sleep", reason = "N1: no blocking in the callback" },
+    { path = "std::thread::spawn", reason = "N1: no thread creation in the callback" },
+    { path = "std::thread::yield_now", reason = "N1: a syscall" },
+    { path = "std::vec::Vec::push", reason = "N1: may grow; the graveyard uses push_within_capacity semantics (rt::push_reserved)" },
+    { path = "std::vec::Vec::insert", reason = "N1: may grow" },
+    { path = "std::vec::Vec::extend_from_slice", reason = "N1: may grow" },
+    { path = "std::vec::Vec::resize", reason = "N1: may grow" },
+    { path = "std::vec::Vec::reserve", reason = "N1: allocates" },
+    { path = "std::vec::Vec::with_capacity", reason = "N1: allocates" },
+    { path = "std::boxed::Box::new", reason = "N1: allocates; states are built on control and installed by pointer move" },
+    { path = "std::sync::Arc::new", reason = "N1: allocates" },
+    { path = "std::string::String::with_capacity", reason = "N1: allocates" },
+    { path = "std::string::String::push_str", reason = "N1: may grow" },
+    { path = "alloc::fmt::format", reason = "N1: allocates" },
+    { path = "std::io::stdout", reason = "N1: locks and writes" },
+    { path = "std::io::stderr", reason = "N1: locks and writes" },
+    { path = "runecraft_rt::stderr::err", reason = "N1: safe_eprintln! locks and writes" },
+    { path = "runecraft_rt::stderr::out", reason = "N1: safe_println! locks and writes" },
+    { path = "std::time::Instant::now", reason = "N1: a clock read; the frame counter is the callback's clock" },
+    { path = "std::time::SystemTime::now", reason = "N1: a syscall" },
+    { path = "std::env::var", reason = "N1: the environment is no input of the realtime path" },
+    { path = "std::env::var_os", reason = "N1: the environment is no input of the realtime path" },
+]

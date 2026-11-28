@@ -1,0 +1,94 @@
+# The public API of summoner-probe (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-probe; check: tools/public-api.py check.
+#[non_exhaustive] pub struct summoner_probe::Probe
+#[non_exhaustive] pub struct summoner_probe::Report
+#[non_exhaustive] pub struct summoner_probe::Validated
+impl core::clone::Clone for summoner_probe::Error
+impl core::clone::Clone for summoner_probe::Probe
+impl core::clone::Clone for summoner_probe::Report
+impl core::clone::Clone for summoner_probe::Validated
+impl core::clone::Clone for summoner_probe::macho::Arch
+impl core::cmp::Eq for summoner_probe::Error
+impl core::cmp::Eq for summoner_probe::macho::Arch
+impl core::cmp::PartialEq for summoner_probe::Error
+impl core::cmp::PartialEq for summoner_probe::macho::Arch
+impl core::convert::From<&str> for summoner_probe::Error
+impl core::convert::From<alloc::string::String> for summoner_probe::Error
+impl core::convert::From<summoner_probe::Error> for alloc::string::String
+impl core::default::Default for summoner_probe::Probe
+impl core::error::Error for summoner_probe::Error
+impl core::fmt::Debug for summoner_probe::Error
+impl core::fmt::Debug for summoner_probe::Probe
+impl core::fmt::Debug for summoner_probe::Report
+impl core::fmt::Debug for summoner_probe::Validated
+impl core::fmt::Debug for summoner_probe::macho::Arch
+impl core::fmt::Display for summoner_probe::Error
+impl core::marker::Send for summoner_probe::Error
+impl core::marker::Send for summoner_probe::NoSteps
+impl core::marker::Send for summoner_probe::Probe
+impl core::marker::Send for summoner_probe::Report
+impl core::marker::Send for summoner_probe::Validated
+impl core::marker::Send for summoner_probe::macho::Arch
+impl core::marker::Sync for summoner_probe::Error
+impl core::marker::Sync for summoner_probe::NoSteps
+impl core::marker::Sync for summoner_probe::Probe
+impl core::marker::Sync for summoner_probe::Report
+impl core::marker::Sync for summoner_probe::Validated
+impl core::marker::Sync for summoner_probe::macho::Arch
+impl serde_core::ser::Serialize for summoner_probe::Probe
+impl serde_core::ser::Serialize for summoner_probe::Report
+impl serde_core::ser::Serialize for summoner_probe::Validated
+impl summoner_probe::Step for summoner_probe::NoSteps
+pub const summoner_probe::AU_CODES_WORD: &str = "auCodes"
+pub const summoner_probe::POLICY_PROHIBITED: i64 = 2
+pub const summoner_probe::POLICY_REGULAR: i64 = 0
+pub enum summoner_probe::macho::Arch
+pub field summoner_probe::Probe::loaded_images: alloc::vec::Vec<alloc::string::String>
+pub field summoner_probe::Probe::policy_after: core::option::Option<i64>
+pub field summoner_probe::Probe::refs: alloc::vec::Vec<summoner_proto::plugin::PluginRef>
+pub field summoner_probe::Probe::validation: alloc::vec::Vec<summoner_probe::Validated>
+pub field summoner_probe::Probe::window_checks: u32
+pub field summoner_probe::Report::discovered: alloc::vec::Vec<summoner_proto::plugin::ScanClass>
+pub field summoner_probe::Report::probe: summoner_probe::Probe
+pub field summoner_probe::Report::scanned: summoner_proto::codec::Scanned
+pub field summoner_probe::Validated::detail: core::option::Option<alloc::string::String>
+pub field summoner_probe::Validated::key: alloc::string::String
+pub field summoner_probe::Validated::name: alloc::string::String
+pub field summoner_probe::Validated::ok: bool
+pub field summoner_probe::Validated::reason: core::option::Option<alloc::string::String>
+pub fn summoner_probe::Error::as_str(&self) -> &str
+pub fn summoner_probe::PolicyReader::policy(&self) -> core::option::Option<i64>
+pub fn summoner_probe::Probe::new(refs: alloc::vec::Vec<summoner_proto::plugin::PluginRef>, validation: alloc::vec::Vec<summoner_probe::Validated>, loaded_images: alloc::vec::Vec<alloc::string::String>, policy_after: core::option::Option<i64>, window_checks: u32) -> summoner_probe::Probe
+pub fn summoner_probe::Report::new(scanned: summoner_proto::codec::Scanned, probe: summoner_probe::Probe, discovered: alloc::vec::Vec<summoner_proto::plugin::ScanClass>) -> summoner_probe::Report
+pub fn summoner_probe::Step::step(&self, name: &str)
+pub fn summoner_probe::Validated::new(name: alloc::string::String, key: alloc::string::String, ok: bool, reason: core::option::Option<alloc::string::String>, detail: core::option::Option<alloc::string::String>) -> summoner_probe::Validated
+pub fn summoner_probe::check_policy(r: &mut summoner_probe::Report, reader: &dyn summoner_probe::PolicyReader)
+pub fn summoner_probe::discover_au(b: &summoner_sys::bundle::Bundle) -> core::result::Result<alloc::vec::Vec<summoner_proto::plugin::ScanClass>, summoner_probe::Error>
+pub fn summoner_probe::discover_vst3(b: &summoner_sys::bundle::Bundle) -> core::result::Result<alloc::vec::Vec<summoner_proto::plugin::ScanClass>, summoner_probe::Error>
+pub fn summoner_probe::failed_report(scan: &summoner_proto::codec::Scan, reason: summoner_proto::codec::ScanFailure, detail: impl core::convert::Into<alloc::string::String>) -> summoner_probe::Report
+pub fn summoner_probe::macho::arch_of(exe: &std::path::Path) -> core::io::error::Result<summoner_probe::macho::Arch>
+pub fn summoner_probe::macho::cpu_name(t: u32) -> alloc::string::String
+pub fn summoner_probe::macho::executable(bundle: &std::path::Path) -> core::result::Result<std::path::PathBuf, summoner_probe::Error>
+pub fn summoner_probe::macho::parse(b: &[u8]) -> summoner_probe::macho::Arch
+pub fn summoner_probe::mtime_ms(p: &std::path::Path) -> i64
+pub fn summoner_probe::plugin_ref(c: &summoner_proto::plugin::ScanClass) -> core::option::Option<summoner_proto::plugin::PluginRef>
+pub fn summoner_probe::scan(scan: &summoner_proto::codec::Scan, steps: &dyn summoner_probe::Step) -> summoner_probe::Report
+pub fn summoner_probe::word(r: &summoner_proto::codec::ScanFailure) -> alloc::string::String
+pub mod summoner_probe::macho
+pub struct summoner_probe::Error(_);
+pub struct summoner_probe::NoSteps;
+pub trait summoner_probe::PolicyReader
+pub trait summoner_probe::Step
+pub use summoner_probe::PluginRef = summoner_proto::plugin::PluginRef
+pub use summoner_probe::Reason = summoner_proto::codec::ScanFailure
+pub use summoner_probe::Scan = summoner_proto::codec::Scan
+pub use summoner_probe::ScanClass = summoner_proto::plugin::ScanClass
+pub use summoner_probe::ScanFormat = summoner_proto::codec::ScanFormat
+pub use summoner_probe::Scanned = summoner_proto::codec::Scanned
+pub use summoner_probe::ScannedOutcome = summoner_proto::codec::ScannedOutcome
+pub use summoner_probe::discover_au = validate::discover_au
+pub use summoner_probe::discover_vst3 = validate::discover_vst3
+pub use summoner_probe::mtime_ms = validate::mtime_ms
+pub variant summoner_probe::macho::Arch::Arm64
+pub variant summoner_probe::macho::Arch::NotMachO
+pub variant summoner_probe::macho::Arch::Other(alloc::vec::Vec<u32>)

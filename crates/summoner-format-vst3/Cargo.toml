@@ -1,0 +1,26 @@
+[package]
+name = "summoner-format-vst3"
+description = "VST3 slots for the host child: a slot's bundle and class id, the Audio Module class with that id, and the summoner-proc Plugin / Dsp over summoner-sys's shim handles"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+runecraft-rt.workspace = true
+summoner-plugin.workspace = true
+summoner-proto.workspace = true
+# The prefault helpers (`runecraft_rt::os::prefaulted`, `prefault_spare`): runecraft-rt's.
+summoner-proc.workspace = true
+summoner-sys = { workspace = true, features = ["vst3"] }
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[[bin]]
+name = "summoner-vst3-probe"
+path = "src/bin/summoner-vst3-probe.rs"
+
+[lints.rust]
+# Mutants: RUSTFLAGS="--cfg mutant_<name>" must turn their named test red.
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_param_automatable_always)", "cfg(mutant_param_set_any_id)", "cfg(mutant_bus_width)"] }

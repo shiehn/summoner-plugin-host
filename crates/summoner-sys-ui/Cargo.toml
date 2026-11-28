@@ -1,0 +1,20 @@
+[package]
+name = "summoner-sys-ui"
+description = "The second (and only other) crate allowed unsafe: the scan probe's AppKit and CoreGraphics surfaces (the no-UI rules), apart from summoner-sys so that nothing the host child links pulls AppKit in (a sys feature would be unified into it). summoner-sys's rules: one module per surface, every unsafe block with a SAFETY comment, each reviewed"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+
+[features]
+# appkit.rs: NSApplication and NSWorkspace through the Objective-C runtime. OFF, and enabled by nothing: the rule is no
+# NSApplication in the scan child; linking AppKit at all is what this keeps out.
+appkit = []
+# nsapp.rs: the activation-policy reader, the NSApp a plugin may have made, found with dlsym (no AppKit linked). DRAFT:
+# enabled by nothing until accepted.
+nsapp = []
+# windows.rs: CGWindowListCopyWindowInfo. OFF, enabled by nothing (the call alone connects to the WindowServer, which
+# preflights TCC ListenEvent and ScreenCapture): the no-UI watchdog is parked.
+windows = []

@@ -6,11 +6,12 @@
 
 Summoner is the component that loads and runs VST3 and Audio Unit plugins in a separate helper process, so a
 crashing or hanging plugin can't take your application down, and is part of **Signals & Sorcery**, an ecosystem of
-Rust audio components for building high-performance audio applications and DAWs.
+Rust audio building blocks for building high-performance audio applications and DAWs
+([signalsandsorcery.com](https://signalsandsorcery.com),
+[Summoner's page](https://signalsandsorcery.com/components/summoner-plugin-host/)).
 
-**Status: In preparation: the code is being made ready for its first public release.** The crates described below
-exist and are tested, but they live in another repository today. This repository holds the README until the first
-public release. The public API is still being reviewed, so names and signatures may change.
+The crates described below, the library and the host program, are in this repository. They are not yet published to
+crates.io, and some names and signatures may still change before their first release.
 
 **Documentation:** [signalsandsorcery.com/components/summoner-plugin-host](https://signalsandsorcery.com/components/summoner-plugin-host/) · [all twelve components](https://signalsandsorcery.com/components/) · [for agents](https://signalsandsorcery.com/#for-agents) · [llms.txt](https://signalsandsorcery.com/llms.txt)
 
@@ -52,47 +53,104 @@ Your application talks to Summoner through two bounded queues: **commands** in a
 command never waits. If the queue is full, the send returns "busy" straight away and you can retry. Events arrive
 on a channel you own, so your control thread decides when to look at them.
 
-The sketch below shows the intended shape of the public API.
+In code, the library is the crate `summoner`: `Bridge::start` takes a `Config` (the host program's path, the sample
+rate and your state hasher) and the sender of your event channel, spawns the host program and does the handshake.
+`Bridge::send` takes a `Command` (`Load` a `ChainSpec` under a key, `Unload`, `SetState`, `GetState`, `ParamList`,
+`Park`, `Unpark` and more) and returns `Busy` instead of waiting. The `Event`s that come back include `ChildUp`,
+`ChainReady` (with the chain's `ChainLink` for your audio thread), `ChainDown` (with a `DownReason`), `StateRead` and
+`ParamList`.
 
 ```rust
-// Illustrative sketch: the planned shape of the public API, not final.
-use std::sync::{mpsc, Arc};
-use summoner::{ChainSpec, Command, Config, Event, Host, PluginRef};
+//! Start the supervisor, load one chain and watch its events. The supervisor spawns the host program (the helper
+//! process that loads the plugins), does the handshake, and reports what happens as events on a channel you own.
+//!
+//! ```sh
+//! cargo build -p summoner-host
+//! cargo run -p summoner --example summoner_quickstart -- target/debug/summoner-host [<bundle.vst3> <class id>]
+//! ```
+//!
+//! With no plugin named, the chain holds one empty slot, which passes its input through.
+use std::sync::Arc;
+use std::sync::mpsc::{RecvTimeoutError, sync_channel};
+use std::time::{Duration, Instant};
 
-// Start the supervisor. It spawns the helper process and does the handshake.
-let (events_tx, events) = mpsc::sync_channel(4096);
-let config = Config::new("path/to/summoner-host".into(), 48_000.0, Arc::new(MyStateHasher));
-let host = Host::start(config, events_tx)?;
+use runecraft_contracts::digest::NoStateHash;
+use summoner::supervisor::{Bridge, ChainSpec, Command, Config, Event};
+use summoner_proto::codec::Role;
+use summoner_proto::layout::Geometry;
+use summoner_proto::plugin::PluginRef;
 
-// Ask for a chain: one instrument followed by one effect.
-let spec = ChainSpec::stereo()
-    .slot(PluginRef::vst3("/Library/Audio/Plug-Ins/VST3/MySynth.vst3", synth_class_id))
-    .slot(PluginRef::audio_unit(effect_type, effect_subtype, effect_manufacturer));
-host.send(Command::Load { key: 1, spec, states: vec![] })?;
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut args = std::env::args().skip(1);
+    let Some(program) = args.next() else {
+        eprintln!("usage: summoner_quickstart <host program> [<bundle.vst3> <class id>]");
+        return Ok(());
+    };
+    let plugin = match (args.next(), args.next()) {
+        (Some(bundle), Some(class_id)) => Some(PluginRef::vst3(bundle, class_id, "plugin")?),
+        _ => None,
+    };
 
-// React to what happens, on your control thread.
-for event in events {
-    match event {
-        Event::ChainReady { key, link, slots, .. } => audio.install(key, link, slots),
-        Event::ChainDown { key, reason } => audio.silence(key, reason),
-        Event::StateRead { key, slot, blob, .. } => project.store_state(key, slot, blob),
-        _ => {}
+    // The state hasher is your application's choice; NoStateHash reports no digest.
+    let config = Config::new(program.into(), 48_000.0, Arc::new(NoStateHash));
+    let (events_tx, events) = sync_channel(config.event_bound);
+    let bridge = Bridge::start(config, events_tx)?;
+
+    // One live stereo chain of one slot, for blocks of up to 512 frames. Sending never waits: a full command queue
+    // hands the command back (`Busy`) for you to retry.
+    let spec = ChainSpec::new(Geometry::stereo(512), Role::Live, vec![plugin]);
+    if let Err(busy) = bridge.send(Command::Load {
+        key: 1,
+        spec,
+        states: vec![],
+    }) {
+        eprintln!("the command queue is full: {:?}", busy.0);
     }
+
+    // React on your control thread. `ChainReady` carries the link your audio callback exchanges blocks through.
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while Instant::now() < deadline {
+        match events.recv_timeout(Duration::from_millis(100)) {
+            Ok(Event::ChildUp {
+                pid, incarnation, ..
+            }) => println!("host program up: pid {pid}, incarnation {incarnation}"),
+            Ok(Event::ChainReady {
+                key, slots, link, ..
+            }) => {
+                println!(
+                    "chain {key} ready: {} slot(s), delay compensation {} frames",
+                    slots.len(),
+                    link.pdc_latency(512)
+                );
+                break;
+            }
+            Ok(Event::ChainDown { key, reason }) => {
+                println!("chain {key} down: {reason:?}");
+                break;
+            }
+            Ok(other) => println!("event: {other:?}"),
+            Err(RecvTimeoutError::Timeout) => {}
+            Err(RecvTimeoutError::Disconnected) => break,
+        }
+    }
+    bridge.shutdown();
+    Ok(())
 }
 ```
 
-On the audio thread, a chain's link is called once per block. It hands over this block's input, MIDI and transport,
-and gives back the output the helper produced.
-
-```rust
-// Illustrative sketch: the audio-thread side.
-fn process(&mut self, io: &mut AudioIo, midi: &[TimedMidi], transport: &Transport) {
-    // No allocation, no lock, no blocking: one shared-memory exchange and at most one wake.
-    self.link.exchange(io, midi, transport);
-}
+```sh
+cargo build -p summoner-host
+cargo run -p summoner --example summoner_quickstart -- target/debug/summoner-host
 ```
 
-If the helper misses a deadline, the block is filled with silence (or the dry input, for an effect) and counted.
+With no plugin named, the chain holds one empty slot, which passes its input through.
+
+On the audio thread, a chain's `ChainLink` is driven once per block through
+[`summoner-rt`](crates/summoner-rt/README.md): it hands over this block's input, MIDI and transport, and takes back
+the output the helper produced, with no allocation, no lock and at most one wake.
+
+If the helper misses a deadline, the block is played as a short ramp to silence (or as the dry input, for a chain
+marked as a monitor) and counted.
 Your audio thread is never held up.
 
 ### Failures are part of the API
@@ -119,14 +177,21 @@ exercise every failure path without installing a single third-party plugin.
 
 | Crate | What it holds |
 |---|---|
-| `summoner` | the supervisor: spawn, handshake, the chain catalogue, respawn, quarantine, the wedge detector, the save burst, an injectable clock |
-| `summoner-proto` | the protocol both processes agree on: the shared-memory layout (with a generated C header), the control-frame codec, plugin references and scan results, the state blob framing |
-| `summoner-rt` | the realtime exchange on the host side: the shared-memory views, the per-block exchange, held notes and note chasing, the offline render worker |
-| `summoner-scan` | the scan supervisor: one probe per process, its own process group, a time budget, a verdict for every plugin |
-| `summoner-plugin` | the rules a host applies to every slot: the channel rule, the parameter order and name limits, the latency-change handover |
-| `summoner-testkit` | the test double of the host program |
-
-The host program itself, which links the VST3 and Audio Unit loaders, will ship in this repository too.
+| [`summoner`](crates/summoner/README.md) | the supervisor: spawn, handshake, the chain catalogue, respawn, quarantine, the wedge detector, the save burst, an injectable clock |
+| [`summoner-proto`](crates/summoner-proto/README.md) | the protocol both processes agree on: the shared-memory layout (with a generated C header), the control-frame codec, plugin references and scan results, the state blob framing |
+| [`summoner-rt`](crates/summoner-rt/README.md) | the realtime exchange on the host side: the shared-memory views, the per-block exchange, held notes and note chasing, the offline render worker |
+| [`summoner-scan`](crates/summoner-scan/README.md) | the scan supervisor: one probe per process, its own process group, a time budget, a verdict for every plugin |
+| [`summoner-plugin`](crates/summoner-plugin/README.md) | the rules a host applies to every slot: the parameter order and name limits, the latency-change handover |
+| [`summoner-testkit`](crates/summoner-testkit/README.md) | the test double of the host program |
+| [`summoner-host`](crates/summoner-host/README.md) | the host program: the helper executable that loads the plugins, runs their chains on its realtime threads and owns their editors |
+| [`summoner-proc`](crates/summoner-proc/README.md) | what the host program runs in a chain slot: the `Plugin` and `Dsp` traits and the block a `Dsp` processes |
+| [`summoner-format-vst3`](crates/summoner-format-vst3/README.md) | VST3 slots |
+| [`summoner-format-au`](crates/summoner-format-au/README.md) | Audio Unit (v2) slots |
+| [`summoner-probe`](crates/summoner-probe/README.md) | the scan's discovery and validation of one bundle |
+| [`summoner-probe-bin`](crates/summoner-probe-bin/README.md) | the scan probe program |
+| [`summoner-testproc`](crates/summoner-testproc/README.md) | the in-process test double for a chain slot |
+| [`summoner-sys`](crates/summoner-sys/README.md) | the host program's system and SDK calls (process-exit watch, crash handler, the VST3 and Audio Unit shims) |
+| [`summoner-sys-ui`](crates/summoner-sys-ui/README.md) | the scan probe's AppKit and CoreGraphics calls, apart from everything the host program links |
 
 ## Design principles
 
@@ -134,13 +199,15 @@ The host program itself, which links the VST3 and Audio Unit loaders, will ship 
   or stop your audio thread.
 - **Realtime safety.** The audio-thread side never allocates, locks or makes a blocking call. The only system call it
   makes is the doorbell that wakes the helper. Tests run the realtime path under an allocation guard, and the
-  shared-memory handoff is model-checked with loom.
+  handoffs underneath are Runecraft's, which are model-checked with loom.
 - **The helper is untrusted.** Every value read from shared memory or the control channel is checked and clamped.
-  The codec has fuzz targets. A helper that lies can only hurt its own chains.
+  The codec's decoder bounds every length before it reads. A helper that lies can only hurt its own chains.
 - **No global state.** Everything hangs off the value you start. Two hosts in one process don't share anything.
 - **Headless operation.** Scanning, loading, state, parameters and render all work without a window. Editors are
   optional.
-- **Safe code above the floor.** Every Summoner crate is `#![forbid(unsafe_code)]`. The system calls (shared memory,
+- **Safe code above the floor.** Every Summoner crate except `summoner-sys` and `summoner-sys-ui` is
+  `#![forbid(unsafe_code)]`; those two hold the host program's system and plugin-SDK calls, one module per surface,
+  each `unsafe` block with its safety comment. The supervisor's system calls (shared memory,
   process spawn, descriptor passing) live in [Runecraft](https://github.com/shiehn/runecraft-audio-core), each with a
   written safety contract.
 - **Your application decides.** The state hash is injected, the clock is injectable, and logging goes to a sink you
@@ -151,8 +218,8 @@ The host program itself, which links the VST3 and Audio Unit loaders, will ship 
 | Platform | Plugin formats | Status |
 |---|---|---|
 | macOS (Apple silicon) | VST3, Audio Unit | where it runs today |
-| Windows | VST3 | planned |
-| Linux | VST3 | planned |
+| Windows | VST3 | in progress |
+| Linux | VST3 | in progress |
 | Any | CLAP | planned |
 
 The helper's realtime threads can join the host application's audio workgroup on macOS, so the system schedules them
@@ -188,7 +255,8 @@ What Summoner deliberately doesn't do:
 ## Trademarks
 
 VST is a registered trademark of Steinberg Media Technologies GmbH. Audio Unit is a trademark of Apple Inc. The VST3
-SDK will be fetched at build time, never copied into this repository.
+SDK and Apple's AudioUnitSDK are fetched at build time at pinned revisions (`tools/build-plugins.sh --fetch`), never
+copied into this repository; see [VENDORED.md](VENDORED.md).
 
 ## The Signals & Sorcery components
 
@@ -223,6 +291,19 @@ Signal flow          Leyline
 Sound and devices    Cantrips, Scriptorium, Aethergate, Summoner
 The floor            Runecraft, Orrery
 ```
+
+## Related repositories
+
+The three code repositories of Signals & Sorcery today, each with its own crates:
+
+- [Runecraft](https://signalsandsorcery.com/components/runecraft-audio-core/) (`runecraft-audio-core`): shared
+  contracts, realtime safety, process isolation and realtime-safe logging.
+- [Orrery](https://signalsandsorcery.com/components/orrery-musical-time/) (`orrery-musical-time`): musical time.
+- [Summoner](https://signalsandsorcery.com/components/summoner-plugin-host/) (`summoner-plugin-host`): out-of-process
+  VST3 and Audio Unit plugin hosting.
+
+Every component, with its repository, is in the table above and on the
+[components index](https://signalsandsorcery.com/components/).
 
 ## Licence
 

@@ -1,0 +1,44 @@
+[package]
+name = "summoner-sys"
+description = "The one crate in this repo with unsafe code (beside summoner-sys-ui): the kernel's process-exit watch (kqueue EVFILT_PROC NOTE_EXIT), the fatal-signal crash handler and its plugin breadcrumb, and the test double's SIGSEGV. One module per surface, every unsafe block with a SAFETY comment"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+runecraft-rt.workspace = true
+# The names a host and its parent agree on (the crash log, the lab death switch).
+summoner-proto.workspace = true
+# The prefault helpers (`runecraft_rt::os::prefaulted`, `prefault_spare`): runecraft-rt's.
+libc = "0.2"
+
+[build-dependencies]
+cc = { version = "1.2", optional = true }
+
+[features]
+# The VST3 host shim (vst3/): compiled from the pinned SDK (testkit/plugins/vst3-sdk.pins, verified by
+# tools/vst3-sdk.sh) by build.rs. Off by default, so a build without the SDK fetched still works.
+vst3 = ["dep:cc"]
+# The lab's death switch (crash.rs `lab_abort` / `lab_segv`, `SUMMONER_LAB_DEATH=kill`): the test double's only.
+lab-deaths = []
+# AU v2 hosting (au.rs): AudioToolbox and CoreFoundation, system frameworks; nothing is compiled from the SDK here.
+au = []
+# The plugin editor windows (editor.rs): build.rs compiles editor/editor.mm into its OWN
+# dylib, libsummoner_editor.dylib (AppKit linked into it alone); editor.rs dlopens it by absolute path on first use, so
+# no binary of this repo links AppKit, CoreGraphics or libobjc (release_build.rs's link guard).
+editor = []
+# The release loading policy: `Bundle::check` runs the release policy instead of the lab gate. OFF by default: every
+# lab build and test keeps the lab gate exactly. Built with SUMMONER_DEV_PLUGIN_ROOTS (every lab build), it is fenced
+# to the lab; a build for real plugin folders is a separate, deliberate release decision.
+release-loading = []
+
+[lints.rust]
+# Mutants: RUSTFLAGS="--cfg mutant_<name>" must turn their named test red.
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_scrub_labels_blind)", "cfg(mutant_dev_repo_by_suffix)", "cfg(mutant_vst3_sdk_fail_open)", "cfg(mutant_dev_roots_unfenced)", "cfg(mutant_dev_roots_malformed_accepted)", "cfg(mutant_manifest_strips_cr)", "cfg(mutant_manifest_dup_accepted)", "cfg(mutant_manifest_literal_backslash)", "cfg(mutant_image_system_any_usr)"] }
+
+# The README quick start (the examples/*_quickstart.rs file, shown byte for byte in README.md; tests/readme.rs checks it);
+# `test = true`, so `cargo test` runs it too.
+[[example]]
+name = "summoner_sys_quickstart"
+test = true

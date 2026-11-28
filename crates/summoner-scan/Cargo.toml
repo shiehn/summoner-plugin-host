@@ -1,0 +1,32 @@
+[package]
+name = "summoner-scan"
+description = "The plugin host's scan supervisor: one probe per process in its own process group, its stderr captured, the reader's blob budget, the time budget and the verdict table; safe code only"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+# The supervisor's spawn arguments and crash folder rule, the log seams.
+summoner.workspace = true
+summoner-proto.workspace = true
+runecraft-contracts.workspace = true
+runecraft-rt.workspace = true
+runecraft-ipc.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+# The unit tests bind channels to a made-up peer (`runecraft_ipc::process::testing::Unspawned`).
+runecraft-ipc = { workspace = true, features = ["test-peer"] }
+
+[features]
+# The scan supervisor's test seams (`ScanConfig::seam_hold_*`). Enabled only from a
+# dev-dependency, so no `cargo build` of a binary has it.
+scan-seams = []
+
+# The mutation checks of src/scan.rs (RUSTFLAGS="--cfg <mutant>", or `cargo rustc -p summoner-scan --lib --profile
+# test -- --cfg <mutant>` for its unit tests): the test that fails on each is named at its
+# site (the verdict table, the drain, the half frame, the blob budget).
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(loom)", "cfg(mutant_au_step_not_passed)", "cfg(mutant_budget_kill_crashed)", "cfg(mutant_discovered_dropped)", "cfg(mutant_fault_after_receipt_unstruck)", "cfg(mutant_half_frame_struck)", "cfg(mutant_no_outer_limit)", "cfg(mutant_no_scan_drain)", "cfg(mutant_oversized_scanned_struck)", "cfg(mutant_scan_blob_budget_off)", "cfg(mutant_scan_no_offer)", "cfg(mutant_scan_reader_unbounded)", "cfg(mutant_usage_exit_strike)", "cfg(mutant_exception_as_exit)"] }

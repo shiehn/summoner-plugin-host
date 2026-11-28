@@ -1,0 +1,37 @@
+[package]
+name = "summoner"
+description = "The plugin host's supervisor: spawn with the control channel and the mach route, the reader and reaper threads, the chain catalogue and generations, the save burst, respawn, quarantine, the wedge detector, the adaptive depth, the injectable clock; safe code only"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+# The control-channel frames, the plugin ref, the region layout, the state blob framing.
+summoner-proto.workspace = true
+# The region views, the realtime exchange types a chain link holds, the render worker.
+summoner-rt.workspace = true
+# The parameter cuts and the reactivation budget.
+summoner-plugin.workspace = true
+# The log contract (records, levels, the sink) and the injected state hash.
+runecraft-contracts.workspace = true
+# The realtime floor (memory queries, the stderr writer).
+runecraft-rt.workspace = true
+# The cross-process floor (spawn, the channel's descriptor passing, the mach ports, the waits, the crash folder check).
+runecraft-ipc.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+# The unit tests bind channels to a made-up peer (`runecraft_ipc::process::testing::Unspawned`).
+runecraft-ipc = { workspace = true, features = ["test-peer"] }
+
+[features]
+# The bench seam (`supervisor::bench_seam`, the reader bounds' tickets, the shipped reader thread for a reader
+# bench). It adds no behaviour. Enabled only from a dev-dependency, so no `cargo build` of a binary has it.
+bench-seams = ["runecraft-ipc/test-peer"]
+
+# The mutation checks of src/supervisor.rs (RUSTFLAGS="--cfg <mutant>" in a separate target dir; never in a normal
+# build: all are cfgs nothing sets). The test that fails on each is named at its site (the live hello, the reader budget, editors, the save burst, log.set, slot notices, the state hash).
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(loom)", "cfg(mutant_child_log_env_unwritten)", "cfg(mutant_config_hasher_dropped)", "cfg(mutant_corr_echo_unchecked)", "cfg(mutant_e_no_byte_budget)", "cfg(mutant_e_remark_ignored)", "cfg(mutant_editor_open_render)", "cfg(mutant_editor_reload_silent)", "cfg(mutant_emit_before_arm)", "cfg(mutant_live_reader_leak_on_drop)", "cfg(mutant_live_reader_no_close)", "cfg(mutant_live_reader_no_frame_bound)", "cfg(mutant_live_reader_post_alloc)", "cfg(mutant_load_live_key)", "cfg(mutant_log_set_no_hello_resync)", "cfg(mutant_log_set_shared_gen)", "cfg(mutant_log_set_without_log_dir)", "cfg(mutant_major_unchecked)", "cfg(mutant_no_hello_deadline)", "cfg(mutant_param_entry_unclamped)", "cfg(mutant_pre_hello_sends)", "cfg(mutant_prepared_absent_zero)", "cfg(mutant_protocol_blamed)", "cfg(mutant_render_flags_zero)", "cfg(mutant_read_swallows_move)", "cfg(mutant_refused_swallows_move)", "cfg(mutant_notices_dropped)", "cfg(mutant_union_notices)", "cfg(mutant_notice_updates_dropped)", "cfg(mutant_sasp_child_unchecked)", "cfg(mutant_sasp_package_unchecked)", "cfg(mutant_state_hasher_ignored)", "cfg(mutant_usage_exit_ignores_hello)", "cfg(mutant_usage_exit_respawns)"] }

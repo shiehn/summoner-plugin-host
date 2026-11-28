@@ -1,0 +1,6 @@
+# The public API of summoner-testkit (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner-testkit; check: tools/public-api.py check.
+pub const summoner_testkit::fake_host::DEATH_SWITCH_ENV: &str = summoner_proto::host_names::LAB_DEATH_ENV
+pub const summoner_testkit::fake_host::SCAN_SCRIPT_ENV: &str = "SUMMONER_FAKE_SCAN"
+pub fn summoner_testkit::fake_host::main()
+pub mod summoner_testkit::fake_host

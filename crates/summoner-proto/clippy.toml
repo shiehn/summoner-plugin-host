@@ -1,0 +1,35 @@
+# N1: what code on a realtime path must never use (the realtime exchange's list, without its floor entries: this crate does
+# not link the floor's FFI). Only layout.rs's constants and geometry are read on the callback; the control-side modules
+# (codec, form_b, plugin, sasp, header) opt out with a module-level allow.
+allow-print-in-tests = true
+disallowed-types = [
+    { path = "std::sync::Mutex", reason = "N1: no locks in the callback" },
+    { path = "std::sync::RwLock", reason = "N1: no locks in the callback" },
+    { path = "std::sync::Condvar", reason = "N1: no blocking in the callback" },
+    { path = "std::sync::Barrier", reason = "N1: no blocking in the callback" },
+    { path = "std::sync::mpsc::SyncSender", reason = "N1: std channels lock and allocate" },
+    { path = "std::collections::HashMap", reason = "N1: hashing containers allocate; control-side only" },
+    { path = "std::collections::BTreeMap", reason = "N1: allocates; control-side only" },
+]
+disallowed-methods = [
+    { path = "std::thread::sleep", reason = "N1: no blocking in the callback" },
+    { path = "std::thread::spawn", reason = "N1: no thread creation in the callback" },
+    { path = "std::thread::yield_now", reason = "N1: a syscall" },
+    { path = "std::vec::Vec::push", reason = "N1: may grow; the graveyard uses push_within_capacity semantics (rt::push_reserved)" },
+    { path = "std::vec::Vec::insert", reason = "N1: may grow" },
+    { path = "std::vec::Vec::extend_from_slice", reason = "N1: may grow" },
+    { path = "std::vec::Vec::resize", reason = "N1: may grow" },
+    { path = "std::vec::Vec::reserve", reason = "N1: allocates" },
+    { path = "std::vec::Vec::with_capacity", reason = "N1: allocates" },
+    { path = "std::boxed::Box::new", reason = "N1: allocates; states are built on control and installed by pointer move" },
+    { path = "std::sync::Arc::new", reason = "N1: allocates" },
+    { path = "std::string::String::with_capacity", reason = "N1: allocates" },
+    { path = "std::string::String::push_str", reason = "N1: may grow" },
+    { path = "alloc::fmt::format", reason = "N1: allocates" },
+    { path = "std::io::stdout", reason = "N1: locks and writes" },
+    { path = "std::io::stderr", reason = "N1: locks and writes" },
+    { path = "std::time::Instant::now", reason = "N1: a clock read; the frame counter is the callback's clock" },
+    { path = "std::time::SystemTime::now", reason = "N1: a syscall" },
+    { path = "std::env::var", reason = "N1: the environment is no input of the realtime path (FZ is always on)" },
+    { path = "std::env::var_os", reason = "N1: the environment is no input of the realtime path (FZ is always on)" },
+]

@@ -1,0 +1,64 @@
+[package]
+name = "summoner-host"
+description = "The Rust plugin host program: the helper process side of the summoner protocol, over the summoner and runecraft crates (fd 3, the region, the hubs, the frames), chains of hosted slots"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+build = "build.rs"
+
+[dependencies]
+runecraft-rt.workspace = true
+runecraft-ipc.workspace = true
+runecraft-log.workspace = true
+summoner-plugin.workspace = true
+summoner-proto.workspace = true
+summoner-rt.workspace = true
+summoner-scan.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+summoner-proc.workspace = true
+# The slot name of a plugin description (`slots::slot_name`, read from the slot's description XML).
+summoner-sys = { workspace = true, features = ["editor"] }
+summoner-format-vst3.workspace = true
+summoner-format-au.workspace = true
+# The scan child (`--scan`): discovery + validation, the same library the probe uses.
+summoner-probe.workspace = true
+summoner-testproc = { workspace = true, optional = true }
+
+# The Windows build script's SHA-256 (build.rs's `sha256`), in place of a `#[path]` into another crate's source.
+[target.'cfg(windows)'.build-dependencies]
+sha2 = "0.10"
+
+[dev-dependencies]
+summoner.workspace = true
+runecraft-contracts.workspace = true
+runecraft-log.workspace = true
+runecraft-ipc.workspace = true
+# The diagnostic-log vectors, through the host application's own hash (diag_log.rs).
+
+[features]
+# No default features: the test hooks are opt-in. The repository's tests and CI enable them explicitly
+# (`cargo test --workspace --features summoner-host/test-hooks`); a build without them is the release code.
+default = []
+# The lab build (the test-hooks build): the `<fake .../>` test double and the test flags
+# (--ignore-slot0, --mutant-reader-pongs, --lie-quarantined, --hang-at-hello). A release child is built without it.
+test-hooks = ["dep:summoner-testproc", "summoner-proc/test-hooks"]
+# The release loading policy: summoner-sys's `release-loading`. OFF by default; never enabled in the lab outside
+# its own tests (whether a child loads real plugin folders is a separate, later decision).
+release-loading = ["summoner-sys/release-loading"]
+
+[[bin]]
+name = "summoner-host"
+path = "src/main.rs"
+
+# The release-hygiene test compares the release child with the test build's test double: built only with the lab
+# hooks, so `cargo clippy --workspace --all-targets` without them (the release feature set) builds.
+[[test]]
+name = "release_hygiene"
+path = "tests/release_hygiene.rs"
+required-features = ["test-hooks"]
+
+[lints.rust]
+# Mutants: RUSTFLAGS="--cfg mutant_<name>" must turn their named test red.
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_scan_wait_unbounded)","cfg(mutant_home_paths_blind)","cfg(mutant_probe_names_blind)","cfg(mutant_fresh_notices_omitted)","cfg(mutant_echo_spontaneous)", "cfg(mutant_corr_unchecked)", "cfg(mutant_log_set_unchecked)", "cfg(mutant_param_gen_before_apply)", "cfg(mutant_prepare_fresh_keeps_processor)", "cfg(mutant_io_rule)", "cfg(mutant_child_area_words_differ)", "cfg(mutant_diag_warns_any_refusal)"] }

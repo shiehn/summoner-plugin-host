@@ -1,0 +1,29 @@
+[package]
+name = "summoner-probe-bin"
+description = "summoner-scan-probe, the scan child's stand-in until the scan codec lands: one lab bundle scanned and its report printed as JSON. A package of its own so that only it links the AppKit / CoreGraphics surfaces (summoner-sys-ui), never the host child"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+summoner-probe.workspace = true
+summoner-sys = { workspace = true, features = ["au", "vst3"] }
+# The probe's UI surfaces: only this package depends on them (release_build.rs's link guard).
+summoner-sys-ui.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+summoner-proto.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+# The supervisor tests' types are the host application's (codec::{Scan, Scanned, ScanResult}).
+
+[lints.rust]
+# Mutants: RUSTFLAGS="--cfg <name>" must turn their named test red: mutant_pedal_leaves_stray (a stray the test
+# leaves) fails supervisor's `the_pedal_and_one_strike`.
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_pedal_leaves_stray)"] }
+
+[[bin]]
+name = "summoner-scan-probe"
+path = "src/main.rs"

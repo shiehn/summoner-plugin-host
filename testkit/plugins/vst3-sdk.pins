@@ -1,0 +1,7 @@
+# The VST3 SDK's pins (each tree's licence audited before it was pinned). One line per tree: name, repository under
+# github.com/steinbergmedia, commit, the sha256 of its LICENSE.txt. Read by tools/fetch-vst3-subs.sh, tools/vst3-sdk.sh,
+# crates/summoner-sys/build.rs and testkit/plugins/CMakeLists.txt; VENDORED.md records the same, with the audit.
+vst3sdk        vst3sdk              3cdf9ca5d1f5b1b21e0a86832aa4abe55607bd96 e86d79e19e4a33ebc442d2e0d083887dfc75a2a8de9fe17eeddedb84810ad74e
+pluginterfaces vst3_pluginterfaces  4f547e8e102b47de4a8b8aaf343c73b700786372 e86d79e19e4a33ebc442d2e0d083887dfc75a2a8de9fe17eeddedb84810ad74e
+base           vst3_base            fcf9da0bd27a16f7f03773a3a39822f28f5c8477 e86d79e19e4a33ebc442d2e0d083887dfc75a2a8de9fe17eeddedb84810ad74e
+public.sdk     vst3_public_sdk      586dc5e6c8012c3e4b01c79389375cbe96bdb1da e86d79e19e4a33ebc442d2e0d083887dfc75a2a8de9fe17eeddedb84810ad74e

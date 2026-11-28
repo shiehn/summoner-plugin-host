@@ -1,0 +1,29 @@
+[package]
+name = "summoner-format-au"
+description = "AU v2 slots for the host child: a slot's bundle and AudioComponents codes, and the summoner-proc Plugin / Dsp over summoner-sys's AudioToolbox handles. Only the lab's own bundles, registered in-process"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+runecraft-rt.workspace = true
+# The `plugin.inputsRefused` record (the child's runecraft-log drainer, the host's area words).
+runecraft-log.workspace = true
+summoner-plugin.workspace = true
+summoner-proto.workspace = true
+# The prefault helpers (`runecraft_rt::os::prefaulted`, `prefault_spare`): runecraft-rt's.
+# The block flags' bits (BF_*), read as the VST3 slot reads them, for the AU HostCallbacks' transport.
+summoner-proc.workspace = true
+summoner-sys = { workspace = true, features = ["au"] }
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[[bin]]
+name = "summoner-au-probe"
+path = "src/bin/summoner-au-probe.rs"
+
+[lints.rust]
+# Mutants: RUSTFLAGS="--cfg mutant_<name>" must turn their named test red.
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_aumu_no_input)", "cfg(mutant_no_input_fallback)", "cfg(mutant_child_no_notice)"] }

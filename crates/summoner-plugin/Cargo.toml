@@ -1,0 +1,27 @@
+[package]
+name = "summoner-plugin"
+description = "The plugin slot rules a plugin host shares: the flattened parameter-tree order, the parameter name cut, and the reactivation handover (the five-state word, the bypass delay line, the fade); safe code only"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+# handover.rs: the atomics facade (std, or loom under --cfg loom) its state word uses.
+summoner-rt.workspace = true
+# handover.rs: the one-word realtime lock of its per-slot cell.
+runecraft-rt.workspace = true
+
+# The loom model of handover.rs (RUSTFLAGS="--cfg loom" only; never in a shipped binary).
+[target.'cfg(loom)'.dependencies]
+loom = "0.7"
+
+# handover.rs is loom-modelled by the host application (RUSTFLAGS="--cfg loom"; never in a normal build).
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(loom)"] }
+
+# The README's quick start (`cargo run -p summoner-plugin --example summoner_plugin_quickstart`); `test = true`, so `cargo test`
+# runs it too.
+[[example]]
+name = "summoner_plugin_quickstart"
+test = true

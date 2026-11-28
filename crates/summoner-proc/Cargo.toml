@@ -1,0 +1,28 @@
+[package]
+name = "summoner-proc"
+description = "What the child hosts in a chain slot: the Plugin (message-thread side) and Dsp (chain-thread side) traits, and the block a Dsp processes. The test double, VST3 and AU each implement it"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+runecraft-rt.workspace = true
+runecraft-ipc.workspace = true
+# The block's channels are wired arena slices (the host application's runecraft_rt::arena).
+
+[features]
+# The test double's hooks (`TestHooks`, `Plugin::test_hooks`): a test host only (summoner-host's `test-hooks`,
+# summoner-testproc). A shipped child is built without them.
+test-hooks = []
+
+[lints.rust]
+# Mutants: RUSTFLAGS="--cfg <name>" must turn their named test red: mutant_parent_kind_unchecked (another platform's
+# editor parent accepted) fails `another_platforms_parent_is_refused_before_any_call`.
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(mutant_parent_kind_unchecked)"] }
+
+# The README quick start (the examples/*_quickstart.rs file, shown byte for byte in README.md; tests/readme.rs checks it);
+# `test = true`, so `cargo test` runs it too.
+[[example]]
+name = "summoner_proc_quickstart"
+test = true

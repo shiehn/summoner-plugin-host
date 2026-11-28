@@ -1,0 +1,578 @@
+# The public API of summoner (tools/public-api.py; rustdoc JSON format_version 61, target aarch64-apple-darwin).
+# Regenerate: tools/public-api.py gen summoner; check: tools/public-api.py check.
+#[non_exhaustive] pub enum summoner::depth::DepthChange
+#[non_exhaustive] pub enum summoner::supervisor::ChildState
+#[non_exhaustive] pub enum summoner::supervisor::Command
+#[non_exhaustive] pub enum summoner::supervisor::DownReason
+#[non_exhaustive] pub enum summoner::supervisor::Event
+#[non_exhaustive] pub enum summoner::supervisor::RoutePref
+#[non_exhaustive] pub enum summoner::supervisor::StateSource
+#[non_exhaustive] pub enum summoner::supervisor::WorkgroupRoute
+#[non_exhaustive] pub struct summoner::depth::DepthPolicy
+#[non_exhaustive] pub struct summoner::supervisor::ChainSpec
+#[non_exhaustive] pub struct summoner::supervisor::Config
+#[non_exhaustive] pub struct summoner::supervisor::Fresh
+#[non_exhaustive] pub struct summoner::supervisor::LevelState
+#[non_exhaustive] pub struct summoner::supervisor::Names
+#[non_exhaustive] pub struct summoner::supervisor::ReadySlot
+#[non_exhaustive] pub struct summoner::supervisor::RestartedSlot
+#[non_exhaustive] pub struct summoner::supervisor::SlotState
+impl core::clone::Clone for summoner::depth::DepthChange
+impl core::clone::Clone for summoner::depth::DepthPolicy
+impl core::clone::Clone for summoner::supervisor::ChainSpec
+impl core::clone::Clone for summoner::supervisor::ChildLogSet
+impl core::clone::Clone for summoner::supervisor::ChildState
+impl core::clone::Clone for summoner::supervisor::Config
+impl core::clone::Clone for summoner::supervisor::DownReason
+impl core::clone::Clone for summoner::supervisor::Event
+impl core::clone::Clone for summoner::supervisor::Fresh
+impl core::clone::Clone for summoner::supervisor::LevelState
+impl core::clone::Clone for summoner::supervisor::Names
+impl core::clone::Clone for summoner::supervisor::NoChildLog
+impl core::clone::Clone for summoner::supervisor::ReadySlot
+impl core::clone::Clone for summoner::supervisor::RestartedSlot
+impl core::clone::Clone for summoner::supervisor::RoutePref
+impl core::clone::Clone for summoner::supervisor::SlotState
+impl core::clone::Clone for summoner::supervisor::StateSource
+impl core::clone::Clone for summoner::supervisor::WorkgroupRoute
+impl core::clone::TrivialClone for summoner::depth::DepthChange
+impl core::clone::TrivialClone for summoner::depth::DepthPolicy
+impl core::clone::TrivialClone for summoner::supervisor::ChildLogSet
+impl core::clone::TrivialClone for summoner::supervisor::ChildState
+impl core::clone::TrivialClone for summoner::supervisor::DownReason
+impl core::clone::TrivialClone for summoner::supervisor::LevelState
+impl core::clone::TrivialClone for summoner::supervisor::Names
+impl core::clone::TrivialClone for summoner::supervisor::NoChildLog
+impl core::clone::TrivialClone for summoner::supervisor::RoutePref
+impl core::clone::TrivialClone for summoner::supervisor::StateSource
+impl core::clone::TrivialClone for summoner::supervisor::WorkgroupRoute
+impl core::cmp::Eq for summoner::depth::DepthChange
+impl core::cmp::Eq for summoner::supervisor::ChildLogSet
+impl core::cmp::Eq for summoner::supervisor::ChildState
+impl core::cmp::Eq for summoner::supervisor::DownReason
+impl core::cmp::Eq for summoner::supervisor::Fresh
+impl core::cmp::Eq for summoner::supervisor::LevelState
+impl core::cmp::Eq for summoner::supervisor::Names
+impl core::cmp::Eq for summoner::supervisor::ReadySlot
+impl core::cmp::Eq for summoner::supervisor::RoutePref
+impl core::cmp::Eq for summoner::supervisor::StateSource
+impl core::cmp::Eq for summoner::supervisor::WorkgroupRoute
+impl core::cmp::PartialEq for summoner::depth::DepthChange
+impl core::cmp::PartialEq for summoner::supervisor::ChildLogSet
+impl core::cmp::PartialEq for summoner::supervisor::ChildState
+impl core::cmp::PartialEq for summoner::supervisor::DownReason
+impl core::cmp::PartialEq for summoner::supervisor::Fresh
+impl core::cmp::PartialEq for summoner::supervisor::LevelState
+impl core::cmp::PartialEq for summoner::supervisor::Names
+impl core::cmp::PartialEq for summoner::supervisor::ReadySlot
+impl core::cmp::PartialEq for summoner::supervisor::RestartedSlot
+impl core::cmp::PartialEq for summoner::supervisor::RoutePref
+impl core::cmp::PartialEq for summoner::supervisor::StateSource
+impl core::cmp::PartialEq for summoner::supervisor::WorkgroupRoute
+impl core::default::Default for summoner::clock::ManualClock
+impl core::default::Default for summoner::depth::DepthPolicy
+impl core::default::Default for summoner::supervisor::ControlCounters
+impl core::default::Default for summoner::supervisor::Names
+impl core::default::Default for summoner::supervisor::NoChildLog
+impl core::error::Error for summoner::supervisor::Busy
+impl core::fmt::Debug for summoner::clock::ManualClock
+impl core::fmt::Debug for summoner::clock::SystemClock
+impl core::fmt::Debug for summoner::depth::DepthChange
+impl core::fmt::Debug for summoner::depth::DepthController
+impl core::fmt::Debug for summoner::depth::DepthPolicy
+impl core::fmt::Debug for summoner::supervisor::Busy
+impl core::fmt::Debug for summoner::supervisor::ChainSpec
+impl core::fmt::Debug for summoner::supervisor::ChildLogSet
+impl core::fmt::Debug for summoner::supervisor::ChildState
+impl core::fmt::Debug for summoner::supervisor::Command
+impl core::fmt::Debug for summoner::supervisor::Config
+impl core::fmt::Debug for summoner::supervisor::ControlCounters
+impl core::fmt::Debug for summoner::supervisor::DownReason
+impl core::fmt::Debug for summoner::supervisor::Event
+impl core::fmt::Debug for summoner::supervisor::Fresh
+impl core::fmt::Debug for summoner::supervisor::LevelState
+impl core::fmt::Debug for summoner::supervisor::Names
+impl core::fmt::Debug for summoner::supervisor::NoChildLog
+impl core::fmt::Debug for summoner::supervisor::ReadySlot
+impl core::fmt::Debug for summoner::supervisor::RestartedSlot
+impl core::fmt::Debug for summoner::supervisor::RoutePref
+impl core::fmt::Debug for summoner::supervisor::SlotState
+impl core::fmt::Debug for summoner::supervisor::StateSource
+impl core::fmt::Debug for summoner::supervisor::WorkgroupRoute
+impl core::fmt::Display for summoner::supervisor::Busy
+impl core::hash::Hash for summoner::supervisor::ChildState
+impl core::marker::Copy for summoner::depth::DepthChange
+impl core::marker::Copy for summoner::depth::DepthPolicy
+impl core::marker::Copy for summoner::supervisor::ChildLogSet
+impl core::marker::Copy for summoner::supervisor::ChildState
+impl core::marker::Copy for summoner::supervisor::DownReason
+impl core::marker::Copy for summoner::supervisor::LevelState
+impl core::marker::Copy for summoner::supervisor::Names
+impl core::marker::Copy for summoner::supervisor::NoChildLog
+impl core::marker::Copy for summoner::supervisor::RoutePref
+impl core::marker::Copy for summoner::supervisor::StateSource
+impl core::marker::Copy for summoner::supervisor::WorkgroupRoute
+impl core::marker::Send for summoner::clock::ManualClock
+impl core::marker::Send for summoner::clock::SystemClock
+impl core::marker::Send for summoner::depth::DepthChange
+impl core::marker::Send for summoner::depth::DepthController
+impl core::marker::Send for summoner::depth::DepthPolicy
+impl core::marker::Send for summoner::supervisor::Bridge
+impl core::marker::Send for summoner::supervisor::Busy
+impl core::marker::Send for summoner::supervisor::ChainSpec
+impl core::marker::Send for summoner::supervisor::ChildLogSet
+impl core::marker::Send for summoner::supervisor::ChildState
+impl core::marker::Send for summoner::supervisor::Command
+impl core::marker::Send for summoner::supervisor::Config
+impl core::marker::Send for summoner::supervisor::ControlCounters
+impl core::marker::Send for summoner::supervisor::DownReason
+impl core::marker::Send for summoner::supervisor::Event
+impl core::marker::Send for summoner::supervisor::Fresh
+impl core::marker::Send for summoner::supervisor::LevelState
+impl core::marker::Send for summoner::supervisor::Names
+impl core::marker::Send for summoner::supervisor::NoChildLog
+impl core::marker::Send for summoner::supervisor::ReadySlot
+impl core::marker::Send for summoner::supervisor::RestartedSlot
+impl core::marker::Send for summoner::supervisor::RoutePref
+impl core::marker::Send for summoner::supervisor::SlotState
+impl core::marker::Send for summoner::supervisor::StateSource
+impl core::marker::Send for summoner::supervisor::WorkgroupRoute
+impl core::marker::Sync for summoner::clock::ManualClock
+impl core::marker::Sync for summoner::clock::SystemClock
+impl core::marker::Sync for summoner::depth::DepthChange
+impl core::marker::Sync for summoner::depth::DepthController
+impl core::marker::Sync for summoner::depth::DepthPolicy
+impl core::marker::Sync for summoner::supervisor::Bridge
+impl core::marker::Sync for summoner::supervisor::Busy
+impl core::marker::Sync for summoner::supervisor::ChainSpec
+impl core::marker::Sync for summoner::supervisor::ChildLogSet
+impl core::marker::Sync for summoner::supervisor::ChildState
+impl core::marker::Sync for summoner::supervisor::Command
+impl core::marker::Sync for summoner::supervisor::Config
+impl core::marker::Sync for summoner::supervisor::ControlCounters
+impl core::marker::Sync for summoner::supervisor::DownReason
+impl core::marker::Sync for summoner::supervisor::Event
+impl core::marker::Sync for summoner::supervisor::Fresh
+impl core::marker::Sync for summoner::supervisor::LevelState
+impl core::marker::Sync for summoner::supervisor::Names
+impl core::marker::Sync for summoner::supervisor::NoChildLog
+impl core::marker::Sync for summoner::supervisor::ReadySlot
+impl core::marker::Sync for summoner::supervisor::RestartedSlot
+impl core::marker::Sync for summoner::supervisor::RoutePref
+impl core::marker::Sync for summoner::supervisor::SlotState
+impl core::marker::Sync for summoner::supervisor::StateSource
+impl core::marker::Sync for summoner::supervisor::WorkgroupRoute
+impl core::ops::drop::Drop for summoner::supervisor::Bridge
+impl summoner::clock::Clock for summoner::clock::ManualClock
+impl summoner::clock::Clock for summoner::clock::SystemClock
+impl summoner::supervisor::LevelSource for summoner::supervisor::NoChildLog
+pub const fn summoner::supervisor::Names::with_mach_service(self, mach_service: &'static str) -> summoner::supervisor::Names
+pub const fn summoner::supervisor::Names::with_scan_thread(self, scan_thread: &'static str) -> summoner::supervisor::Names
+pub const fn summoner::supervisor::Names::with_stderr(self, stderr: &'static str) -> summoner::supervisor::Names
+pub const fn summoner::supervisor::Names::with_thread(self, thread: &'static str) -> summoner::supervisor::Names
+pub const summoner::supervisor::ATTEMPTS: u32 = 3
+pub const summoner::supervisor::BURST_BUDGET: core::time::Duration = _
+pub const summoner::supervisor::BURST_BYTES: u64 = _
+pub const summoner::supervisor::BURST_WINDOW: usize = 2
+pub const summoner::supervisor::CHILD_FDS: usize = 3
+pub const summoner::supervisor::CHILD_LOG_DIR_FLAG: &str = "--log-dir"
+pub const summoner::supervisor::COMMAND_BOUND: usize = 1024
+pub const summoner::supervisor::EXIT_USAGE: i32 = 2
+pub const summoner::supervisor::HELLO_DEADLINE: core::time::Duration = _
+pub const summoner::supervisor::IN_FLIGHT: usize = 64
+pub const summoner::supervisor::NO_LOG_AREA: runecraft_contracts::log::AreaKey = _
+pub const summoner::supervisor::Names::NEUTRAL: summoner::supervisor::Names = _
+pub const summoner::supervisor::PARAM_CAP: u32 = 16_384
+pub const summoner::supervisor::PARAM_NAME_CHARS: usize = summoner_plugin::params::NAME_CHARS
+pub const summoner::supervisor::PARAM_PAGE: u32 = 256
+pub const summoner::supervisor::READER_BLOB_BYTES: usize = _
+pub const summoner::supervisor::READER_FRAMES: usize = 256
+pub const summoner::supervisor::RELOAD_READ_DEADLINE: core::time::Duration = _
+pub enum summoner::supervisor::ChildLogSet
+pub field summoner::depth::DepthPolicy::lower_bucket: usize
+pub field summoner::depth::DepthPolicy::lower_window: core::time::Duration
+pub field summoner::depth::DepthPolicy::min_interval: core::time::Duration
+pub field summoner::depth::DepthPolicy::raise_bucket: usize
+pub field summoner::depth::DepthPolicy::raise_window: core::time::Duration
+pub field summoner::depth::DepthPolicy::share: f64
+pub field summoner::supervisor::ChainSpec::depth: u8
+pub field summoner::supervisor::ChainSpec::enabled: alloc::vec::Vec<bool>
+pub field summoner::supervisor::ChainSpec::geometry: summoner_proto::layout::Geometry
+pub field summoner::supervisor::ChainSpec::group: u8
+pub field summoner::supervisor::ChainSpec::monitor: bool
+pub field summoner::supervisor::ChainSpec::param_ids: alloc::rcs::arc::Arc<[u32]>
+pub field summoner::supervisor::ChainSpec::role: summoner_proto::codec::Role
+pub field summoner::supervisor::ChainSpec::slots: alloc::vec::Vec<core::option::Option<summoner_proto::plugin::PluginRef>>
+pub field summoner::supervisor::Command::AttachWorkgroup::port: runecraft_ipc::bridge::MachSend
+pub field summoner::supervisor::Command::EditorClose::key: u64
+pub field summoner::supervisor::Command::EditorClose::slot: core::option::Option<u32>
+pub field summoner::supervisor::Command::EditorOpen::guard_reset: bool
+pub field summoner::supervisor::Command::EditorOpen::key: u64
+pub field summoner::supervisor::Command::EditorOpen::slot: u32
+pub field summoner::supervisor::Command::GetState::key: u64
+pub field summoner::supervisor::Command::GetState::slot: u32
+pub field summoner::supervisor::Command::Load::key: u64
+pub field summoner::supervisor::Command::Load::spec: summoner::supervisor::ChainSpec
+pub field summoner::supervisor::Command::Load::states: alloc::vec::Vec<summoner::supervisor::SlotState>
+pub field summoner::supervisor::Command::ParamList::count: u32
+pub field summoner::supervisor::Command::ParamList::key: u64
+pub field summoner::supervisor::Command::ParamList::offset: u32
+pub field summoner::supervisor::Command::ParamList::slot: u32
+pub field summoner::supervisor::Command::ParamSet::key: u64
+pub field summoner::supervisor::Command::ParamSet::plugin_id: u32
+pub field summoner::supervisor::Command::ParamSet::slot: u32
+pub field summoner::supervisor::Command::ParamSet::value: f32
+pub field summoner::supervisor::Command::Park::key: u64
+pub field summoner::supervisor::Command::PrepareFresh::key: u64
+pub field summoner::supervisor::Command::Remark::key: u64
+pub field summoner::supervisor::Command::Remark::slot: u32
+pub field summoner::supervisor::Command::SaveBurst::budget: core::time::Duration
+pub field summoner::supervisor::Command::SaveBurst::bytes: u64
+pub field summoner::supervisor::Command::SaveBurst::remark: alloc::vec::Vec<(u64, u32)>
+pub field summoner::supervisor::Command::SaveBurst::token: u64
+pub field summoner::supervisor::Command::SetEnabled::enabled: bool
+pub field summoner::supervisor::Command::SetEnabled::key: u64
+pub field summoner::supervisor::Command::SetEnabled::slot: u32
+pub field summoner::supervisor::Command::SetState::key: u64
+pub field summoner::supervisor::Command::SetState::state: summoner::supervisor::SlotState
+pub field summoner::supervisor::Command::Unload::key: u64
+pub field summoner::supervisor::Command::Unpark::group: u8
+pub field summoner::supervisor::Command::Unpark::key: u64
+pub field summoner::supervisor::Config::args: alloc::vec::Vec<std::ffi::os_str::OsString>
+pub field summoner::supervisor::Config::backoff: [core::time::Duration; 3]
+pub field summoner::supervisor::Config::child_id: alloc::string::String
+pub field summoner::supervisor::Config::clock: alloc::rcs::arc::Arc<dyn summoner::clock::Clock>
+pub field summoner::supervisor::Config::crash_log: core::option::Option<std::path::PathBuf>
+pub field summoner::supervisor::Config::depth_cadence: core::time::Duration
+pub field summoner::supervisor::Config::depth_policy: summoner::depth::DepthPolicy
+pub field summoner::supervisor::Config::env: alloc::vec::Vec<(std::ffi::os_str::OsString, std::ffi::os_str::OsString)>
+pub field summoner::supervisor::Config::event_bound: usize
+pub field summoner::supervisor::Config::forgive_after: core::time::Duration
+pub field summoner::supervisor::Config::hello_deadline: core::time::Duration
+pub field summoner::supervisor::Config::levels: alloc::rcs::arc::Arc<dyn summoner::supervisor::LevelSource>
+pub field summoner::supervisor::Config::log: alloc::rcs::arc::Arc<dyn runecraft_contracts::log::LogSink>
+pub field summoner::supervisor::Config::log_area: runecraft_contracts::log::AreaKey
+pub field summoner::supervisor::Config::names: summoner::supervisor::Names
+pub field summoner::supervisor::Config::poll_interval: core::time::Duration
+pub field summoner::supervisor::Config::poll_tail: core::time::Duration
+pub field summoner::supervisor::Config::program: std::path::PathBuf
+pub field summoner::supervisor::Config::reader_blob_budget: usize
+pub field summoner::supervisor::Config::render_suspect: core::time::Duration
+pub field summoner::supervisor::Config::route: summoner::supervisor::RoutePref
+pub field summoner::supervisor::Config::sample_rate: f64
+pub field summoner::supervisor::Config::send_timeout: core::time::Duration
+pub field summoner::supervisor::Config::state_hasher: alloc::rcs::arc::Arc<dyn runecraft_contracts::digest::StateHasher>
+pub field summoner::supervisor::Config::tick: core::time::Duration
+pub field summoner::supervisor::Config::wedge_suspect: core::time::Duration
+pub field summoner::supervisor::Config::wedge_verdict: core::time::Duration
+pub field summoner::supervisor::DownReason::Incompatible::child_protocol: u32
+pub field summoner::supervisor::DownReason::Incompatible::core_protocol: u32
+pub field summoner::supervisor::Event::Burst::fresh: alloc::vec::Vec<summoner::supervisor::Fresh>
+pub field summoner::supervisor::Event::Burst::incarnation: u64
+pub field summoner::supervisor::Event::Burst::stale: alloc::vec::Vec<(u64, u32)>
+pub field summoner::supervisor::Event::Burst::superseded: bool
+pub field summoner::supervisor::Event::Burst::token: u64
+pub field summoner::supervisor::Event::Burst::too_large: alloc::vec::Vec<(u64, u32, u64)>
+pub field summoner::supervisor::Event::ChainDown::key: u64
+pub field summoner::supervisor::Event::ChainDown::reason: summoner::supervisor::DownReason
+pub field summoner::supervisor::Event::ChainReady::incarnation: u64
+pub field summoner::supervisor::Event::ChainReady::key: u64
+pub field summoner::supervisor::Event::ChainReady::link: alloc::rcs::arc::Arc<summoner_rt::rt::ChainLink>
+pub field summoner::supervisor::Event::ChainReady::names: alloc::vec::Vec<alloc::string::String>
+pub field summoner::supervisor::Event::ChainReady::slots: alloc::vec::Vec<summoner::supervisor::ReadySlot>
+pub field summoner::supervisor::Event::ChildExited::pid: u32
+pub field summoner::supervisor::Event::ChildExited::status: alloc::string::String
+pub field summoner::supervisor::Event::ChildUp::host: alloc::string::String
+pub field summoner::supervisor::Event::ChildUp::incarnation: u64
+pub field summoner::supervisor::Event::ChildUp::pid: u32
+pub field summoner::supervisor::Event::ChildUp::route: summoner::supervisor::WorkgroupRoute
+pub field summoner::supervisor::Event::DepthChange::change: summoner::depth::DepthChange
+pub field summoner::supervisor::Event::DepthChange::key: u64
+pub field summoner::supervisor::Event::DepthChange::link: alloc::rcs::arc::Arc<summoner_rt::rt::ChainLink>
+pub field summoner::supervisor::Event::EditorClosed::key: u64
+pub field summoner::supervisor::Event::EditorClosed::slot: u32
+pub field summoner::supervisor::Event::EditorGone::key: u64
+pub field summoner::supervisor::Event::EditorGone::slot: u32
+pub field summoner::supervisor::Event::EditorUnavailable::key: u64
+pub field summoner::supervisor::Event::EditorUnavailable::slot: u32
+pub field summoner::supervisor::Event::EditorWindow::incarnation: u64
+pub field summoner::supervisor::Event::EditorWindow::key: u64
+pub field summoner::supervisor::Event::EditorWindow::slot: u32
+pub field summoner::supervisor::Event::EditorWindow::window: summoner_proto::codec::EditorWindow
+pub field summoner::supervisor::Event::HostRestarted::reason: summoner::supervisor::DownReason
+pub field summoner::supervisor::Event::HostRestarted::slots: alloc::vec::Vec<summoner::supervisor::RestartedSlot>
+pub field summoner::supervisor::Event::LatencyChanged::key: u64
+pub field summoner::supervisor::Event::LatencyChanged::link: alloc::rcs::arc::Arc<summoner_rt::rt::ChainLink>
+pub field summoner::supervisor::Event::Moved::slots: alloc::vec::Vec<(u64, u32, u64)>
+pub field summoner::supervisor::Event::ParamList::key: u64
+pub field summoner::supervisor::Event::ParamList::offset: u32
+pub field summoner::supervisor::Event::ParamList::ok: bool
+pub field summoner::supervisor::Event::ParamList::params: alloc::vec::Vec<summoner_proto::codec::ParamEntry>
+pub field summoner::supervisor::Event::ParamList::slot: u32
+pub field summoner::supervisor::Event::ParamList::total: u32
+pub field summoner::supervisor::Event::ParamSet::key: u64
+pub field summoner::supervisor::Event::ParamSet::ok: bool
+pub field summoner::supervisor::Event::ParamSet::plugin_id: u32
+pub field summoner::supervisor::Event::ParamSet::slot: u32
+pub field summoner::supervisor::Event::ParamSet::value: f32
+pub field summoner::supervisor::Event::Parked::key: u64
+pub field summoner::supervisor::Event::PreparedFresh::error: core::option::Option<alloc::string::String>
+pub field summoner::supervisor::Event::PreparedFresh::key: u64
+pub field summoner::supervisor::Event::PreparedFresh::latency: u32
+pub field summoner::supervisor::Event::PreparedFresh::ms: f64
+pub field summoner::supervisor::Event::PreparedFresh::notices_known: bool
+pub field summoner::supervisor::Event::PreparedFresh::ok: bool
+pub field summoner::supervisor::Event::PreparedFresh::slots: alloc::vec::Vec<summoner::supervisor::ReadySlot>
+pub field summoner::supervisor::Event::Quarantined::key: u64
+pub field summoner::supervisor::Event::Quarantined::op: alloc::string::String
+pub field summoner::supervisor::Event::Quarantined::plugin: alloc::string::String
+pub field summoner::supervisor::Event::Quarantined::slot: u32
+pub field summoner::supervisor::Event::SlotNoticesChanged::incarnation: u64
+pub field summoner::supervisor::Event::SlotNoticesChanged::key: u64
+pub field summoner::supervisor::Event::SlotNoticesChanged::slots: alloc::vec::Vec<summoner::supervisor::ReadySlot>
+pub field summoner::supervisor::Event::SlotReactivated::abandoned: bool
+pub field summoner::supervisor::Event::SlotReactivated::bypassed_blocks: u32
+pub field summoner::supervisor::Event::SlotReactivated::cycle_ns: u64
+pub field summoner::supervisor::Event::SlotReactivated::forced_take: bool
+pub field summoner::supervisor::Event::SlotReactivated::key: u64
+pub field summoner::supervisor::Event::SlotReactivated::latency: u32
+pub field summoner::supervisor::Event::SlotReactivated::misaligned: u32
+pub field summoner::supervisor::Event::SlotReactivated::reactivations: u32
+pub field summoner::supervisor::Event::SlotReactivated::slot: u32
+pub field summoner::supervisor::Event::SlotReactivated::stall: bool
+pub field summoner::supervisor::Event::SlotReactivated::stalls: u32
+pub field summoner::supervisor::Event::SlotReactivated::take_given_up: bool
+pub field summoner::supervisor::Event::SlotReactivated::total_bypassed_blocks: u32
+pub field summoner::supervisor::Event::StateApplied::applied: core::option::Option<summoner_proto::codec::Applied>
+pub field summoner::supervisor::Event::StateApplied::child_generation: core::option::Option<u64>
+pub field summoner::supervisor::Event::StateApplied::generation: u64
+pub field summoner::supervisor::Event::StateApplied::key: u64
+pub field summoner::supervisor::Event::StateApplied::ok: bool
+pub field summoner::supervisor::Event::StateApplied::slot: u32
+pub field summoner::supervisor::Event::StateRead::blob: alloc::rcs::arc::Arc<[u8]>
+pub field summoner::supervisor::Event::StateRead::child_gen: u64
+pub field summoner::supervisor::Event::StateRead::incarnation: u64
+pub field summoner::supervisor::Event::StateRead::key: u64
+pub field summoner::supervisor::Event::StateRead::sha: alloc::string::String
+pub field summoner::supervisor::Event::StateRead::slot: u32
+pub field summoner::supervisor::Event::StateRead::user: bool
+pub field summoner::supervisor::Event::StateRefused::generation: u64
+pub field summoner::supervisor::Event::StateRefused::key: u64
+pub field summoner::supervisor::Event::StateRefused::reason: summoner_proto::state_blob::Refusal
+pub field summoner::supervisor::Event::StateRefused::slot: u32
+pub field summoner::supervisor::Event::StateRefused::source: summoner::supervisor::StateSource
+pub field summoner::supervisor::Event::StateTooLarge::bytes: u64
+pub field summoner::supervisor::Event::StateTooLarge::child_gen: u64
+pub field summoner::supervisor::Event::StateTooLarge::key: u64
+pub field summoner::supervisor::Event::StateTooLarge::slot: u32
+pub field summoner::supervisor::Event::Unparked::group: u8
+pub field summoner::supervisor::Event::Unparked::key: u64
+pub field summoner::supervisor::Event::WorkgroupAttached::joined: bool
+pub field summoner::supervisor::Event::WorkgroupAttached::ok: bool
+pub field summoner::supervisor::Event::WorkgroupAttached::token: u64
+pub field summoner::supervisor::Fresh::blob: alloc::rcs::arc::Arc<[u8]>
+pub field summoner::supervisor::Fresh::child_gen: u64
+pub field summoner::supervisor::Fresh::editor_moved: bool
+pub field summoner::supervisor::Fresh::key: u64
+pub field summoner::supervisor::Fresh::sha256_hex: alloc::string::String
+pub field summoner::supervisor::Fresh::slot: u32
+pub field summoner::supervisor::LevelState::expires_in_ms: core::option::Option<u64>
+pub field summoner::supervisor::LevelState::generation: u64
+pub field summoner::supervisor::LevelState::launch: u64
+pub field summoner::supervisor::LevelState::levels: u64
+pub field summoner::supervisor::Names::mach_service: &'static str
+pub field summoner::supervisor::Names::scan_thread: &'static str
+pub field summoner::supervisor::Names::stderr: &'static str
+pub field summoner::supervisor::Names::thread: &'static str
+pub field summoner::supervisor::ReadySlot::has_editor: bool
+pub field summoner::supervisor::ReadySlot::latency: u32
+pub field summoner::supervisor::ReadySlot::notices: alloc::vec::Vec<alloc::string::String>
+pub field summoner::supervisor::ReadySlot::ok: bool
+pub field summoner::supervisor::ReadySlot::param_count: u32
+pub field summoner::supervisor::ReadySlot::quarantined: bool
+pub field summoner::supervisor::RestartedSlot::editor_was_open: bool
+pub field summoner::supervisor::RestartedSlot::key: u64
+pub field summoner::supervisor::RestartedSlot::plugin: alloc::string::String
+pub field summoner::supervisor::RestartedSlot::slot: u32
+pub field summoner::supervisor::RestartedSlot::unread_ms: u64
+pub field summoner::supervisor::SlotState::blob: alloc::rcs::arc::Arc<[u8]>
+pub field summoner::supervisor::SlotState::generation: u64
+pub field summoner::supervisor::SlotState::slot: u32
+pub fn summoner::clock::Clock::now(&self) -> core::time::Duration
+pub fn summoner::clock::ManualClock::advance(&self, d: core::time::Duration)
+pub fn summoner::clock::ManualClock::new() -> alloc::rcs::arc::Arc<summoner::clock::ManualClock>
+pub fn summoner::clock::SystemClock::new() -> alloc::rcs::arc::Arc<summoner::clock::SystemClock>
+pub fn summoner::depth::DepthController::at_boundary(&mut self, now: core::time::Duration) -> core::option::Option<summoner::depth::DepthChange>
+pub fn summoner::depth::DepthController::depth(&self) -> u8
+pub fn summoner::depth::DepthController::lowering_pending(&self) -> bool
+pub fn summoner::depth::DepthController::new(policy: summoner::depth::DepthPolicy, depth: u8, now: core::time::Duration) -> summoner::depth::DepthController
+pub fn summoner::depth::DepthController::observe(&mut self, now: core::time::Duration, hist: [u32; 16]) -> core::option::Option<summoner::depth::DepthChange>
+pub fn summoner::depth::DepthPolicy::new(raise_bucket: usize, raise_window: core::time::Duration, lower_bucket: usize, lower_window: core::time::Duration, share: f64, min_interval: core::time::Duration) -> summoner::depth::DepthPolicy
+pub fn summoner::supervisor::Bridge::counters(&self) -> &alloc::rcs::arc::Arc<summoner::supervisor::ControlCounters>
+pub fn summoner::supervisor::Bridge::send(&self, c: summoner::supervisor::Command) -> core::result::Result<(), summoner::supervisor::Busy>
+pub fn summoner::supervisor::Bridge::send_corr(&self, c: summoner::supervisor::Command, corr: core::option::Option<alloc::string::String>) -> core::result::Result<(), summoner::supervisor::Busy>
+pub fn summoner::supervisor::Bridge::shutdown(self)
+pub fn summoner::supervisor::Bridge::start(cfg: summoner::supervisor::Config, events: std::sync::mpsc::SyncSender<summoner::supervisor::Event>) -> core::io::error::Result<summoner::supervisor::Bridge>
+pub fn summoner::supervisor::ChainSpec::new(geometry: summoner_proto::layout::Geometry, role: summoner_proto::codec::Role, slots: alloc::vec::Vec<core::option::Option<summoner_proto::plugin::PluginRef>>) -> summoner::supervisor::ChainSpec
+pub fn summoner::supervisor::ChildState::code(self) -> u32
+pub fn summoner::supervisor::Command::save_burst(token: u64, remark: alloc::vec::Vec<(u64, u32)>) -> summoner::supervisor::Command
+pub fn summoner::supervisor::Config::new(program: std::path::PathBuf, sample_rate: f64, state_hasher: alloc::rcs::arc::Arc<dyn runecraft_contracts::digest::StateHasher>) -> summoner::supervisor::Config
+pub fn summoner::supervisor::ControlCounters::attempts(&self) -> u32
+pub fn summoner::supervisor::ControlCounters::attribution_run(&self) -> u32
+pub fn summoner::supervisor::ControlCounters::chains_active(&self) -> u32
+pub fn summoner::supervisor::ControlCounters::chains_depth2(&self) -> u32
+pub fn summoner::supervisor::ControlCounters::chains_down(&self) -> u32
+pub fn summoner::supervisor::ControlCounters::chains_quarantined(&self) -> u32
+pub fn summoner::supervisor::ControlCounters::child_corr_echoed(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::child_corr_ignored(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::child_deaths(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::child_incompatible(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::child_page_unwired_bytes(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::child_page_wired_bytes(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::child_pid(&self) -> u32
+pub fn summoner::supervisor::ControlCounters::child_protocol(&self) -> u32
+pub fn summoner::supervisor::ControlCounters::child_respawns(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::child_state(&self) -> summoner::supervisor::ChildState
+pub fn summoner::supervisor::ControlCounters::child_unwired_bytes(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::child_usage_exits(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::child_wired_bytes(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::corr_dropped(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::corr_sent(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::editor_opens_refused(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::hello_launch_ns(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::hello_rtt_ns(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::loads_refused_live_key(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::log_set_applied(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::log_set_mismatch(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::log_set_refused(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::log_set_sent(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::lost_wakes(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::msg_thread_hold_max_ns(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::msg_thread_long_holds(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::protocol_errors(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::reactivation_stalls(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::reactivations(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::reader_blob_admitted(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::reader_blob_held(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::reader_blob_peak(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::reader_blob_waits(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::reader_frames_admitted(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::reader_frames_held(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::reader_frames_peak(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::reload_state_fallbacks(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::spurious_wakes(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::state_applied_invalid(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::state_apply_failures(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::state_empty_sets(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::state_format_refused(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::state_partial_sets(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::state_stale(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::state_stale_now(&self) -> u32
+pub fn summoner::supervisor::ControlCounters::take_give_ups(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::wedges(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::workgroup_fallbacks(&self) -> u64
+pub fn summoner::supervisor::ControlCounters::workgroup_route(&self) -> u32
+pub fn summoner::supervisor::DownReason::wire_word(self) -> &'static str
+pub fn summoner::supervisor::Fresh::new(key: u64, slot: u32, child_gen: u64, blob: alloc::rcs::arc::Arc<[u8]>, sha256_hex: alloc::string::String, editor_moved: bool) -> summoner::supervisor::Fresh
+pub fn summoner::supervisor::LevelSource::child_args(&self) -> alloc::vec::Vec<std::ffi::os_str::OsString>
+pub fn summoner::supervisor::LevelSource::child_log_values(&self) -> core::option::Option<(std::ffi::os_str::OsString, std::ffi::os_str::OsString)>
+pub fn summoner::supervisor::LevelSource::describe(&self, word: u64) -> alloc::string::String
+pub fn summoner::supervisor::LevelSource::level_state(&self) -> summoner::supervisor::LevelState
+pub fn summoner::supervisor::LevelSource::note_child_log_set(&self, outcome: summoner::supervisor::ChildLogSet)
+pub fn summoner::supervisor::LevelState::new(generation: u64, levels: u64, launch: u64, expires_in_ms: core::option::Option<u64>) -> summoner::supervisor::LevelState
+pub fn summoner::supervisor::Names::route_a_service(&self, pid: u32, nonce: u64) -> alloc::string::String
+pub fn summoner::supervisor::ReadySlot::new(ok: bool, quarantined: bool, latency: u32, param_count: u32, has_editor: bool, notices: alloc::vec::Vec<alloc::string::String>) -> summoner::supervisor::ReadySlot
+pub fn summoner::supervisor::RestartedSlot::new(key: u64, slot: u32, plugin: alloc::string::String, unread_ms: u64, editor_was_open: bool) -> summoner::supervisor::RestartedSlot
+pub fn summoner::supervisor::SlotState::new(slot: u32, generation: u64, blob: alloc::rcs::arc::Arc<[u8]>) -> summoner::supervisor::SlotState
+pub fn summoner::supervisor::crash_log_for_spawn(dir: &std::path::Path, stderr_tag: &str) -> core::option::Option<std::path::PathBuf>
+pub fn summoner::supervisor::hello_compatible(child_protocol: u32) -> bool
+pub fn summoner::supervisor::host_child_env(levels: &dyn summoner::supervisor::LevelSource, env: alloc::vec::Vec<(std::ffi::os_str::OsString, std::ffi::os_str::OsString)>) -> alloc::vec::Vec<(std::ffi::os_str::OsString, std::ffi::os_str::OsString)>
+pub fn summoner::supervisor::is_au_slot(r: core::option::Option<&summoner_proto::plugin::PluginRef>) -> bool
+pub fn summoner::supervisor::log_set_for(st: &summoner::supervisor::LevelState, at_hello: bool) -> core::option::Option<summoner_proto::codec::LogSet>
+pub fn summoner::supervisor::region_flags(role: summoner_proto::codec::Role) -> u32
+pub fn summoner::supervisor::spawn_args(cfg: &summoner::supervisor::Config) -> alloc::vec::Vec<std::ffi::os_str::OsString>
+pub mod summoner::clock
+pub mod summoner::depth
+pub mod summoner::supervisor
+pub struct summoner::clock::ManualClock(_);
+pub struct summoner::clock::SystemClock(_);
+pub struct summoner::depth::DepthController {private fields}
+pub struct summoner::supervisor::Bridge {private fields}
+pub struct summoner::supervisor::Busy(pub summoner::supervisor::Command);
+pub struct summoner::supervisor::ControlCounters {private fields}
+pub struct summoner::supervisor::NoChildLog;
+pub trait summoner::clock::Clock: core::marker::Send + core::marker::Sync + core::fmt::Debug
+pub trait summoner::supervisor::LevelSource: core::marker::Send + core::marker::Sync
+pub variant summoner::depth::DepthChange::Lower
+pub variant summoner::depth::DepthChange::Raise
+pub variant summoner::supervisor::ChildLogSet::Applied
+pub variant summoner::supervisor::ChildLogSet::Mismatch
+pub variant summoner::supervisor::ChildLogSet::Refused
+pub variant summoner::supervisor::ChildLogSet::Sent
+pub variant summoner::supervisor::ChildState::Backoff
+pub variant summoner::supervisor::ChildState::Exhausted
+pub variant summoner::supervisor::ChildState::None
+pub variant summoner::supervisor::ChildState::Starting
+pub variant summoner::supervisor::ChildState::Up
+pub variant summoner::supervisor::Command::AttachWorkgroup {}
+pub variant summoner::supervisor::Command::Barrier(std::sync::mpsc::SyncSender<()>)
+pub variant summoner::supervisor::Command::Boundary
+pub variant summoner::supervisor::Command::EditorClose {}
+pub variant summoner::supervisor::Command::EditorOpen {}
+pub variant summoner::supervisor::Command::GetState {}
+pub variant summoner::supervisor::Command::Load {}
+pub variant summoner::supervisor::Command::ParamList {}
+pub variant summoner::supervisor::Command::ParamSet {}
+pub variant summoner::supervisor::Command::Park {}
+pub variant summoner::supervisor::Command::PrepareFresh {}
+pub variant summoner::supervisor::Command::Remark {}
+pub variant summoner::supervisor::Command::RestartHost
+pub variant summoner::supervisor::Command::SaveBurst {}
+pub variant summoner::supervisor::Command::SetEnabled {}
+pub variant summoner::supervisor::Command::SetSampleRate(f64)
+pub variant summoner::supervisor::Command::SetState {}
+pub variant summoner::supervisor::Command::Shutdown
+pub variant summoner::supervisor::Command::Tick
+pub variant summoner::supervisor::Command::Unload {}
+pub variant summoner::supervisor::Command::Unpark {}
+pub variant summoner::supervisor::DownReason::Crash
+pub variant summoner::supervisor::DownReason::Incompatible {}
+pub variant summoner::supervisor::DownReason::Protocol
+pub variant summoner::supervisor::DownReason::Stall
+pub variant summoner::supervisor::DownReason::Usage
+pub variant summoner::supervisor::DownReason::Wedge
+pub variant summoner::supervisor::Event::Burst {}
+pub variant summoner::supervisor::Event::ChainDown {}
+pub variant summoner::supervisor::Event::ChainReady {}
+pub variant summoner::supervisor::Event::ChildExited {}
+pub variant summoner::supervisor::Event::ChildUp {}
+pub variant summoner::supervisor::Event::DepthChange {}
+pub variant summoner::supervisor::Event::EditorClosed {}
+pub variant summoner::supervisor::Event::EditorGone {}
+pub variant summoner::supervisor::Event::EditorUnavailable {}
+pub variant summoner::supervisor::Event::EditorWindow {}
+pub variant summoner::supervisor::Event::Exhausted
+pub variant summoner::supervisor::Event::HostRestarted {}
+pub variant summoner::supervisor::Event::LatencyChanged {}
+pub variant summoner::supervisor::Event::Moved {}
+pub variant summoner::supervisor::Event::ParamList {}
+pub variant summoner::supervisor::Event::ParamSet {}
+pub variant summoner::supervisor::Event::Parked {}
+pub variant summoner::supervisor::Event::PreparedFresh {}
+pub variant summoner::supervisor::Event::Quarantined {}
+pub variant summoner::supervisor::Event::SlotNoticesChanged {}
+pub variant summoner::supervisor::Event::SlotReactivated {}
+pub variant summoner::supervisor::Event::StateApplied {}
+pub variant summoner::supervisor::Event::StateRead {}
+pub variant summoner::supervisor::Event::StateRefused {}
+pub variant summoner::supervisor::Event::StateTooLarge {}
+pub variant summoner::supervisor::Event::Unparked {}
+pub variant summoner::supervisor::Event::WorkgroupAttached {}
+pub variant summoner::supervisor::RoutePref::B
+pub variant summoner::supervisor::RoutePref::ForceA
+pub variant summoner::supervisor::StateSource::Child
+pub variant summoner::supervisor::StateSource::Package
+pub variant summoner::supervisor::WorkgroupRoute::A
+pub variant summoner::supervisor::WorkgroupRoute::B
+pub variant summoner::supervisor::WorkgroupRoute::NoJoin
+pub variant summoner::supervisor::WorkgroupRoute::None

@@ -1,0 +1,30 @@
+name: ci
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+env:
+  CARGO_INCREMENTAL: "0"
+  CARGO_TERM_COLOR: never
+  SUMMONER_VST3_SDK_CACHE: ${{ github.workspace }}/target.noindex/sdk-cache/vst3sdk
+  SUMMONER_AU_SDK_CACHE: ${{ github.workspace }}/target.noindex/sdk-cache/audiounitsdk
+  SUMMONER_DEV_PLUGIN_ROOTS: ${{ github.workspace }}
+jobs:
+  check:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: rustup show active-toolchain
+      - run: cargo fmt --all -- --check
+      - uses: actions/cache@v4
+        with:
+          path: target.noindex/sdk-cache
+          key: sdk-${{ runner.os }}-${{ hashFiles('testkit/plugins/vst3-sdk.pins', 'tools/au-sdk.sh', 'tools/fetch-vst3-subs.sh', 'tools/fetch-au-sdk.sh') }}
+      - run: command -v ninja || brew install ninja
+      - run: tools/build-plugins.sh --fetch
+      - run: cargo clippy --workspace --all-targets --locked --features summoner-host/test-hooks,summoner-proc/test-hooks -- -D warnings
+      - run: SUMMONER_REQUIRE_LAB_PLUGINS=1 cargo test --workspace --locked --no-fail-fast --features summoner-host/test-hooks,summoner-proc/test-hooks -- --test-threads 2
